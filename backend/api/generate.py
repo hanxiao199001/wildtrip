@@ -396,6 +396,69 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
             flags=re.DOTALL
         )
     
+    # === 5. 替换新格式占位符（LINK_格式） ===
+    # 格式：LINK_FOOD_餐厅名、LINK_HOTEL_酒店名、LINK_TICKET_景点名
+    link_pattern = r'\(LINK_(FOOD|HOTEL|TICKET)_([^)]+)\)'
+    link_matches = re.finditer(link_pattern, content)
+    
+    replacements = []
+    for match in link_matches:
+        link_type = match.group(1)
+        name = match.group(2)
+        
+        # 确定分类
+        category_map = {
+            'FOOD': 'food',
+            'HOTEL': 'hotel',
+            'TICKET': 'ticket'
+        }
+        category = category_map.get(link_type, 'food')
+        
+        # 生成链接
+        search_query = f"{city} {name}"
+        if category == 'ticket':
+            search_query += " 门票"
+        
+        link = affiliate.get_search_link(query=search_query, category=category)
+        
+        # 记录替换（避免重复替换导致位置错乱）
+        replacements.append((match.start(), match.end(), f'({link})'))
+    
+    # 从后往前替换（避免位置偏移）
+    for start, end, replacement in reversed(replacements):
+        content = content[:start] + replacement + content[end:]
+    
+    # === 6. 替换所有剩余的占位符（兜底方案） ===
+    # 处理各种格式的占位符（从特殊到通用）
+    placeholder_patterns = [
+        (r'\[美团门票\]\(占位\)', 'ticket'),  # 门票-特定格式
+        (r'\[美团搜索\]\(占位\)', 'food'),    # 美食-搜索
+        (r'\[美团团购\]\(占位\)', 'food'),    # 美食-团购
+        (r'\[查看详情\]\(占位\)', 'hotel'),   # 酒店-查看详情
+        (r'\[官方预约\]\(占位\)', 'ticket'),  # 门票-官方预约
+        (r'\[.*?团购\]\(链接占位\)', 'food'), # 团购-链接占位
+        (r'\[.*?门票\]\(链接占位\)', 'ticket'), # 门票-链接占位
+        (r'\]\(占位\)', 'food'),  # 通用兜底
+    ]
+    
+    for pattern, category in placeholder_patterns:
+        # 持续替换直到没有匹配为止
+        while True:
+            match = re.search(pattern, content)
+            if not match:
+                break
+            
+            # 提取链接文本
+            link_text_match = re.search(r'\[([^\]]+)\]', match.group(0))
+            link_text = link_text_match.group(1) if link_text_match else '美团'
+            
+            # 生成搜索链接
+            search_query = f"{city}"
+            link = affiliate.get_search_link(query=search_query, category=category)
+            
+            # 替换
+            content = content[:match.start()] + f'[{link_text}]({link})' + content[match.end():]
+    
     logger.info(f"🔗 链接替换完成 | 酒店:{len(recommendations['hotels'])} 餐厅:{len(recommendations['restaurants'])} 门票:{len(recommendations['tickets'])}")
     
     return content, recommendations
