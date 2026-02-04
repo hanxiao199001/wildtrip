@@ -10,6 +10,10 @@ from loguru import logger
 import sys
 from pathlib import Path
 
+# 🔥 加载.env配置文件（必须在最前面）
+from dotenv import load_dotenv
+load_dotenv()
+
 # 添加项目路径
 sys.path.insert(0, str(Path(__file__).parent))
 
