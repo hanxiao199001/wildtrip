@@ -25,7 +25,7 @@ class AIEngine:
     
     def generate(self, prompt: str, query: str, mode: str = 'full') -> str:
         """
-        生成攻略内容
+        生成攻略内容（RAG增强）
         
         Args:
             prompt: 完整的prompt（包含system + user）
@@ -42,10 +42,28 @@ class AIEngine:
         try:
             import openai
             
+            # 🔥 RAG步骤1：检索相关攻略
+            rag_context = self._retrieve_relevant_guides(query, mode)
+            
             # 分离system和user prompt
             parts = prompt.split('\n\n', 1)
             system_prompt = parts[0] if len(parts) > 1 else ""
             user_prompt = parts[1] if len(parts) > 1 else prompt
+            
+            # 🔥 RAG步骤2：将检索结果加入prompt
+            if rag_context:
+                user_prompt = f"""{user_prompt}
+
+---
+
+## 📚 参考真实攻略（来自小红书/大众点评）
+
+{rag_context}
+
+---
+
+请结合以上真实攻略，生成更本地化、更新鲜的推荐内容。
+"""
             
             client = openai.OpenAI(
                 api_key=self.api_key,
@@ -57,7 +75,7 @@ class AIEngine:
                 {"role": "user", "content": user_prompt}
             ]
             
-            logger.info(f"🤖 调用AI模型: {self.model}")
+            logger.info(f"🤖 调用AI模型: {self.model} | RAG增强: {'是' if rag_context else '否'}")
             
             response = client.chat.completions.create(
                 model=self.model,
@@ -75,6 +93,64 @@ class AIEngine:
             logger.error(f"❌ AI生成失败: {e}")
             logger.info("🔧 回退到Mock数据")
             return self._generate_mock(query, mode)
+    
+    def _retrieve_relevant_guides(self, query: str, mode: str) -> str:
+        """
+        从RAG数据库检索相关攻略
+        
+        Args:
+            query: 用户查询
+            mode: 模式（full/hotel/food）
+            
+        Returns:
+            格式化的参考攻略文本
+        """
+        try:
+            from services.rag_engine import get_rag_engine
+            from prompts.wildtrip_prompt import extract_city_name
+            
+            # 提取城市
+            city = extract_city_name(query)
+            
+            # 确定检索类型
+            guide_type = None
+            if mode == 'hotel':
+                guide_type = 'hotel'
+            elif mode == 'food':
+                guide_type = 'food'
+            # full模式不限制类型
+            
+            # 检索
+            rag = get_rag_engine()
+            results = rag.search(
+                query=query,
+                n_results=5,  # 最多5条
+                city=city,
+                guide_type=guide_type
+            )
+            
+            if not results:
+                logger.info("📚 RAG数据库为空，跳过检索")
+                return ""
+            
+            # 格式化结果
+            context_parts = []
+            for i, r in enumerate(results, 1):
+                metadata = r.get('metadata', {})
+                context_parts.append(f"""
+### 参考{i}：{metadata.get('title', '攻略')}
+**来源：** {metadata.get('source', '未知')} | **作者：** {metadata.get('author', '匿名')} | **点赞：** {metadata.get('likes', 0)}
+**标签：** {', '.join(metadata.get('tags', []))}
+
+{r['content'][:500]}...
+""")
+            
+            logger.info(f"📚 RAG检索完成: {len(results)}条参考攻略")
+            return "\n".join(context_parts)
+            
+        except Exception as e:
+            logger.warning(f"⚠️ RAG检索失败: {e}")
+            return ""
 
     def _get_city_data(self, city: str) -> dict:
         """
