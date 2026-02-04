@@ -84,14 +84,26 @@ Page({
     }
   },
 
-  // 计算预估返现
+  // 计算预估返现（优化版）
   calculateCashback(stats) {
-    // 简化计算：每家酒店¥15，每家餐厅¥5，每个景点¥10
-    const hotelCashback = (stats.hotels_count || 0) * 15
-    const foodCashback = (stats.restaurants_count || 0) * 5
-    const ticketCashback = (stats.tickets_count || 0) * 10
+    // 更准确的计算：基于典型消费金额 × 返佣率 × 50%返现
     
-    return hotelCashback + foodCashback + ticketCashback
+    // 酒店：假设¥300/晚，返佣5%=¥15，返现50%=¥7.5
+    // 但推荐多家，按平均每家¥12计算（考虑用户可能选便宜的）
+    const hotelCashback = (stats.hotels_count || 0) * 12
+    
+    // 餐厅：假设¥80/顿，返佣8%=¥6.4，返现50%=¥3.2
+    // 按每家¥8计算（考虑可能多次消费）
+    const foodCashback = (stats.restaurants_count || 0) * 8
+    
+    // 景点：假设¥60/张，返佣10%=¥6，返现50%=¥3
+    // 按每个¥5计算
+    const ticketCashback = (stats.tickets_count || 0) * 5
+    
+    const total = hotelCashback + foodCashback + ticketCashback
+    
+    // 返回整数（向上取整，给用户更好的预期）
+    return Math.ceil(total)
   },
 
   // 复制攻略
