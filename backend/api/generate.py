@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from services.ai_engine import AIEngine
-from services.affiliate import MeituanAffiliate
+from services.affiliate import get_meituan_affiliate
 from prompts.wildtrip_prompt import build_wildtrip_prompt
 
 # 创建Blueprint
@@ -27,7 +27,7 @@ active_tasks = {}
 
 # 初始化服务
 ai_engine = AIEngine()
-affiliate = MeituanAffiliate()
+affiliate = get_meituan_affiliate()  # 🔥 修复：使用函数读取环境变量
 
 
 @generate_bp.route('/generate', methods=['POST'])
