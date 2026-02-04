@@ -7,13 +7,13 @@
     <view class="header-desc">唯一给你返钱的旅游AI</view>
   </view>
 
-  <!-- vs 马蜂窝 -->
+  <!-- vs 传统平台 -->
   <view class="compare-section card">
-    <view class="section-title">🆚 vs 马蜂窝</view>
+    <view class="section-title">🆚 vs 传统平台</view>
     <view class="compare-table">
       <view class="compare-row header-row">
         <view class="compare-cell">对比项</view>
-        <view class="compare-cell">马蜂窝</view>
+        <view class="compare-cell">传统平台</view>
         <view class="compare-cell highlight">野游记</view>
       </view>
       <view class="compare-row">

@@ -12,7 +12,7 @@
     <view class="feature-item">
       <view class="feature-icon">🚀</view>
       <view class="feature-title">30秒生成</view>
-      <view class="feature-desc">vs 马蜂窝5分钟</view>
+      <view class="feature-desc">传统平台需5分钟</view>
     </view>
     <view class="feature-item">
       <view class="feature-icon">😴</view>

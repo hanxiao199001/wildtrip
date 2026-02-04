@@ -39,7 +39,7 @@
     <view class="compare-title">⚡️ 速度对比</view>
     <view class="compare-items">
       <view class="compare-item">
-        <view class="compare-label">马蜂窝</view>
+        <view class="compare-label">传统平台</view>
         <view class="compare-time">5分钟</view>
         <view class="compare-desc">多轮对话</view>
       </view>
