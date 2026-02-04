@@ -13,7 +13,11 @@ Page({
       restaurants_count: 0,
       tickets_count: 0
     },
-    estimatedCashback: 0
+    estimatedCashback: 0,
+    links: [],  // 🔥 所有可点击链接
+    hotelLinks: [],  // 酒店链接
+    restaurantLinks: [],  // 餐厅链接
+    ticketLinks: []  // 门票链接
   },
 
   onLoad(options) {
@@ -43,12 +47,22 @@ Page({
         // 计算预估返现
         const cashback = this.calculateCashback(result.stats || {})
 
+        // 🔥 处理链接数据，分类
+        const links = result.links || []
+        const hotelLinks = links.filter(link => link.type === 'hotel')
+        const restaurantLinks = links.filter(link => link.type === 'restaurant')
+        const ticketLinks = links.filter(link => link.type === 'ticket')
+
         this.setData({
           loading: false,
           result,
           content: result.content || '',
           stats: result.stats || {},
-          estimatedCashback: cashback
+          estimatedCashback: cashback,
+          links,  // 🔥 所有链接
+          hotelLinks,  // 酒店链接
+          restaurantLinks,  // 餐厅链接
+          ticketLinks  // 门票链接
         })
       } else if (res.status === 'failed') {
         this.setData({

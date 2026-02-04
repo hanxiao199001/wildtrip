@@ -204,12 +204,37 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict):
             'tickets_count': len(recommendations.get('tickets', []))
         }
         
+        # 🔥 提取所有链接，供前端渲染按钮
+        all_links = []
+        for hotel in recommendations.get('hotels', []):
+            all_links.append({
+                'type': 'hotel',
+                'name': hotel['name'],
+                'url': hotel['link'],
+                'button_text': f"预订 {hotel['name']}"
+            })
+        for restaurant in recommendations.get('restaurants', []):
+            all_links.append({
+                'type': 'restaurant',
+                'name': restaurant['name'],
+                'url': restaurant['link'],
+                'button_text': f"团购 {restaurant['name']}"
+            })
+        for ticket in recommendations.get('tickets', []):
+            all_links.append({
+                'type': 'ticket',
+                'name': ticket['name'],
+                'url': ticket['link'],
+                'button_text': f"购票 {ticket['name']}"
+            })
+        
         # 完成
         active_tasks[task_id]['status'] = 'completed'
         active_tasks[task_id]['progress'] = 100
         active_tasks[task_id]['result'] = {
             'content': enhanced_content,
             'recommendations': recommendations,
+            'links': all_links,  # 🔥 新增：所有可点击链接
             'stats': stats
         }
         

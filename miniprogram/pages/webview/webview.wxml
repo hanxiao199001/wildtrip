@@ -1,0 +1,2 @@
+<!--WebView页面 - 打开美团链接-->
+<web-view src="{{url}}" bindmessage="onMessage" binderror="onError"></web-view>

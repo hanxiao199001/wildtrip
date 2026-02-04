@@ -41,6 +41,58 @@
       <text class="content-text" decode="{{true}}">{{content}}</text>
     </view>
 
+    <!-- 🔥 快速预订区域 -->
+    <view class="quick-booking card" wx:if="{{links && links.length > 0}}">
+      <view class="section-title">🔥 快速预订（返现50%）</view>
+      
+      <!-- 酒店按钮 -->
+      <view class="link-group" wx:if="{{hotelLinks.length > 0}}">
+        <view class="group-label">🏨 酒店预订</view>
+        <view class="link-buttons">
+          <navigator 
+            wx:for="{{hotelLinks}}" 
+            wx:key="name"
+            url="/pages/webview/webview?url={{item.url}}&title={{item.name}}"
+            class="link-btn hotel-btn"
+          >
+            {{item.name}}
+          </navigator>
+        </view>
+      </view>
+
+      <!-- 餐厅按钮 -->
+      <view class="link-group" wx:if="{{restaurantLinks.length > 0}}">
+        <view class="group-label">🍜 美食团购</view>
+        <view class="link-buttons">
+          <navigator 
+            wx:for="{{restaurantLinks}}" 
+            wx:key="name"
+            url="/pages/webview/webview?url={{item.url}}&title={{item.name}}"
+            class="link-btn food-btn"
+          >
+            {{item.name}}
+          </navigator>
+        </view>
+      </view>
+
+      <!-- 门票按钮 -->
+      <view class="link-group" wx:if="{{ticketLinks.length > 0}}">
+        <view class="group-label">🎫 门票购买</view>
+        <view class="link-buttons">
+          <navigator 
+            wx:for="{{ticketLinks}}" 
+            wx:key="name"
+            url="/pages/webview/webview?url={{item.url}}&title={{item.name}}"
+            class="link-btn ticket-btn"
+          >
+            {{item.name}}
+          </navigator>
+        </view>
+      </view>
+
+      <view class="cashback-tip">💡 通过上方链接预订，返现50%给你！</view>
+    </view>
+
     <!-- 操作按钮 -->
     <view class="actions">
       <button class="btn-secondary" bindtap="onCopy">复制攻略</button>

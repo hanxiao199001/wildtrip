@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/generate/generate",
     "pages/result/result",
-    "pages/cashback/cashback"
+    "pages/cashback/cashback",
+    "pages/webview/webview"
   ],
   "window": {
     "navigationBarTitleText": "野游记",
