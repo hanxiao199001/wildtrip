@@ -1,0 +1,57 @@
+<!--攻略结果页面-->
+<view class="page-container result-page">
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 结果内容 -->
+  <view wx:if="{{!loading && result}}">
+    <!-- 返现横幅 -->
+    <view class="cashback-banner">
+      <view class="cashback-icon">💰</view>
+      <view class="cashback-content">
+        <view class="cashback-title">预计返现 ¥{{estimatedCashback}}</view>
+        <view class="cashback-desc">预订后7-30天到账</view>
+      </view>
+    </view>
+
+    <!-- 统计信息 -->
+    <view class="stats-bar">
+      <view class="stat-item">
+        <view class="stat-icon">🏨</view>
+        <view class="stat-value">{{stats.hotels_count}}</view>
+        <view class="stat-label">家酒店</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-icon">🍜</view>
+        <view class="stat-value">{{stats.restaurants_count}}</view>
+        <view class="stat-label">家餐厅</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-icon">🎫</view>
+        <view class="stat-value">{{stats.tickets_count}}</view>
+        <view class="stat-label">个景点</view>
+      </view>
+    </view>
+
+    <!-- 攻略内容 -->
+    <view class="content-card card">
+      <text class="content-text" decode="{{true}}">{{content}}</text>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions">
+      <button class="btn-secondary" bindtap="onCopy">复制攻略</button>
+      <button class="btn-primary" bindtap="onShare">分享好友</button>
+    </view>
+  </view>
+
+  <!-- 错误状态 -->
+  <view class="error" wx:if="{{!loading && error}}">
+    <view class="error-icon">❌</view>
+    <view class="error-text">{{error}}</view>
+    <button class="btn-primary" bindtap="onRetry">重新生成</button>
+  </view>
+</view>

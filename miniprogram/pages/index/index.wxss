@@ -1,0 +1,192 @@
+/* 野游记首页样式 */
+
+.index-page {
+  padding: 32rpx;
+}
+
+/* 头部 */
+.header {
+  text-align: center;
+  padding: 48rpx 0 64rpx;
+}
+
+.logo {
+  font-size: 120rpx;
+  margin-bottom: 16rpx;
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16rpx;
+}
+
+.slogan {
+  font-size: 28rpx;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* 特性展示 */
+.features {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 48rpx;
+}
+
+.feature-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx;
+  background: var(--bg-card);
+  border-radius: var(--radius-normal);
+  margin: 0 8rpx;
+  box-shadow: var(--shadow-light);
+}
+
+.feature-icon {
+  font-size: 64rpx;
+  margin-bottom: 12rpx;
+}
+
+.feature-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.feature-desc {
+  font-size: 24rpx;
+  color: var(--text-hint);
+}
+
+/* 搜索区域 */
+.search-section {
+  margin-bottom: 48rpx;
+}
+
+.search-label {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24rpx;
+}
+
+.search-input {
+  width: 100%;
+  min-height: 160rpx;
+  background: #F8F8F8;
+  border-radius: var(--radius-normal);
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  box-sizing: border-box;
+  margin-bottom: 16rpx;
+}
+
+.search-tips {
+  margin-bottom: 32rpx;
+}
+
+.tip-item {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 2;
+  padding-left: 8rpx;
+}
+
+.search-btn {
+  width: 100%;
+}
+
+.search-btn[disabled] {
+  opacity: 0.6;
+}
+
+/* 案例展示 */
+.examples {
+  margin-bottom: 48rpx;
+}
+
+.examples-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24rpx;
+}
+
+.example-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.example-item {
+  background: var(--bg-card);
+  border-radius: var(--radius-normal);
+  padding: 20rpx 24rpx;
+  margin-right: 16rpx;
+  margin-bottom: 16rpx;
+  box-shadow: var(--shadow-light);
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.example-item:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-card);
+}
+
+.example-text {
+  font-size: 26rpx;
+  color: var(--text-primary);
+  margin-right: 12rpx;
+}
+
+.example-tag {
+  flex-shrink: 0;
+}
+
+/* 返现横幅 */
+.cashback-banner {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(95, 204, 196, 0.1) 100%);
+  border: 2rpx solid var(--primary-color);
+  transition: all 0.3s ease;
+}
+
+.cashback-banner:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-card);
+}
+
+.cashback-icon {
+  font-size: 64rpx;
+  margin-right: 24rpx;
+}
+
+.cashback-content {
+  flex: 1;
+}
+
+.cashback-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 8rpx;
+}
+
+.cashback-desc {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.cashback-arrow {
+  font-size: 48rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+}

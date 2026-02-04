@@ -1,0 +1,60 @@
+<!--攻略生成页面-->
+<view class="page-container generate-page">
+  <!-- 进度卡片 -->
+  <view class="progress-card card">
+    <view class="progress-header">
+      <view class="progress-icon">{{statusIcon}}</view>
+      <view class="progress-title">{{statusText}}</view>
+    </view>
+
+    <!-- 进度条 -->
+    <view class="progress-bar-container">
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{progress}}%"></view>
+      </view>
+      <view class="progress-percent">{{progress}}%</view>
+    </view>
+
+    <!-- 进度消息 -->
+    <view class="progress-messages">
+      <view 
+        class="progress-message" 
+        wx:for="{{messages}}" 
+        wx:key="index"
+      >
+        <view class="message-time">{{item.time}}</view>
+        <view class="message-text">{{item.text}}</view>
+      </view>
+    </view>
+
+    <!-- 查询内容 -->
+    <view class="query-display">
+      <view class="query-label">您的需求：</view>
+      <view class="query-text">{{query}}</view>
+    </view>
+  </view>
+
+  <!-- 速度对比 -->
+  <view class="speed-compare card">
+    <view class="compare-title">⚡️ 速度对比</view>
+    <view class="compare-items">
+      <view class="compare-item">
+        <view class="compare-label">马蜂窝</view>
+        <view class="compare-time">5分钟</view>
+        <view class="compare-desc">多轮对话</view>
+      </view>
+      <view class="compare-divider">vs</view>
+      <view class="compare-item active">
+        <view class="compare-label">野游记</view>
+        <view class="compare-time">30秒</view>
+        <view class="compare-desc">一次搞定</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 返现提示 -->
+  <view class="cashback-hint card">
+    <view class="hint-icon">💰</view>
+    <view class="hint-text">预订返现50%，真省钱！</view>
+  </view>
+</view>
