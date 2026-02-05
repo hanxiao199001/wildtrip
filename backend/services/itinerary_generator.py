@@ -61,7 +61,12 @@ class ItineraryGenerator:
         
         # 🔥 生成住宿推荐section（追加到时间线后面）
         hotels_html = self._extract_hotels_section(content)
+        hotel_quick_card = ''
+        
         if hotels_html:
+            # 提取第一家酒店信息，生成顶部快速预订卡片
+            hotel_quick_card = self._generate_hotel_quick_card(content)
+            
             timeline_content += f'''
 <div style="margin-top: 32px;">
     <h2 style="font-size: 22px; font-weight: 700; color: #1f2937; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #10B981;">
@@ -89,6 +94,11 @@ class ItineraryGenerator:
         html = html.replace('{{DAY_TABS}}', day_tabs)
         html = html.replace('{{TIMELINE_CONTENT}}', timeline_content)
         html = html.replace('{{ICS_DATA}}', json.dumps(ics_data, ensure_ascii=False))
+        
+        # 🔥 插入酒店快速预订卡片（如果有的话）
+        if hotel_quick_card:
+            html = html.replace('<!-- 这里会通过JS动态插入酒店预订卡片 -->', hotel_quick_card)
+            html = html.replace('style="display:none;"', '')  # 显示卡片容器
         
         return html
     
@@ -450,6 +460,69 @@ class ItineraryGenerator:
         hotels_html += '</div>'
         
         return hotels_html
+
+
+    def _generate_hotel_quick_card(self, content: str) -> str:
+        """
+        生成顶部酒店快速预订卡片（醒目位置）
+        
+        提取第一家推荐酒店的信息
+        """
+        # 查找住宿section
+        hotel_pattern = r'##\s*(?:🏨\s*)?住宿推荐(.*?)(?=##\s+[^#]|$)'
+        hotel_match = re.search(hotel_pattern, content, re.S | re.I)
+        
+        if not hotel_match:
+            return ''
+        
+        hotel_content = hotel_match.group(1).strip()
+        
+        # 解析第一家酒店信息
+        hotel_item_pattern = r'###\s*\d+\.\s*([^¥\n]+)[¥￥](\d+)/晚.*?⭐([\d.]+)(.*?)(?=###\s*\d+\.|$)'
+        hotels = re.findall(hotel_item_pattern, hotel_content, re.S)
+        
+        if not hotels:
+            return ''
+        
+        # 取第一家酒店
+        name, price, rating, details = hotels[0]
+        name = name.strip()
+        price = int(price)
+        
+        # 提取特点
+        feature_match = re.search(r'\*\*特点[：:]\*\*\s*([^\n]+)', details)
+        features = feature_match.group(1).strip() if feature_match else name
+        
+        # 计算返现和折扣后价格
+        cashback = 50  # 假设返现50元
+        discounted_price = price - cashback
+        
+        # 生成酒店预订按钮
+        from services.affiliate_manager import get_affiliate_manager
+        
+        affiliate_mgr = get_affiliate_manager()
+        booking_link_info = affiliate_mgr.generate_booking_link('hotel', name, '')
+        booking_url = booking_link_info['url']
+        
+        return f"""
+<div class="hotel-quick-card" style="position: relative;">
+    <div class="hotel-cashback-tag">返¥{cashback}</div>
+    <div class="hotel-quick-header">
+        <div class="hotel-quick-icon">🏨</div>
+        <div class="hotel-quick-info">
+            <h3>{features}</h3>
+            <div class="hotel-quick-price">
+                <span class="hotel-price-original">¥{price}</span>
+                <span>→</span>
+                <span class="hotel-price-discount">¥{discounted_price}/晚</span>
+            </div>
+        </div>
+    </div>
+    <a href="{booking_url}" class="hotel-quick-book-btn" target="_blank" rel="noopener">
+        💰 ¥{cashback} 即将到账 → 立即预订
+    </a>
+</div>
+"""
 
 
 # 单例
