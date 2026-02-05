@@ -37,6 +37,9 @@ class ItineraryGenerator:
         # 🔥 预处理：转换Markdown表格
         content = self._convert_markdown_tables(content)
         
+        # 🔥 预处理：转换Markdown链接为HTML按钮
+        content = self._convert_markdown_links_to_buttons(content, query)
+        
         # 提取信息
         title = self._extract_title(query, content)
         days_info = self._extract_days_info(query, content)
@@ -559,6 +562,67 @@ class ItineraryGenerator:
             return html
         
         return re.sub(table_pattern, replace_table, text, flags=re.MULTILINE)
+
+    def _convert_markdown_links_to_buttons(self, text: str, query: str) -> str:
+        """
+        将Markdown链接转换为HTML按钮
+        
+        修复问题：[美团预订](url)等Markdown链接没有渲染
+        """
+        import re
+        from services.affiliate_manager import get_affiliate_manager
+        
+        # 提取城市（用于生成联盟链接）
+        city_match = re.search(r'([\u4e00-\u9fa5]{2,})\d*天', query)
+        city = city_match.group(1) if city_match else ''
+        
+        affiliate_mgr = get_affiliate_manager()
+        
+        # 查找所有Markdown链接：[文本](url) 或 [文本](LINK_XXX_名称)
+        link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+        
+        def replace_link(match):
+            link_text = match.group(1)
+            link_url = match.group(2)
+            
+            # 如果是占位符（LINK_FOOD_名称等），生成真实按钮
+            if link_url.startswith('LINK_'):
+                parts = link_url.split('_', 2)
+                if len(parts) == 3:
+                    _, poi_type, name = parts
+                    type_map = {'FOOD': 'restaurant', 'HOTEL': 'hotel', 'TICKET': 'ticket'}
+                    real_type = type_map.get(poi_type, 'restaurant')
+                    return affiliate_mgr.render_booking_button(
+                        poi_type=real_type,
+                        name=name,
+                        city=city
+                    )
+            
+            # 如果是URL链接，判断按钮类型
+            if '美团' in link_text or '团购' in link_text:
+                # 从前文提取名称
+                before_text = text[:match.start()]
+                name_match = re.search(r'[\*]{0,2}([^\*\n]{2,10})[\*]{0,2}[\s]*$', before_text)
+                name = name_match.group(1).strip() if name_match else '商家'
+                
+                # 判断类型
+                if '酒店' in name or '宾馆' in name or '民宿' in name:
+                    poi_type = 'hotel'
+                elif any(word in name for word in ['餐厅', '馆', '店', '楼', '坊']):
+                    poi_type = 'restaurant'
+                else:
+                    poi_type = 'ticket'
+                
+                return affiliate_mgr.render_booking_button(
+                    poi_type=poi_type,
+                    name=name,
+                    city=city
+                )
+            
+            # 保留原样（普通链接）
+            return match.group(0)
+        
+        return re.sub(link_pattern, replace_link, text)
 
 
 # 单例
