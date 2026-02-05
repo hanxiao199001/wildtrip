@@ -52,20 +52,39 @@ class ImageCrawler:
             本地图片路径列表（相对路径，如 /images/xxx.jpg）
         """
         try:
+            # 🔥 优化搜索关键词：添加限定词，避免抓到营销图/分析图
+            # 检测关键词类型，添加合适的限定词
+            enhanced_keyword = keyword
+            
+            # 酒店类：添加"外观"或"大堂"
+            if any(word in keyword for word in ['酒店', '民宿', '客栈', '度假村', '旅馆', '宾馆', '青旅']):
+                enhanced_keyword = f"{keyword} 外观 实拍"
+            # 餐厅类：添加"店面"或"菜品"
+            elif any(word in keyword for word in ['餐厅', '饭店', '火锅', '烧烤', '小吃', '店', '馆', '楼']):
+                enhanced_keyword = f"{keyword} 店面 菜品"
+            # 景点类：添加"景点"或"风景"
+            elif any(word in keyword for word in ['公园', '景区', '海滩', '岛', '山', '寺', '塔', '博物馆', '广场', '古镇', '村']):
+                enhanced_keyword = f"{keyword} 景点 风景 实拍"
+            else:
+                # 通用：添加"实拍照片"
+                enhanced_keyword = f"{keyword} 实拍照片"
+            
             # 为这次搜索创建临时目录
             import time
             temp_dir = f'/tmp/icrawler_{int(time.time() * 1000)}'
             os.makedirs(temp_dir, exist_ok=True)
             
+            logger.info(f"🔍 搜索图片: {keyword} → {enhanced_keyword}")
+            
             # 使用百度图片爬虫（国内速度快）
             try:
                 crawler = BaiduImageCrawler(storage={'root_dir': temp_dir})
-                crawler.crawl(keyword=keyword, max_num=max_images, min_size=(200, 200))
+                crawler.crawl(keyword=enhanced_keyword, max_num=max_images, min_size=(200, 200))
             except:
                 # 百度失败，尝试必应
                 logger.warning(f"⚠️ 百度爬取失败，尝试必应...")
                 crawler = BingImageCrawler(storage={'root_dir': temp_dir})
-                crawler.crawl(keyword=keyword, max_num=max_images, min_size=(200, 200))
+                crawler.crawl(keyword=enhanced_keyword, max_num=max_images, min_size=(200, 200))
             
             # 获取下载的图片文件
             downloaded_files = []

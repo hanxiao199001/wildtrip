@@ -20,8 +20,8 @@ function markdownToHtml(markdown) {
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
         .replace(/^## (.*$)/gim, '<h2>$1</h2>')
         .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        // 🔥 Images (before links!)
-        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />')
+        // 🔥 Images (before links!) - 统一尺寸，居中显示
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<div style="text-align: center; margin: 24px 0; padding: 0;"><img src="$2" alt="$1" style="max-width: 90%; max-height: 500px; height: auto; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: inline-block;" loading="lazy" /></div>')
         // Bold
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         // 🔥 特殊处理：美团搜索提示 → 渲染为醒目按钮
