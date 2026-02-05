@@ -208,16 +208,50 @@ class ItineraryGenerator:
                 
                 # 如果是餐厅，添加价格、评分、预订按钮
                 if item['type'] == 'food' and item.get('price'):
+                    # 使用新的联盟链接管理器
+                    from services.affiliate_manager import get_affiliate_manager
+                    
+                    affiliate_mgr = get_affiliate_manager()
+                    booking_btn = affiliate_mgr.render_booking_button(
+                        poi_type='restaurant',
+                        name=item['title'],
+                        price=item.get('price'),
+                        cashback=item.get('cashback', 5),
+                        city=''  # TODO: 从query提取城市
+                    )
+                    
                     content_html += f'''
 <div class="restaurant-info">
     <span class="restaurant-price">¥{item["price"]}/人</span>
     <span class="restaurant-rating">⭐ {item.get("rating", "4.5")}</span>
     {f'<span class="cashback-tag">返¥{item["cashback"]}</span>' if item.get("cashback") else ''}
 </div>
-<button class="booking-btn" onclick="bookRestaurant('{item["title"]}', '{item.get("search_keyword", item["title"])}')">
-    立即预订，返¥{item.get("cashback", 5)}
-</button>
+{booking_btn}
 '''
+                
+                # 如果是酒店，添加预订按钮
+                if item['type'] == 'hotel' or '酒店' in item['title'] or '民宿' in item['title']:
+                    from services.affiliate_manager import get_affiliate_manager
+                    
+                    affiliate_mgr = get_affiliate_manager()
+                    booking_btn = affiliate_mgr.render_booking_button(
+                        poi_type='hotel',
+                        name=item['title'],
+                        city=''
+                    )
+                    content_html += f'\n{booking_btn}'
+                
+                # 如果是景点/门票，添加预订按钮
+                elif any(word in item['title'] for word in ['公园', '景区', '博物馆', '寺', '塔', '山', '岛']):
+                    from services.affiliate_manager import get_affiliate_manager
+                    
+                    affiliate_mgr = get_affiliate_manager()
+                    booking_btn = affiliate_mgr.render_booking_button(
+                        poi_type='ticket',
+                        name=item['title'],
+                        city=''
+                    )
+                    content_html += f'\n{booking_btn}'
                 
                 items_html += f'''
 <div class="timeline-item">

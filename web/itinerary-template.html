@@ -384,16 +384,32 @@
         }
         
         .booking-btn {
+            display: block;
             width: 100%;
             padding: 14px;
-            background: linear-gradient(90deg, #FB923C 0%, #F87171 100%);
             color: white;
+            text-decoration: none;
+            text-align: center;
             border: none;
             border-radius: 12px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
             margin-top: 12px;
+            transition: all 0.3s;
+        }
+        
+        .booking-btn.approved {
+            background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+        }
+        
+        .booking-btn.pending {
+            background: linear-gradient(90deg, #FB923C 0%, #F87171 100%);
+        }
+        
+        .booking-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
         /* 底部添加到日历按钮 */
@@ -469,7 +485,12 @@
             <div class="notice-icon">💰</div>
             <div class="notice-content">
                 <div class="notice-title">攻略带返现！</div>
-                <div class="notice-desc">点击下方黄色按钮前往美团预订，购买后自动获得返现奖励 🤑</div>
+                <div class="notice-desc">
+                    • 🍔 餐饮：美团联盟返现<br>
+                    • 🏨 酒店/🎫 门票：飞猪联盟返现<br>
+                    • 🟠 橙色按钮 = 审核中（搜索）<br>
+                    • 🟢 绿色按钮 = 审核通过（返现）
+                </div>
             </div>
         </div>
         
@@ -605,11 +626,7 @@
             URL.revokeObjectURL(url);
         }
         
-        // 预订
-        function bookRestaurant(name, keyword) {
-            const url = `https://i.meituan.com/search?q=${encodeURIComponent(keyword)}`;
-            window.open(url, '_blank');
-        }
+        // 预订按钮现在直接使用<a>链接，不需要JavaScript函数
     </script>
 </body>
 </html>
