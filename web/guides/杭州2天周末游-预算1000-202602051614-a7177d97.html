@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>杭州2天周末游，预算1000 - 野游记</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #f5f7fa;
+        }
+        
+        /* 顶部导航 */
+        .nav {
+            background: white;
+            padding: 16px 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2563eb;
+        }
+        
+        /* 内容容器 */
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        
+        /* Section标题 */
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin: 24px 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #2563eb;
+            display: inline-block;
+            width: auto;
+            margin-left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* 信息卡片 */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .info-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 12px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .info-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        /* Day卡片 */
+        .day-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .day-badge {
+            width: 44px;
+            height: 44px;
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .day-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            margin: 16px 0;
+            font-size: 15px;
+        }
+        
+        .timeline-time {
+            width: 60px;
+            flex-shrink: 0;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        
+        .timeline-content {
+            flex: 1;
+            color: #4b5563;
+            line-height: 1.7;
+        }
+        
+        /* 预订链接 */
+        .booking-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .booking-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* 预订卡片（内嵌在Day中）*/
+        .inline-booking {
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+            border: 2px solid #FFB300;
+            border-radius: 10px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        
+        .inline-booking-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .inline-booking-name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .inline-booking-price {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #DC2626;
+        }
+        
+        .cashback-badge {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .inline-booking-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="nav">
+        <div class="nav-title">杭州2天周末游</div>
+    </div>
+    
+    <!-- 内容 -->
+    <div class="container">
+        <div class="section-title">行程规划与路线安排</div>
+<div class="info-card">
+    <h3>整体时间安排</h3>
+    <div class="info-item"><span class="info-icon">📅</span><div>总时长：** 2天1夜</div></div><div class="info-item"><span class="info-icon">💰</span><div>预算：** 人均¥1000（精打细算版）</div></div><div class="info-item"><span class="info-icon">👥</span><div>适合：** 年轻情侣/好友结伴，不爱扎堆、追求松弛感、对美食有要求的“反卷”旅行家。</div></div>
+</div>
+<div class="section-title">详细行程安排</div>
+<div class="day-card">
+    <div class="day-header">
+        <div class="day-badge">1</div>
+        <div class="day-title">Day 1：西湖西线秘境 + 运河文艺夜</div>
+    </div>
+    <div class="timeline-item"><div class="timeline-time">09:00</div><div class="timeline-content">茅家埠</div></div><div class="timeline-item"><div class="timeline-time">12:00</div><div class="timeline-content">午餐</div></div><div class="timeline-item"><div class="timeline-time">14:00</div><div class="timeline-content">郭庄 & 杭州花圃</div></div><div class="timeline-item"><div class="timeline-time">16:30</div><div class="timeline-content">云松书舍</div></div><div class="timeline-item"><div class="timeline-time">18:30</div><div class="timeline-content">晚餐（小河直街区域）</div></div>
+</div>
+
+<div class="day-card">
+    <div class="day-header">
+        <div class="day-badge">2</div>
+        <div class="day-title">Day 2：茶山吸氧 + 老街扫荡</div>
+    </div>
+    <div class="timeline-item"><div class="timeline-time">09:00</div><div class="timeline-content">龙井村-十里琅珰徒步入口</div></div><div class="timeline-item"><div class="timeline-time">11:30</div><div class="timeline-content">下山至梅家坞</div></div><div class="timeline-item"><div class="timeline-time">13:00</div><div class="timeline-content">午餐（梅家坞或转战市区）</div></div><div class="timeline-item"><div class="timeline-time">15:00</div><div class="timeline-content">大马弄逛吃</div></div><div class="timeline-item"><div class="timeline-time">17:00</div><div class="timeline-content">返程前最后一杯</div></div>
+</div>
+
+<div class="info-card">
+    <h3>1. 设计之选：杭州虚谷酒店</h3>
+    <div class="info-item"><div>价格： ¥450/晚 ⭐4.8 位置： 距离西湖景区2km，近西溪湿地 特色： 由老厂房改造的工业风设计酒店，每个房间风格迥异，艺术感爆棚。公共区域巨大，有展厅、酒吧，拍照超级出片。 为什么推荐： 这个价位能住到设计感如此强的酒店，在杭州性价比无敌。适合喜欢拍照、追求独特住宿体验的年轻人。 预订： <a href="https://i.meituan.com/search?q=杭州虚谷酒店" class="booking-link" target="_blank">美团预订</a></div></div>
+</div>
+
+<div class="info-card">
+    <h3>2. 舒适选择：杭州运河院子民宿</h3>
+    <div class="info-item"><div>价格： ¥320/晚 ⭐4.7 位置： 桥西历史街区里，出门就是拱宸桥 特色： 白墙黛瓦的中式庭院民宿，房间古朴雅致。晚上非常安静，能听到运河的水声。 为什么推荐： 住在运河边的历史街区里，才是真正沉浸式体验杭州。去小河直街、大兜路历史街区步行即可，交通便利又避开了最喧闹的景区。 预订： <a href="https://i.meituan.com/search?q=杭州运河院子民宿" class="booking-link" target="_blank">美团预订</a></div></div>
+</div>
+
+<div class="info-card">
+    <h3>3. 经济选择：杭州走走停停青年旅舍（西湖店）</h3>
+    <div class="info-item"><div>价格： ¥150/晚（床位） ¥320/晚（大床房） ⭐4.6 位置： 青芝坞，步行到植物园和西湖边都很近 特色： 青芝坞是杭州青年旅舍聚集地，这家是其中口碑很好的。公共区域氛围好，适合独自旅行或结伴的年轻人。也有独立的客房，干净整洁。 为什么推荐： 地理位置绝佳，价格对学生党和预算有限的背包客非常友好。青芝坞本身也是一条文艺小街，吃喝方便。 预订： <a href="https://i.meituan.com/search?q=杭州走走停停青年旅舍" class="booking-link" target="_blank">美团预订</a></div></div>
+</div>
+
+<div class="info-card">
+    <h3>💰 费用预算（人均）</h3>
+    <div class="info-item"><div>| 项目 | 金额 | 说明 | |------|------|------| | 住宿 | ¥320 | 1晚，选择“运河院子”档次 | | 餐饮 | ¥300 | 2顿午餐+1顿晚餐+小吃饮料 | | 门票 | ¥10 | 仅郭庄门票 | | 交通 | ¥120 | 市内打车/公交（两人分摊更省） | | 其他 | ¥50 | 喝茶、咖啡等弹性消费 | | 总计 | ¥800 | 轻松控制在1000预算内，还有富余！ |</div></div>
+</div>
+
+<div class="info-card">
+    <h3>💡 省钱Tips（野路子版）</h3>
+    <div class="info-item"><div>1. 交通玄学： 在西湖景区，骑共享单车+步行是王道，灵活自由还省钱。远距离用打车软件拼车或快车，比出租车便宜。 2. 吃饭心法： 午餐吃好，晚餐简单。把预算留给午餐的特色餐厅，晚餐可以用一碗地道拌川或小吃解决，美味又省钱。 3. 门票为0： 杭州的精髓很多都是免费的：西湖、茅家埠、云松书舍、大马弄、茶山徒步……善用免费资源，旅行质感反而更高。 4. 野路子伴手礼： 别在景区买龙井！去解放路茶叶市场，找一家店试喝，买一两自己喝的散茶，价格实在很多。或者从大马弄买点蒋师傅酥鱼、酱鸭带走，比糕点特别。</div></div>
+</div>
+
+<div class="info-card">
+    <h3>⚠️ 避坑指南（说点大实话）</h3>
+    <div class="info-item"><div>1. 别去的地方： 河坊街主街。完完全全的义乌小商品市场杭州分场，人挤人，东西难吃又贵。如果非要感受，走旁边的大井巷或中山中路，安静有味道。 2. 别吃的餐厅： 西湖边拿着菜单拉客的“杭帮菜”馆子。尤其是“西湖醋鱼”，这道菜极其考验食材和手艺，普通馆子做不好，又贵又难吃概率99%。 3. 别信的故事： 龙井村路边拉你去家里喝茶买茶的大妈。套路深，容易踩坑。想体验，去明码标价的茶馆或梅家坞找家看着朴实的。 4. 别住的区域： 湖滨银泰附近过于嘈杂的廉价酒店。晚上吵，性价比低。宁愿住远一点但靠近地铁站或运河边。</div></div>
+</div>
+
+<div class="info-card">
+    <h3>🎒 行前准备</h3>
+    <div class="info-item"><div>必带物品： 舒服到能暴走的鞋！雨伞（杭州天气说变就变）、充电宝、少量现金（有些老店只收现金）。 天气提醒： 出发前查好天气。杭州春秋最美，但也是雨季。夏天闷热，做好防晒；冬天湿冷，多穿点。 当地注意： 杭州公交车和地铁都可以用支付宝/微信扫码支付，无需买卡。打车用软件，路边拦车可能难。在景区礼貌拒绝一切推销（拍照、导游、茶叶）。 心态准备： 放弃“打卡”心态，用“散步”和“发现”的心情去玩。杭州的美，藏在拐角处和慢节奏里。 --- 不走寻常路，就走野路子。祝你在杭州，发现属于自己的那份“偷得浮生半日闲”。</div></div>
+</div>
+
+        
+        <button class="back-btn" onclick="window.location.href='/'">
+            🌴 返回野游记首页
+        </button>
+    </div>
+</body>
+</html>

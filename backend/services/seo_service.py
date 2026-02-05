@@ -79,19 +79,28 @@ class SEOService:
         # 提取关键词
         keywords = f"{city},旅游攻略,{city}旅游,{city}美食,{city}酒店,{city}景点,野游记,AI攻略"
         
-        # 🔥 使用新的简洁HTML生成器
-        from services.clean_html_generator import get_clean_html_generator
+        # 🔥 使用行程规划生成器（新UI）
+        from services.itinerary_generator import get_itinerary_generator
         
         try:
-            generator = get_clean_html_generator()
+            generator = get_itinerary_generator()
             html = generator.generate(query, content, stats)
-            logger.info("✅ 使用简洁HTML生成器")
+            logger.info("✅ 使用行程规划生成器")
             return html
         except Exception as e:
-            logger.warning(f"⚠️ 简洁生成器失败，使用旧版: {e}")
-            # 降级到旧版
-            from markdown import markdown
-            html_content = markdown(content, extensions=['extra', 'codehilite'])
+            logger.warning(f"⚠️ 行程规划生成器失败，使用简洁版: {e}")
+            # 降级到简洁版
+            from services.clean_html_generator import get_clean_html_generator
+            try:
+                generator = get_clean_html_generator()
+                html = generator.generate(query, content, stats)
+                logger.info("✅ 使用简洁HTML生成器（降级）")
+                return html
+            except Exception as e2:
+                logger.warning(f"⚠️ 简洁生成器也失败，使用旧版: {e2}")
+                # 最终降级到旧版
+                from markdown import markdown
+                html_content = markdown(content, extensions=['extra', 'codehilite'])
         
         # 生成完整HTML
         html = f"""<!DOCTYPE html>
