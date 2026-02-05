@@ -79,9 +79,19 @@ class SEOService:
         # 提取关键词
         keywords = f"{city},旅游攻略,{city}旅游,{city}美食,{city}酒店,{city}景点,野游记,AI攻略"
         
-        # 转换Markdown为HTML
-        from markdown import markdown
-        html_content = markdown(content, extensions=['extra', 'codehilite'])
+        # 🔥 使用新的简洁HTML生成器
+        from services.clean_html_generator import get_clean_html_generator
+        
+        try:
+            generator = get_clean_html_generator()
+            html = generator.generate(query, content, stats)
+            logger.info("✅ 使用简洁HTML生成器")
+            return html
+        except Exception as e:
+            logger.warning(f"⚠️ 简洁生成器失败，使用旧版: {e}")
+            # 降级到旧版
+            from markdown import markdown
+            html_content = markdown(content, extensions=['extra', 'codehilite'])
         
         # 生成完整HTML
         html = f"""<!DOCTYPE html>

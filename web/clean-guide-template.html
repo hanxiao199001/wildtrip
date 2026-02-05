@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{TITLE}} - 野游记</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #f5f7fa;
+        }
+        
+        /* 顶部导航 */
+        .nav {
+            background: white;
+            padding: 16px 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2563eb;
+        }
+        
+        /* 内容容器 */
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        
+        /* Section标题 */
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin: 24px 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #2563eb;
+            display: inline-block;
+            width: auto;
+            margin-left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* 信息卡片 */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .info-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 12px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .info-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        /* Day卡片 */
+        .day-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .day-badge {
+            width: 44px;
+            height: 44px;
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .day-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            margin: 16px 0;
+            font-size: 15px;
+        }
+        
+        .timeline-time {
+            width: 60px;
+            flex-shrink: 0;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        
+        .timeline-content {
+            flex: 1;
+            color: #4b5563;
+            line-height: 1.7;
+        }
+        
+        /* 预订链接 */
+        .booking-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .booking-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* 预订卡片（内嵌在Day中）*/
+        .inline-booking {
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+            border: 2px solid #FFB300;
+            border-radius: 10px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        
+        .inline-booking-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .inline-booking-name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .inline-booking-price {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #DC2626;
+        }
+        
+        .cashback-badge {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .inline-booking-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="nav">
+        <div class="nav-title">{{NAV_TITLE}}</div>
+    </div>
+    
+    <!-- 内容 -->
+    <div class="container">
+        {{CONTENT}}
+        
+        <button class="back-btn" onclick="window.location.href='/'">
+            🌴 返回野游记首页
+        </button>
+    </div>
+</body>
+</html>

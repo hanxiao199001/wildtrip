@@ -187,12 +187,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wildtrip.com.cn/guides/三亚5天度假游-海景酒店和海鲜推荐-202602050933-f47d6ba6.html</loc>
-    <lastmod>2026-02-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://wildtrip.com.cn/guides/杭州3天情侣游-西湖断桥浪漫路线-202602050933-ac82d4c8.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
@@ -523,6 +517,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://wildtrip.com.cn/guides/济南2天文化游-趵突泉大明湖-202602051016-ddc8cb78.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://wildtrip.com.cn/guides/西安4天文化游-兵马俑华清池必去-202602050933-9149a1be.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
@@ -535,13 +535,19 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://wildtrip.com.cn/guides/杭州2天周末游-预算1000-202602051607-a7177d97.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://wildtrip.com.cn/guides/合肥周末2日游-202602051254-cf23abfd.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wildtrip.com.cn/guides/济南2天文化游-趵突泉大明湖-202602051016-ddc8cb78.html</loc>
+    <loc>https://wildtrip.com.cn/guides/三亚5天度假游-海景酒店和海鲜推荐-202602050933-f47d6ba6.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
