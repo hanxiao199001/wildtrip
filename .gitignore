@@ -101,6 +101,17 @@ miniprogram/node_modules/
 miniprogram/miniprogram_npm/
 
 # ========================================
+# 图片资源（使用OSS/CDN存储）
+# ========================================
+web/public/images/
+backend/static/images/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+
+# ========================================
 # 其他
 # ========================================
 .cache/

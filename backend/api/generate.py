@@ -58,6 +58,7 @@ def create_generate_task():
         query = data.get('query', '').strip()
         mode = data.get('mode', 'full')
         options = data.get('options', {})
+        user_id = data.get('user_id')  # 🔥 新增：用户ID（可选）
         
         if not query:
             return jsonify({
@@ -86,6 +87,7 @@ def create_generate_task():
             'query': query,
             'mode': mode,
             'options': options,
+            'user_id': user_id,  # 🔥 新增：保存用户ID
             'status': 'pending',
             'created_at': time.time(),
             'progress': 0,
@@ -96,7 +98,7 @@ def create_generate_task():
         # 启动后台任务
         thread = threading.Thread(
             target=run_generation_task,
-            args=(task_id, query, mode, options),
+            args=(task_id, query, mode, options, user_id),  # 🔥 新增：传递user_id
             daemon=True
         )
         thread.start()
@@ -169,34 +171,105 @@ def get_task_status(task_id):
     return jsonify(response), 200
 
 
-def run_generation_task(task_id: str, query: str, mode: str, options: dict):
+def run_generation_task(task_id: str, query: str, mode: str, options: dict, user_id: str = None):
     """
     执行攻略生成任务（后台线程）
+    
+    Args:
+        task_id: 任务ID
+        query: 用户查询
+        mode: 模式
+        options: 选项
+        user_id: 用户ID（可选，如果提供则保存到用户历史）
     """
     from app import socketio  # 延迟导入避免循环依赖
+    from prompts.wildtrip_prompt import extract_city_name
     
     try:
         # 更新状态
         active_tasks[task_id]['status'] = 'running'
         emit_progress(socketio, task_id, 'start', '🔥 野游记开始工作...', 0)
         
+        # 提取城市信息
+        city = extract_city_name(query)
+        emit_progress(socketio, task_id, 'parsing', f'📍 识别目的地: {city}', 5)
+        time.sleep(0.3)
+        
         # 构建prompt
         emit_progress(socketio, task_id, 'building_prompt', '🧠 正在理解你的需求...', 10)
-        time.sleep(0.5)  # 模拟思考
+        time.sleep(0.5)
         
         full_prompt = build_wildtrip_prompt(query, mode)
         
-        # 调用AI生成
-        emit_progress(socketio, task_id, 'generating', '✍️ AI正在生成攻略...', 30)
+        # 检索RAG数据
+        emit_progress(socketio, task_id, 'rag_search', '🔍 正在搜索本地攻略数据库...', 15)
+        time.sleep(0.8)
         
+        # 调用AI生成（启动后台进度更新）
+        emit_progress(socketio, task_id, 'generating', f'✍️ AI正在生成{city}攻略...', 25)
+        
+        # 启动模拟进度更新线程（因为AI生成是阻塞的）
+        def simulate_ai_progress():
+            """模拟AI生成进度（30% -> 65%）"""
+            for progress in range(30, 66, 5):
+                if active_tasks[task_id]['status'] != 'running':
+                    break
+                time.sleep(2)  # 每2秒更新5%
+                messages = [
+                    '💭 AI正在分析景点信息...',
+                    '🍜 AI正在挖掘本地美食...',
+                    '🏨 AI正在筛选优质酒店...',
+                    '📝 AI正在组织攻略结构...',
+                    '✨ AI正在润色文字...',
+                    '🎯 AI正在优化推荐...',
+                    '🔥 内容即将生成完成...'
+                ]
+                msg = messages[(progress - 30) // 5 % len(messages)]
+                emit_progress(socketio, task_id, 'generating', msg, progress)
+        
+        # 启动模拟进度线程
+        progress_thread = threading.Thread(target=simulate_ai_progress, daemon=True)
+        progress_thread.start()
+        
+        # 实际调用AI（这里会阻塞一段时间）
         content = ai_engine.generate(full_prompt, query, mode)
         
-        emit_progress(socketio, task_id, 'enhancing', '🔗 正在添加返佣链接...', 70)
+        # AI生成完成
+        emit_progress(socketio, task_id, 'ai_done', '✅ 攻略生成完成！', 65)
+        time.sleep(0.5)
         
         # 插入返佣链接
+        emit_progress(socketio, task_id, 'affiliate_start', '🔗 正在添加美团返佣链接...', 70)
+        time.sleep(0.5)
+        
+        emit_progress(socketio, task_id, 'affiliate_hotels', '🏨 正在匹配酒店链接...', 75)
+        time.sleep(0.3)
+        
+        emit_progress(socketio, task_id, 'affiliate_food', '🍜 正在匹配餐厅链接...', 80)
+        time.sleep(0.3)
+        
+        emit_progress(socketio, task_id, 'affiliate_tickets', '🎫 正在匹配景点门票...', 85)
+        
         enhanced_content, recommendations = enhance_with_affiliate(content, query, mode)
         
+        emit_progress(socketio, task_id, 'affiliate_done', '💰 返佣链接添加完成！', 90)
+        time.sleep(0.3)
+        
+        # 🔥 图片增强：爬取真实POI图片
+        emit_progress(socketio, task_id, 'images', '🖼️ 正在爬取真实图片...', 92)
+        try:
+            from services.image_crawler import ImageCrawler
+            image_crawler = ImageCrawler()
+            enhanced_content = image_crawler.enrich_content_with_images(enhanced_content)
+            logger.info(f"✅ 图片增强完成")
+        except Exception as e:
+            logger.warning(f"⚠️ 图片爬取失败: {e}")
+        
+        emit_progress(socketio, task_id, 'images_done', '📸 图片添加完成！', 95)
+        time.sleep(0.2)
+        
         # 统计信息
+        emit_progress(socketio, task_id, 'stats', '📊 正在统计攻略信息...', 96)
         stats = {
             'word_count': len(enhanced_content),
             'hotels_count': len(recommendations.get('hotels', [])),
@@ -228,6 +301,35 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict):
                 'button_text': f"购票 {ticket['name']}"
             })
         
+        # 🔥 SEO优化：保存为静态页面
+        emit_progress(socketio, task_id, 'seo', '📄 正在生成SEO页面...', 98)
+        
+        try:
+            from services.seo_service import get_seo_service
+            seo = get_seo_service()
+            seo_result = seo.save_guide(query, enhanced_content, stats)
+            logger.info(f"📄 SEO页面已生成: {seo_result['url']}")
+        except Exception as e:
+            logger.warning(f"⚠️ SEO页面生成失败: {e}")
+            seo_result = None
+        
+        # 🔥 保存到用户历史（如果提供了user_id）
+        guide_id = None
+        if user_id:
+            try:
+                from services.user_service import get_user_service
+                user_service = get_user_service()
+                guide_id = user_service.save_user_guide(user_id, {
+                    'query': query,
+                    'mode': mode,
+                    'content': enhanced_content,
+                    'stats': stats,
+                    'seo_url': seo_result.get('url') if seo_result else None
+                })
+                logger.info(f"💾 攻略已保存到用户历史: {user_id} | {guide_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ 保存用户历史失败: {e}")
+        
         # 完成
         active_tasks[task_id]['status'] = 'completed'
         active_tasks[task_id]['progress'] = 100
@@ -235,7 +337,10 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict):
             'content': enhanced_content,
             'recommendations': recommendations,
             'links': all_links,  # 🔥 新增：所有可点击链接
-            'stats': stats
+            'stats': stats,
+            'seo': seo_result,  # 🔥 新增：SEO页面信息
+            'slug': seo_result.get('slug') if seo_result else None,  # 🔥 新增：攻略slug（用于收藏、分享等）
+            'guide_id': guide_id  # 🔥 新增：用户攻略ID（如果已登录）
         }
         
         emit_progress(socketio, task_id, 'done', '🎉 攻略生成完成！', 100)
@@ -268,38 +373,22 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
     from prompts.wildtrip_prompt import extract_city_name
     city = extract_city_name(query)
     
-    # === 2. 酒店链接替换（优化正则，匹配DeepSeek生成的实际格式） ===
-    # 实际格式：### 1. 海口喜来登酒店 ⭐⭐⭐⭐⭐
-    #          - **预订：** [携程](链接占位) | [美团](链接占位)
-    
-    # 方法：查找包含"预订"的段落，向上查找最近的酒店名称
-    hotel_booking_pattern = r'\*\*预订[：:]\*\*\s*\[.*?\]\((?:链接占位|占位)\)'
-    booking_matches = list(re.finditer(hotel_booking_pattern, content))
+    # === 2. 酒店链接替换（优化正则，匹配更多格式） ===
+    # 格式：### 1. XX酒店 或 ### XX酒店 或 **XX酒店**
+    hotel_patterns = [
+        r'###\s+(?:\d+\.\s+)?(?:[\u4e00-\u9fa5]+之选[：:]\s*)?([^#\n]*?(?:酒店|宾馆|客栈|民宿|度假村|青旅|旅馆|Hotel|Inn)[^#\n]*?)(?:\s+[⭐⭐⭐⭐⭐\s]*)?$',
+        r'\*\*([^*]+?(?:酒店|宾馆|客栈|民宿|度假村|青旅|旅馆)[^*]*?)\*\*(?:\s+¥\d+)',  # **酒店名** ¥价格
+    ]
     
     seen_hotels = set()
-    for booking_match in booking_matches:
-        # 找到预订链接的位置
-        booking_pos = booking_match.start()
-        
-        # 向前查找最近的三级标题（酒店名称）
-        # 格式：### 1. XX酒店 或 ### ⭐ 推荐：XX酒店
-        preceding_text = content[:booking_pos]
-        
-        # 找最后一个三级标题
-        hotel_header_matches = list(re.finditer(
-            r'###\s+(?:\d+\.\s+)?(?:⭐\s+推荐[：:]\s*)?([^#\n]+?(?:酒店|宾馆|客栈|民宿|度假村)[^#\n]*?)(?:\s+[⭐⭐⭐⭐⭐\s]*)?$',
-            preceding_text,
-            re.MULTILINE
-        ))
-        
-        if hotel_header_matches:
-            last_hotel_match = hotel_header_matches[-1]
-            hotel_name = last_hotel_match.group(1).strip()
+    for pattern in hotel_patterns:
+        hotel_matches = list(re.finditer(pattern, content, re.MULTILINE))
+        for match in hotel_matches:
+            hotel_name = match.group(1).strip()
             
             # 清理名称
-            clean_name = re.sub(r'[⭐️\s（）]+$', '', hotel_name).strip()
+            clean_name = re.sub(r'[⭐️\s（）]+', '', hotel_name).strip()
             clean_name = re.sub(r'（.*?）', '', clean_name).strip()
-            clean_name = re.sub(r'\s*$', '', clean_name)
             
             # 去重和过滤
             if clean_name in seen_hotels or len(clean_name) < 3:
@@ -314,38 +403,46 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
                 'link': link,
                 'search_query': search_query
             })
-            
-            # 替换该酒店的第一个预订链接
-            # 找到这个酒店段落中的第一个预订链接并替换
-            hotel_section_start = last_hotel_match.start()
-            hotel_section = content[hotel_section_start:booking_pos + 200]
-            
-            # 替换第一个[携程]或[美团]链接
-            content = content[:hotel_section_start] + re.sub(
-                r'\[(携程|美团)\]\((?:链接占位|占位)\)',
-                f'[\\1]({link})',
-                hotel_section,
-                count=2  # 替换两个（携程和美团都指向同一个搜索）
-            ) + content[booking_pos + 200:]
+    
+    # 🔥 替换所有酒店的预订链接
+    for hotel in recommendations['hotels']:
+        # 方案1：替换Markdown格式 [携程/美团](链接占位)
+        content = re.sub(
+            r'\[(?:携程|美团|预订)[^\]]*?\]\((?:链接占位|占位|#)\)',
+            f'[美团预订]({hotel["link"]})',
+            content,
+            count=1
+        )
+        # 方案2：替换纯文本"查看详情"
+        content = re.sub(
+            r'预订[：:]\s*查看详情',
+            f'预订：[查看详情]({hotel["link"]})',
+            content,
+            count=1
+        )
     
     # === 3. 餐厅链接替换（优化正则，匹配多种格式） ===
     # 格式1：**XX文昌鸡饭** ¥50/人
     # 格式2：**午餐：海南粉老店**
     # 格式3：#### 1. 海口文昌鸡饭老店 ¥50-80/人
     food_patterns = [
-        r'\*\*([^*]+?(?:餐厅|饭店|小吃|海鲜|鸡饭|粉店|茶餐厅|大排档|火锅|烤肉|酒楼|老店)[^*]*?)\*\*\s*¥',  # 带价格
-        r'\*\*(?:午餐|晚餐|早餐|夜市小吃)：([^*]+?)\*\*',  # 餐段标题
-        r'####\s+\d+\.\s+([^¥\n]+?(?:餐厅|饭店|海鲜|鸡饭|粉店|小吃街|老店)[^¥\n]*)',  # 四级标题
+        # 带价格的餐厅（**餐厅名** ¥价格）
+        r'\*\*([^*]+?(?:餐厅|饭店|小吃|海鲜|鸡饭|鸭|羊肉|牛肉|面馆|粉店|粉面|茶餐厅|大排档|火锅|烤肉|烧烤|酒楼|老店|馆|坊|居|轩|斋|记|家|房|厅|店|楼)[^*]*?)\*\*\s*[¥￥]',
+        # 标题格式（### 1. 餐厅名）
+        r'####?\s+\d+\.\s+([^¥\n]+?(?:餐厅|饭店|海鲜|鸡|鸭|羊|牛|面|粉|饺子|包子|小吃|老店|馆|坊|店)[^¥\n]*)',
+        # 纯餐厅名格式（**餐厅名** 后面没有价格）
+        r'\*\*([^*]+?(?:馆|坊|楼|厅|店|家|记))\*\*(?!\s*[¥￥])',
     ]
     
     seen_restaurants = set()
     for pattern in food_patterns:
-        food_matches = re.finditer(pattern, content)
+        food_matches = list(re.finditer(pattern, content))
         for match in food_matches:
             restaurant_name = match.group(1).strip()
             
             # 清理名称
             clean_name = re.sub(r'（.*?）', '', restaurant_name).strip()
+            clean_name = re.sub(r'\s*店$', '', clean_name).strip()
             
             # 去重和过滤
             if clean_name in seen_restaurants or len(clean_name) < 3:
@@ -360,28 +457,44 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
                 'link': link,
                 'search_query': search_query
             })
-            
-            # 替换该餐厅下一个出现的团购链接
-            # 使用更宽泛的匹配，找到餐厅名称后面的任何团购链接
-            context_pattern = re.escape(clean_name) + r'.*?\[.*?团购\]\(占位\)'
-            if re.search(context_pattern, content, re.DOTALL):
-                content = re.sub(
-                    r'(\*\*(?:午餐|晚餐|早餐)?[：:]*' + re.escape(clean_name) + r'.*?)\[.*?团购\]\(占位\)',
-                    r'\1[美团团购](' + link + ')',
-                    content,
-                    count=1,
-                    flags=re.DOTALL
-                )
-            else:
-                # 如果没找到，就替换第一个占位符
-                content = re.sub(r'\[.*?团购\]\(占位\)', f'[美团团购]({link})', content, count=1)
+    
+    # 🔥 餐厅链接替换（改进版：防止重复替换导致嵌套）
+    replacement_count = 0
+    for restaurant in recommendations['restaurants']:
+        restaurant_name = restaurant['name']
+        link = restaurant['link']
+        
+        # 查找包含餐厅名的段落（附近100字符内）
+        # 格式示例：**馋人小馆** ... [美团团购](链接占位)
+        pattern = rf'\*\*{re.escape(restaurant_name)}[^[]*?\[([^\]]+?团购[^\]]*?)\]\((链接占位|占位|#)\)'
+        match = re.search(pattern, content)
+        
+        if match:
+            # 替换这个具体的链接
+            old_link_text = f'[{match.group(1)}]({match.group(2)})'
+            new_link_text = f'[美团团购]({link})'
+            content = content.replace(old_link_text, new_link_text, 1)
+            replacement_count += 1
+            logger.debug(f"替换餐厅链接: {restaurant_name} -> {link}")
+        else:
+            # 如果没找到，尝试通用替换（只替换第一个未替换的占位符）
+            content = re.sub(
+                r'\[([^\]]*?团购[^\]]*?)\]\((链接占位|占位|#)\)',
+                f'[美团团购]({link})',
+                content,
+                count=1
+            )
+            replacement_count += 1
+    
+    logger.info(f"餐厅链接替换完成: {replacement_count}个")
     
     # === 4. 门票链接替换（优化正则，匹配DeepSeek实际格式） ===
     # 实际格式：- **雷琼世界地质公园** 门票¥0，免费！[官方预约](链接占位)
     #          - **海南热带野生动植物园** 门票¥158/成人，[提前1天美团购票](链接占位)
     
     # 匹配：**景点名** 门票...链接占位
-    ticket_pattern = r'\*\*([^*]+?(?:公园|景区|博物馆|动物园|植物园|海洋馆|乐园|古镇|寺庙|塔|电影公社|主题乐园)[^*]*?)\*\*\s+门票[^[\n]*?\[.*?\]\((?:链接占位|占位)\)'
+    # 扩充景点关键词，覆盖更多类型
+    ticket_pattern = r'\*\*([^*]+?(?:公园|景区|景点|博物馆|美术馆|纪念馆|动物园|植物园|海洋馆|水族馆|游乐园|乐园|主题公园|古镇|古城|寺|庙|寺庙|塔|楼|阁|山|岛|湖|海|湾|瀑布|溶洞|峡谷|地质公园|森林公园|湿地|温泉|滑雪场|影视城)[^*]*?)\*\*\s+(?:门票|票价)[^[\n]*?\[.*?\]\((?:链接占位|占位|LINK_TICKET)\)'
     ticket_matches = re.finditer(ticket_pattern, content, re.DOTALL)
     
     seen_tickets = set()
@@ -421,15 +534,18 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
             flags=re.DOTALL
         )
     
-    # === 5. 替换新格式占位符（LINK_格式） ===
-    # 格式：LINK_FOOD_餐厅名、LINK_HOTEL_酒店名、LINK_TICKET_景点名
-    link_pattern = r'\(LINK_(FOOD|HOTEL|TICKET)_([^)]+)\)'
-    link_matches = re.finditer(link_pattern, content)
+    # === 5. 替换LINK_格式占位符（优先处理） ===
+    # 格式：[美团团购 💰有返现](LINK_FOOD_餐厅名)
+    link_pattern = r'\[([^\]]+)\]\(LINK_(FOOD|HOTEL|TICKET)_([^)]+)\)'
+    link_matches = list(re.finditer(link_pattern, content))
     
-    replacements = []
-    for match in link_matches:
-        link_type = match.group(1)
-        name = match.group(2)
+    logger.info(f"发现 {len(link_matches)} 个LINK_格式占位符")
+    
+    # 从后往前替换（避免位置偏移）
+    for match in reversed(link_matches):
+        link_text = match.group(1)  # 链接文字（如"美团团购 💰有返现"）
+        link_type = match.group(2)  # FOOD/HOTEL/TICKET
+        name = match.group(3)       # 商家名称
         
         # 确定分类
         category_map = {
@@ -446,43 +562,50 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
         
         link = affiliate.get_search_link(query=search_query, category=category)
         
-        # 记录替换（避免重复替换导致位置错乱）
-        replacements.append((match.start(), match.end(), f'({link})'))
+        # 替换（保留原文字，只替换链接）
+        old_text = match.group(0)
+        new_text = f'[{link_text}]({link})'
+        content = content[:match.start()] + new_text + content[match.end():]
+        
+        logger.debug(f"替换LINK_{link_type}: {name} -> {link}")
     
-    # 从后往前替换（避免位置偏移）
-    for start, end, replacement in reversed(replacements):
-        content = content[:start] + replacement + content[end:]
+    logger.info(f"LINK_格式替换完成: {len(link_matches)}个")
     
-    # === 6. 替换所有剩余的占位符（兜底方案） ===
-    # 处理各种格式的占位符（从特殊到通用）
+    # === 6. 替换所有剩余的占位符（兜底方案 - 改进版） ===
+    # 只替换明确的占位符，避免替换已有的真实链接
     placeholder_patterns = [
-        (r'\[美团门票\]\(占位\)', 'ticket'),  # 门票-特定格式
-        (r'\[美团搜索\]\(占位\)', 'food'),    # 美食-搜索
-        (r'\[美团团购\]\(占位\)', 'food'),    # 美食-团购
-        (r'\[查看详情\]\(占位\)', 'hotel'),   # 酒店-查看详情
-        (r'\[官方预约\]\(占位\)', 'ticket'),  # 门票-官方预约
-        (r'\[.*?团购\]\(链接占位\)', 'food'), # 团购-链接占位
-        (r'\[.*?门票\]\(链接占位\)', 'ticket'), # 门票-链接占位
-        (r'\]\(占位\)', 'food'),  # 通用兜底
+        (r'\[([^\]]+)\]\((链接占位|占位|#)\)', None),  # 通用占位符匹配
     ]
     
-    for pattern, category in placeholder_patterns:
-        # 持续替换直到没有匹配为止
-        while True:
-            match = re.search(pattern, content)
-            if not match:
-                break
+    replaced_count = 0
+    for pattern, _ in placeholder_patterns:
+        matches = list(re.finditer(pattern, content))
+        
+        # 从后往前替换（避免位置偏移）
+        for match in reversed(matches):
+            link_text = match.group(1)
+            placeholder = match.group(2)
             
-            # 提取链接文本
-            link_text_match = re.search(r'\[([^\]]+)\]', match.group(0))
-            link_text = link_text_match.group(1) if link_text_match else '美团'
+            # 根据链接文本判断类别
+            if '门票' in link_text or '预约' in link_text:
+                category = 'ticket'
+            elif '酒店' in link_text or '预订' in link_text or '住宿' in link_text:
+                category = 'hotel'
+            else:
+                category = 'food'  # 默认美食
             
             # 生成搜索链接
             search_query = f"{city}"
             link = affiliate.get_search_link(query=search_query, category=category)
             
-            # 替换
-            content = content[:match.start()] + f'[{link_text}]({link})' + content[match.end():]
+            # 替换（精确位置替换，避免错误）
+            old_text = match.group(0)
+            new_text = f'[{link_text}]({link})'
+            content = content[:match.start()] + new_text + content[match.end():]
+            replaced_count += 1
+    
+    if replaced_count > 0:
+        logger.info(f"兜底替换完成: {replaced_count}个占位符")
     
     logger.info(f"🔗 链接替换完成 | 酒店:{len(recommendations['hotels'])} 餐厅:{len(recommendations['restaurants'])} 门票:{len(recommendations['tickets'])}")
     

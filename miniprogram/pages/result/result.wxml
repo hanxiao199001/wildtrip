@@ -36,9 +36,9 @@
       </view>
     </view>
 
-    <!-- 攻略内容 -->
+    <!-- 攻略内容（🔥 支持Markdown图片） -->
     <view class="content-card card">
-      <text class="content-text" decode="{{true}}">{{content}}</text>
+      <towxml nodes="{{article}}" />
     </view>
 
     <!-- 🔥 快速预订区域 -->
@@ -95,8 +95,20 @@
 
     <!-- 操作按钮 -->
     <view class="actions">
-      <button class="btn-secondary" bindtap="onCopy">复制攻略</button>
-      <button class="btn-primary" bindtap="onShare">分享好友</button>
+      <!-- 第一行：主要操作 -->
+      <view class="action-row">
+        <button class="btn-secondary" bindtap="onCopy">📋 复制</button>
+        <button class="btn-secondary" bindtap="onToggleFavorite">
+          {{isFavorited ? '★ 已收藏' : '☆ 收藏'}}
+        </button>
+        <button class="btn-primary" bindtap="onShare">✈️ 分享</button>
+      </view>
+      
+      <!-- 第二行：高级操作 -->
+      <view class="action-row action-row-secondary">
+        <button class="btn-link" bindtap="onGenerateShareLink">🔗 复制链接</button>
+        <button class="btn-danger" bindtap="onDelete">🗑️ 删除</button>
+      </view>
     </view>
   </view>
 

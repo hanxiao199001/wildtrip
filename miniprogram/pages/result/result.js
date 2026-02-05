@@ -1,12 +1,15 @@
 // 攻略结果页面
 const app = getApp()
+const api = require('../../utils/api')
 
 Page({
   data: {
     taskId: '',
+    slug: '',  // 🔥 攻略slug（用于收藏、分享等）
     loading: true,
     error: '',
     content: '',
+    article: {},  // 🔥 towxml渲染后的数据
     result: null,
     stats: {
       hotels_count: 0,
@@ -17,7 +20,9 @@ Page({
     links: [],  // 🔥 所有可点击链接
     hotelLinks: [],  // 酒店链接
     restaurantLinks: [],  // 餐厅链接
-    ticketLinks: []  // 门票链接
+    ticketLinks: [],  // 门票链接
+    isFavorited: false,  // 🔥 是否已收藏
+    shareUrl: ''  // 🔥 分享链接
   },
 
   onLoad(options) {
@@ -53,10 +58,19 @@ Page({
         const restaurantLinks = links.filter(link => link.type === 'restaurant')
         const ticketLinks = links.filter(link => link.type === 'ticket')
 
+        // 🔥 获取slug（从result中）
+        const slug = result.slug || ''
+        
+        // 🔥 使用towxml渲染Markdown（支持图片）
+        const towxml = app.globalData.towxml
+        const article = towxml.toJson(result.content || '', 'markdown')
+
         this.setData({
           loading: false,
           result,
+          slug,  // 🔥 保存slug
           content: result.content || '',
+          article,  // 🔥 渲染后的数据
           stats: result.stats || {},
           estimatedCashback: cashback,
           links,  // 🔥 所有链接
@@ -64,6 +78,11 @@ Page({
           restaurantLinks,  // 餐厅链接
           ticketLinks  // 门票链接
         })
+
+        // 🔥 如果有slug，加载收藏状态
+        if (slug) {
+          this.loadFavoriteStatus()
+        }
       } else if (res.status === 'failed') {
         this.setData({
           loading: false,
@@ -104,6 +123,152 @@ Page({
     
     // 返回整数（向上取整，给用户更好的预期）
     return Math.ceil(total)
+  },
+
+  // 🔥 加载收藏状态
+  async loadFavoriteStatus() {
+    const { slug } = this.data
+    if (!slug) return
+
+    try {
+      const detail = await api.getGuideDetail(slug)
+      this.setData({
+        isFavorited: detail.is_favorited || false
+      })
+    } catch (error) {
+      console.log('加载收藏状态失败:', error)
+    }
+  },
+
+  // 🔥 切换收藏
+  async onToggleFavorite() {
+    const { slug, isFavorited } = this.data
+    if (!slug) {
+      wx.showToast({
+        title: '攻略未保存',
+        icon: 'none'
+      })
+      return
+    }
+
+    try {
+      if (isFavorited) {
+        await api.unfavoriteGuide(slug)
+        this.setData({ isFavorited: false })
+        wx.showToast({
+          title: '已取消收藏',
+          icon: 'success'
+        })
+      } else {
+        await api.favoriteGuide(slug)
+        this.setData({ isFavorited: true })
+        wx.showToast({
+          title: '收藏成功',
+          icon: 'success'
+        })
+      }
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '操作失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 🔥 生成分享链接
+  async onGenerateShareLink() {
+    const { slug, shareUrl } = this.data
+    
+    if (!slug) {
+      wx.showToast({
+        title: '攻略未保存',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 如果已生成，直接复制
+    if (shareUrl) {
+      wx.setClipboardData({
+        data: shareUrl,
+        success: () => {
+          wx.showToast({
+            title: '链接已复制',
+            icon: 'success'
+          })
+        }
+      })
+      return
+    }
+
+    try {
+      wx.showLoading({ title: '生成中...' })
+      const result = await api.shareGuide(slug)
+      const url = result.share_url
+      
+      this.setData({ shareUrl: url })
+      
+      wx.hideLoading()
+      wx.setClipboardData({
+        data: url,
+        success: () => {
+          wx.showToast({
+            title: '链接已复制',
+            icon: 'success'
+          })
+        }
+      })
+    } catch (error) {
+      wx.hideLoading()
+      wx.showToast({
+        title: error.message || '生成失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 🔥 删除攻略
+  onDelete() {
+    const { slug } = this.data
+    
+    if (!slug) {
+      wx.showToast({
+        title: '攻略未保存',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后无法恢复，确定要删除这篇攻略吗？',
+      confirmText: '删除',
+      confirmColor: '#FF3B30',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '删除中...' })
+            await api.deleteGuide(slug)
+            wx.hideLoading()
+            wx.showToast({
+              title: '已删除',
+              icon: 'success',
+              duration: 1500
+            })
+            // 返回上一页
+            setTimeout(() => {
+              wx.navigateBack()
+            }, 1500)
+          } catch (error) {
+            wx.hideLoading()
+            wx.showToast({
+              title: error.message || '删除失败',
+              icon: 'none'
+            })
+          }
+        }
+      }
+    })
   },
 
   // 复制攻略

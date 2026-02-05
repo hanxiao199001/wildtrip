@@ -67,7 +67,8 @@ class AIEngine:
             
             client = openai.OpenAI(
                 api_key=self.api_key,
-                base_url=self.base_url
+                base_url=self.base_url,
+                timeout=120.0  # 🔥 添加120秒超时
             )
             
             messages = [
@@ -77,11 +78,17 @@ class AIEngine:
             
             logger.info(f"🤖 调用AI模型: {self.model} | RAG增强: {'是' if rag_context else '否'}")
             
+            # 🔥 提高temperature增加多样性，添加随机seed
+            import time
+            random_seed = int(time.time() * 1000) % 1000000  # 基于时间的随机种子
+            
             response = client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=0.7,
-                max_tokens=4000
+                temperature=0.9,  # 🔥 从0.7提高到0.9，增加创意和多样性
+                max_tokens=4000,
+                timeout=120,
+                # seed=random_seed,  # 不同的seed会生成不同的内容（如果模型支持）
             )
             
             content = response.choices[0].message.content

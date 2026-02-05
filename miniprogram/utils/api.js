@@ -41,8 +41,56 @@ function getTaskStatus(taskId) {
   return request(`/task/${taskId}`, {}, 'GET')
 }
 
+/**
+ * 获取攻略列表
+ */
+function getGuidesList() {
+  return request('/guides', {}, 'GET')
+}
+
+/**
+ * 获取攻略详情
+ */
+function getGuideDetail(slug) {
+  return request(`/guides/${encodeURIComponent(slug)}`, {}, 'GET')
+}
+
+/**
+ * 收藏攻略
+ */
+function favoriteGuide(slug) {
+  return request(`/guides/${encodeURIComponent(slug)}/favorite`, {}, 'POST')
+}
+
+/**
+ * 取消收藏攻略
+ */
+function unfavoriteGuide(slug) {
+  return request(`/guides/${encodeURIComponent(slug)}/favorite`, {}, 'DELETE')
+}
+
+/**
+ * 删除攻略
+ */
+function deleteGuide(slug) {
+  return request(`/guides/${encodeURIComponent(slug)}`, {}, 'DELETE')
+}
+
+/**
+ * 分享攻略（生成分享链接）
+ */
+function shareGuide(slug) {
+  return request(`/guides/${encodeURIComponent(slug)}/share`, {}, 'POST')
+}
+
 module.exports = {
   request,
   generateItinerary,
-  getTaskStatus
+  getTaskStatus,
+  getGuidesList,
+  getGuideDetail,
+  favoriteGuide,
+  unfavoriteGuide,
+  deleteGuide,
+  shareGuide
 }

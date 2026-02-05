@@ -1,5 +1,9 @@
 /* 攻略结果页面样式 */
 
+/* 🔥 引入towxml样式（支持Markdown图片） */
+@import "/towxml/style/main.wxss";
+@import "/towxml/style/theme/light.wxss";
+
 .result-page {
   padding: 32rpx;
   padding-bottom: 160rpx;
@@ -89,10 +93,23 @@
   left: 0;
   right: 0;
   padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
   background: var(--bg-card);
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.action-row {
   display: flex;
   gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.action-row:last-child {
+  margin-bottom: 0;
+}
+
+.action-row-secondary {
+  justify-content: center;
 }
 
 .btn-secondary {
@@ -101,13 +118,32 @@
   border: 2rpx solid var(--primary-color);
   color: var(--primary-color);
   border-radius: var(--radius-normal);
-  padding: 24rpx;
-  font-size: 28rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
   font-weight: 500;
 }
 
 .btn-primary {
   flex: 1;
+  padding: 20rpx;
+  font-size: 26rpx;
+}
+
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--primary-color);
+  padding: 16rpx 24rpx;
+  font-size: 24rpx;
+  text-decoration: underline;
+}
+
+.btn-danger {
+  background: transparent;
+  border: none;
+  color: #FF3B30;
+  padding: 16rpx 24rpx;
+  font-size: 24rpx;
 }
 
 /* 错误状态 */
