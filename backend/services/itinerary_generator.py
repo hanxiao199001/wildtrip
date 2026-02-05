@@ -59,6 +59,18 @@ class ItineraryGenerator:
         # 生成时间线内容
         timeline_content = self._generate_timeline(content, days_info)
         
+        # 🔥 生成住宿推荐section（追加到时间线后面）
+        hotels_html = self._extract_hotels_section(content)
+        if hotels_html:
+            timeline_content += f'''
+<div style="margin-top: 32px;">
+    <h2 style="font-size: 22px; font-weight: 700; color: #1f2937; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #10B981;">
+        🏨 住宿推荐
+    </h2>
+    {hotels_html}
+</div>
+'''
+        
         # 生成iCalendar数据
         ics_data = self._generate_ics_data(content, days_info, title)
         
@@ -381,3 +393,69 @@ def get_itinerary_generator():
     if _generator is None:
         _generator = ItineraryGenerator()
     return _generator
+
+    def _extract_hotels_section(self, content: str) -> str:
+        """
+        提取住宿推荐section并生成HTML
+        
+        查找：## 住宿推荐 或 ## 🏨 住宿推荐
+        """
+        # 查找住宿section
+        hotel_pattern = r'##\s*(?:🏨\s*)?住宿推荐(.*?)(?=##\s+[^#]|$)'
+        hotel_match = re.search(hotel_pattern, content, re.S | re.I)
+        
+        if not hotel_match:
+            return ''
+        
+        hotel_content = hotel_match.group(1).strip()
+        
+        # 解析酒店信息（### 1. 酒店名 ¥XXX/晚）
+        hotel_items = []
+        hotel_item_pattern = r'###\s*\d+\.\s*([^¥\n]+)[¥￥](\d+)/晚.*?⭐([\d.]+)(.*?)(?=###\s*\d+\.|$)'
+        hotels = re.findall(hotel_item_pattern, hotel_content, re.S)
+        
+        if not hotels:
+            return ''
+        
+        hotels_html = '<div class="info-card">'
+        
+        for name, price, rating, details in hotels:
+            name = name.strip()
+            
+            # 提取地址
+            address_match = re.search(r'\*\*地址[：:]\*\*\s*([^\n]+)', details)
+            address = address_match.group(1).strip() if address_match else ''
+            
+            # 提取特点
+            feature_match = re.search(r'\*\*特点[：:]\*\*\s*([^\n]+)', details)
+            features = feature_match.group(1).strip() if feature_match else ''
+            
+            # 生成酒店按钮
+            from services.affiliate_manager import get_affiliate_manager
+            
+            affiliate_mgr = get_affiliate_manager()
+            booking_btn = affiliate_mgr.render_booking_button(
+                poi_type='hotel',
+                name=name,
+                cashback=50,  # 假设每家酒店返现50元
+                city=''
+            )
+            
+            hotels_html += f'''
+<div style="padding: 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px;">
+    <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">
+        🏨 {name}
+    </h4>
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        <span style="font-size: 20px; font-weight: 700; color: #DC2626;">¥{price}/晚</span>
+        <span style="color: #F59E0B;">⭐ {rating}</span>
+    </div>
+    {f'<p style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">📍 {address}</p>' if address else ''}
+    {f'<p style="color: #6b7280; font-size: 14px; margin-bottom: 12px;">✨ {features}</p>' if features else ''}
+    {booking_btn}
+</div>
+'''
+        
+        hotels_html += '</div>'
+        
+        return hotels_html
