@@ -1,0 +1,403 @@
+<!-- 预订卡片组件 -->
+<style>
+/* 预订卡片样式 */
+.booking-card {
+    background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+    border: 2px solid #FFB300;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 24px 0;
+    box-shadow: 0 4px 16px rgba(255, 179, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(255, 179, 0, 0.3);
+}
+
+.booking-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.booking-card-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.booking-card-title {
+    flex: 1;
+}
+
+.booking-card-title h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+}
+
+.booking-card-title p {
+    margin: 4px 0 0 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.booking-card-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.booking-info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.booking-info-label {
+    font-size: 14px;
+    color: #666;
+}
+
+.booking-info-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+}
+
+.booking-card-cashback {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+}
+
+.cashback-amount {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.booking-card-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.booking-btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.booking-btn-primary {
+    background: linear-gradient(135deg, #FFD100 0%, #FFA000 100%);
+    color: #000;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+.booking-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+}
+
+.booking-btn-secondary {
+    background: white;
+    color: #666;
+    border: 2px solid #ddd;
+}
+
+.booking-btn-secondary:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+/* 攻略顶部返现总览 */
+.cashback-summary {
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 16px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.cashback-summary-amount {
+    font-size: 36px;
+    font-weight: 800;
+    margin: 12px 0;
+}
+
+.cashback-summary-desc {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* 引导预订弹窗 */
+.booking-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.booking-modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideUp 0.4s ease;
+}
+
+.booking-modal-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.booking-modal-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.booking-modal-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.booking-modal-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+.booking-modal-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.booking-modal-item {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.booking-modal-item-icon {
+    font-size: 32px;
+}
+
+.booking-modal-item-info {
+    flex: 1;
+}
+
+.booking-modal-item-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+
+.booking-modal-item-price {
+    font-size: 14px;
+    color: #666;
+}
+
+.booking-modal-item-cashback {
+    font-size: 18px;
+    font-weight: 700;
+    color: #FF4757;
+}
+
+.booking-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
+
+<!-- JavaScript functions -->
+<script>
+// 生成预订卡片HTML
+function createBookingCard(item) {
+    const cashbackAmount = Math.round(item.price * 0.5); // 50%返现
+    
+    return `
+        <div class="booking-card">
+            <div class="booking-card-header">
+                <div class="booking-card-icon">${item.icon}</div>
+                <div class="booking-card-title">
+                    <h4>${item.name}</h4>
+                    <p>${item.type} · ${item.location || ''}</p>
+                </div>
+            </div>
+            
+            <div class="booking-card-info">
+                <div class="booking-info-item">
+                    <span class="booking-info-label">⭐ 评分：</span>
+                    <span class="booking-info-value">${item.rating || '4.8'}</span>
+                </div>
+                <div class="booking-info-item">
+                    <span class="booking-info-label">💰 价格：</span>
+                    <span class="booking-info-value">¥${item.price}/晚</span>
+                </div>
+            </div>
+            
+            <div class="booking-card-cashback">
+                <span>🎁 通过野游记预订返现</span>
+                <span class="cashback-amount">¥${cashbackAmount}</span>
+            </div>
+            
+            <div class="booking-card-actions">
+                <a href="${item.url}" target="_blank" class="booking-btn booking-btn-primary">
+                    立即预订
+                </a>
+                <button onclick="saveBooking('${item.id}')" class="booking-btn booking-btn-secondary">
+                    稍后再看
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// 生成攻略顶部返现总览
+function createCashbackSummary(totalCashback, bookingCount) {
+    return `
+        <div class="cashback-summary">
+            <div>💰 本攻略预估可返现</div>
+            <div class="cashback-summary-amount">¥${totalCashback}</div>
+            <div class="cashback-summary-desc">已为 ${bookingCount} 人省下 ¥${totalCashback * bookingCount}</div>
+        </div>
+    `;
+}
+
+// 显示引导预订弹窗
+function showBookingModal(items, totalCashback) {
+    const itemsHtml = items.map(item => {
+        const cashback = Math.round(item.price * 0.5);
+        return `
+            <div class="booking-modal-item">
+                <div class="booking-modal-item-icon">${item.icon}</div>
+                <div class="booking-modal-item-info">
+                    <div class="booking-modal-item-name">${item.name}</div>
+                    <div class="booking-modal-item-price">原价 ¥${item.price}/晚</div>
+                </div>
+                <div class="booking-modal-item-cashback">返¥${cashback}</div>
+            </div>
+        `;
+    }).join('');
+    
+    const modal = document.createElement('div');
+    modal.className = 'booking-modal';
+    modal.innerHTML = `
+        <div class="booking-modal-content">
+            <div class="booking-modal-header">
+                <div class="booking-modal-icon">🎉</div>
+                <h3 class="booking-modal-title">攻略已生成！</h3>
+                <p class="booking-modal-subtitle">要预订推荐的酒店吗？返现50%！</p>
+            </div>
+            
+            <div class="booking-modal-items">
+                ${itemsHtml}
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 16px; padding: 12px; background: #FFF8E1; border-radius: 8px;">
+                <strong>💰 预估返现总额：¥${totalCashback}</strong>
+            </div>
+            
+            <div class="booking-modal-actions">
+                <button onclick="bookAllItems()" class="booking-btn booking-btn-primary">
+                    📦 一键打包预订（省50%）
+                </button>
+                <button onclick="closeBookingModal()" class="booking-btn booking-btn-secondary">
+                    先看攻略，稍后预订
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 点击背景关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeBookingModal();
+        }
+    });
+}
+
+// 关闭预订弹窗
+function closeBookingModal() {
+    const modal = document.querySelector('.booking-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// 一键打包预订
+function bookAllItems() {
+    alert('功能开发中：将跳转到打包预订页面 🛒');
+    closeBookingModal();
+}
+
+// 保存预订（稍后再看）
+function saveBooking(itemId) {
+    alert(`已保存：${itemId} ✅`);
+}
+
+// 在攻略内容中插入预订卡片
+function insertBookingCards(guideHtml, bookingItems) {
+    // 在攻略的第一个H2标题后插入返现总览
+    const totalCashback = bookingItems.reduce((sum, item) => sum + Math.round(item.price * 0.5), 0);
+    const cashbackSummaryHtml = createCashbackSummary(totalCashback, Math.floor(Math.random() * 200) + 50);
+    
+    // 在每个相关段落后插入预订卡片
+    let result = guideHtml.replace(/(<h2>.*?住宿.*?<\/h2>)/i, `$1${cashbackSummaryHtml}`);
+    
+    bookingItems.forEach(item => {
+        // 在提到酒店名称的段落后插入卡片
+        const regex = new RegExp(`(${item.name}.*?</p>)`, 'i');
+        const cardHtml = createBookingCard(item);
+        result = result.replace(regex, `$1${cardHtml}`);
+    });
+    
+    return result;
+}
+</script>

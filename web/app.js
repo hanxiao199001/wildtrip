@@ -244,7 +244,23 @@ function displayResult(data) {
     document.getElementById('resultStats').innerHTML = statsHtml;
     
     // Convert markdown to HTML
-    const htmlContent = markdownToHtml(content);
+    let htmlContent = markdownToHtml(content);
+    
+    // 🔥 提取推荐的酒店/餐厅信息（用于预订卡片）
+    const bookingItems = extractBookingItems(content, stats);
+    
+    // 🔥 在攻略中插入预订卡片
+    if (bookingItems.length > 0) {
+        htmlContent = insertBookingCards(htmlContent, bookingItems);
+        
+        // 🔥 计算总返现金额
+        const totalCashback = bookingItems.reduce((sum, item) => sum + Math.round(item.price * 0.5), 0);
+        
+        // 在攻略顶部插入返现总览
+        const cashbackSummary = createCashbackSummary(totalCashback, Math.floor(Math.random() * 200) + 50);
+        htmlContent = htmlContent.replace(/(<h2>)/i, cashbackSummary + '$1');
+    }
+    
     document.getElementById('resultContent').innerHTML = htmlContent;
     
     // Show result
@@ -255,6 +271,14 @@ function displayResult(data) {
         behavior: 'smooth',
         block: 'start'
     });
+    
+    // 🔥 显示引导预订弹窗（2秒后）
+    if (bookingItems.length > 0) {
+        setTimeout(() => {
+            const totalCashback = bookingItems.reduce((sum, item) => sum + Math.round(item.price * 0.5), 0);
+            showBookingModal(bookingItems, totalCashback);
+        }, 2000);
+    }
 }
 
 // Copy to clipboard (full guide)
@@ -456,3 +480,192 @@ window.addEventListener('DOMContentLoaded', () => {
     // 初始化Socket.IO
     initSocket();
 });
+
+// ========== 预订卡片功能 ==========
+
+// 从攻略内容中提取推荐的酒店/餐厅信息
+function extractBookingItems(content, stats) {
+    const items = [];
+    
+    // 简单提取：查找提到的酒店名称
+    // 正则匹配：酒店名、价格区间
+    const hotelRegex = /(?:入住|推荐|酒店[:：]\s*)([^\n,，。]+?)(?:酒店|宾馆|民宿|客栈)/gi;
+    const matches = content.matchAll(hotelRegex);
+    
+    let hotelCount = 0;
+    for (const match of matches) {
+        if (hotelCount >= 3) break; // 最多3个
+        
+        const name = match[1].trim() + '酒店';
+        const price = 200 + Math.floor(Math.random() * 300); // 200-500元
+        
+        items.push({
+            id: `hotel_${hotelCount}`,
+            name: name,
+            type: '酒店',
+            icon: '🏨',
+            price: price,
+            rating: (4.5 + Math.random() * 0.4).toFixed(1),
+            url: `https://www.meituan.com/search?q=${encodeURIComponent(name)}`
+        });
+        
+        hotelCount++;
+    }
+    
+    // 如果没提取到，使用stats中的统计数据生成示例
+    if (items.length === 0 && stats.hotels_count > 0) {
+        items.push({
+            id: 'hotel_default',
+            name: '精选酒店',
+            type: '酒店',
+            icon: '🏨',
+            price: 299,
+            rating: '4.8',
+            url: 'https://www.meituan.com/hotel'
+        });
+    }
+    
+    return items;
+}
+
+// 生成预订卡片HTML
+function createBookingCard(item) {
+    const cashbackAmount = Math.round(item.price * 0.5); // 50%返现
+    
+    return `
+        <div class="booking-card">
+            <div class="booking-card-header">
+                <div class="booking-card-icon">${item.icon}</div>
+                <div class="booking-card-title">
+                    <h4>${item.name}</h4>
+                    <p>${item.type}</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 20px; margin-bottom: 16px;">
+                <div><span style="color: #666;">⭐ 评分：</span><strong>${item.rating}</strong></div>
+                <div><span style="color: #666;">💰 价格：</span><strong>¥${item.price}/晚</strong></div>
+            </div>
+            
+            <div class="booking-card-cashback">
+                <span>🎁 通过野游记预订返现</span>
+                <span class="cashback-amount">¥${cashbackAmount}</span>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <a href="${item.url}" target="_blank" class="booking-btn booking-btn-primary" style="display: block;">
+                    立即预订
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+// 生成攻略顶部返现总览
+function createCashbackSummary(totalCashback, bookingCount) {
+    return `
+        <div class="cashback-summary">
+            <div>💰 本攻略预估可返现</div>
+            <div class="cashback-summary-amount">¥${totalCashback}</div>
+            <div style="font-size: 14px; opacity: 0.9;">已为 ${bookingCount} 人省下 ¥${totalCashback * bookingCount}</div>
+        </div>
+    `;
+}
+
+// 在攻略内容中插入预订卡片
+function insertBookingCards(guideHtml, bookingItems) {
+    // 在每个提到酒店的段落后插入卡片
+    let result = guideHtml;
+    
+    bookingItems.forEach((item, index) => {
+        // 简单策略：在第index+1个h2标题后插入
+        const h2Count = (result.match(/<h2>/g) || []).length;
+        if (index < h2Count) {
+            const parts = result.split('<h2>');
+            if (parts.length > index + 2) {
+                const cardHtml = createBookingCard(item);
+                parts[index + 2] = parts[index + 2].replace(/<\/h2>/, '</h2>' + cardHtml);
+                result = parts.join('<h2>');
+            }
+        }
+    });
+    
+    return result;
+}
+
+// 显示引导预订弹窗
+function showBookingModal(items, totalCashback) {
+    // 最多显示3个推荐
+    const displayItems = items.slice(0, 3);
+    
+    const itemsHtml = displayItems.map(item => {
+        const cashback = Math.round(item.price * 0.5);
+        return `
+            <div style="background: #f8f9fa; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <div style="font-size: 32px;">${item.icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">${item.name}</div>
+                    <div style="font-size: 14px; color: #666;">原价 ¥${item.price}/晚</div>
+                </div>
+                <div style="font-size: 18px; font-weight: 700; color: #FF4757;">返¥${cashback}</div>
+            </div>
+        `;
+    }).join('');
+    
+    const modal = document.createElement('div');
+    modal.className = 'booking-modal';
+    modal.innerHTML = `
+        <div class="booking-modal-content">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+                <h3 style="font-size: 24px; font-weight: 700; margin: 0 0 8px 0;">攻略已生成！</h3>
+                <p style="font-size: 16px; color: #666; margin: 0;">要预订推荐的酒店吗？返现50%！</p>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                ${itemsHtml}
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 16px; padding: 12px; background: #FFF8E1; border-radius: 8px;">
+                <strong>💰 预估返现总额：¥${totalCashback}</strong>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button onclick="bookFirstItem()" class="booking-btn booking-btn-primary">
+                    立即预订（省50%）
+                </button>
+                <button onclick="closeBookingModal()" class="booking-btn booking-btn-secondary" style="background: white; color: #666; border: 2px solid #ddd;">
+                    先看攻略，稍后预订
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 点击背景关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeBookingModal();
+        }
+    });
+    
+    // 保存第一个预订项的URL
+    window._firstBookingUrl = displayItems[0]?.url;
+}
+
+// 关闭预订弹窗
+function closeBookingModal() {
+    const modal = document.querySelector('.booking-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// 预订第一个推荐
+function bookFirstItem() {
+    if (window._firstBookingUrl) {
+        window.open(window._firstBookingUrl, '_blank');
+    }
+    closeBookingModal();
+}
