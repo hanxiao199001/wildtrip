@@ -263,17 +263,18 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         emit_progress(socketio, task_id, 'affiliate_done', '💰 返佣链接添加完成！', 90)
         time.sleep(0.3)
         
-        # 🔥 图片增强：爬取真实POI图片
-        emit_progress(socketio, task_id, 'images', '🖼️ 正在爬取真实图片...', 92)
-        try:
-            from services.image_crawler import ImageCrawler
-            image_crawler = ImageCrawler()
-            enhanced_content = image_crawler.enrich_content_with_images(enhanced_content)
-            logger.info(f"✅ 图片增强完成")
-        except Exception as e:
-            logger.warning(f"⚠️ 图片爬取失败: {e}")
+        # 🔥 图片增强：已禁用（当前UI无图片设计）
+        # emit_progress(socketio, task_id, 'images', '🖼️ 正在爬取真实图片...', 92)
+        # try:
+        #     from services.image_crawler import ImageCrawler
+        #     image_crawler = ImageCrawler()
+        #     enhanced_content = image_crawler.enrich_content_with_images(enhanced_content)
+        #     logger.info(f"✅ 图片增强完成")
+        # except Exception as e:
+        #     logger.warning(f"⚠️ 图片爬取失败: {e}")
         
-        emit_progress(socketio, task_id, 'images_done', '📸 图片添加完成！', 95)
+        logger.info(f"⏭️ 跳过图片爬取（当前UI无图片）")
+        emit_progress(socketio, task_id, 'images_done', '⏭️ 跳过图片爬取', 95)
         time.sleep(0.2)
         
         # 统计信息
