@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{TITLE}} - 我的行程 - 野游记</title>
+    <title>🌴 海口野路子三天游：不当游客，当岛民！ - 我的行程 - 野游记</title>
     <style>
         * {
             margin: 0;
@@ -64,147 +64,46 @@
             padding: 20px;
         }
         
-        /* 顶部标题卡片（橙粉渐变）*/
-        .header-card {
-            background: linear-gradient(135deg, #FB923C 0%, #EC4899 100%);
-            border-radius: 20px 20px 0 0;
-            padding: 24px;
+        /* 行程概览卡片（绿色渐变）*/
+        .overview-card {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border-radius: 20px;
+            padding: 28px 24px;
             color: white;
-            margin: -16px -16px 0 -16px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
         }
         
-        .header-title {
-            font-size: 24px;
+        .overview-title {
+            font-size: 26px;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         
-        .header-meta {
+        .overview-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            font-size: 14px;
-            opacity: 0.95;
-        }
-        
-        /* 返现提示框（黄色）*/
-        .cashback-notice {
-            background: #FEF3C7;
-            border: 2px solid #FCD34D;
-            border-radius: 16px;
-            padding: 16px;
-            margin: 16px 0;
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-        
-        .notice-icon {
-            font-size: 32px;
-            flex-shrink: 0;
-        }
-        
-        .notice-content {
-            flex: 1;
-        }
-        
-        .notice-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #92400E;
-            margin-bottom: 4px;
-        }
-        
-        .notice-desc {
-            font-size: 14px;
-            color: #78350F;
-            line-height: 1.5;
-        }
-        
-        /* 返现金额卡片（绿色）*/
-        .cashback-card {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            border-radius: 16px;
-            padding: 24px;
-            color: white;
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .cashback-left {
-            display: flex;
-            align-items: center;
             gap: 16px;
+            margin-bottom: 16px;
+            font-size: 15px;
         }
         
-        .cashback-icon {
-            font-size: 48px;
-        }
-        
-        .cashback-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .cashback-label {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 4px;
-        }
-        
-        .cashback-amount {
-            font-size: 48px;
-            font-weight: 700;
-            line-height: 1;
-        }
-        
-        .cashback-right {
-            text-align: right;
-        }
-        
-        .cashback-saved {
-            font-size: 13px;
-            opacity: 0.9;
-            margin-bottom: 4px;
-        }
-        
-        .cashback-total {
-            font-size: 20px;
-            font-weight: 700;
-        }
-        
-        /* 价格显示 */
-        .price-section {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-        
-        .price-row {
+        .meta-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 8px 0;
+            gap: 6px;
         }
         
-        .price-label {
+        .cashback-badge {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 12px;
             font-size: 15px;
-            color: #6b7280;
-        }
-        
-        .price-original {
-            font-size: 18px;
-            color: #9ca3af;
-            text-decoration: line-through;
-        }
-        
-        .price-discounted {
-            font-size: 24px;
-            font-weight: 700;
-            color: #DC2626;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         
         /* 导入日历按钮 */
@@ -454,52 +353,16 @@
     
     <!-- 内容 -->
     <div class="container">
-        <!-- 顶部标题卡片 -->
-        <div class="header-card">
-            <div class="header-title">✨ 你的专属野路子攻略</div>
-            <div class="header-meta">
-                <span>📝 {{WORD_COUNT}}字</span>
-                <span>• 🏨 {{HOTELS_COUNT}}家酒店</span>
-                <span>• 🍔 {{RESTAURANTS_COUNT}}家餐厅</span>
+        <!-- 行程概览卡片 -->
+        <div class="overview-card">
+            <div class="overview-title">🌴 海口野路子三天游：不当游客，当岛民！</div>
+            <div class="overview-meta">
+                <div class="meta-item">📅 1天0晚</div>
+                <div class="meta-item">💰 预算¥1000</div>
+                <div class="meta-item">📍 15个地点</div>
             </div>
-        </div>
-        
-        <!-- 返现提示框 -->
-        <div class="cashback-notice">
-            <div class="notice-icon">💰</div>
-            <div class="notice-content">
-                <div class="notice-title">攻略带返现！</div>
-                <div class="notice-desc">点击下方黄色按钮前往美团预订，购买后自动获得返现奖励 🤑</div>
-            </div>
-        </div>
-        
-        <!-- 行程标题 -->
-        <h2 style="font-size: 20px; margin: 20px 0 12px 0;">🌴 {{TITLE}}</h2>
-        
-        <!-- 返现金额卡片 -->
-        <div class="cashback-card">
-            <div class="cashback-left">
-                <div class="cashback-icon">💰</div>
-                <div class="cashback-info">
-                    <div class="cashback-label">本攻略预估可返现</div>
-                    <div class="cashback-amount">¥{{TOTAL_CASHBACK}}</div>
-                </div>
-            </div>
-            <div class="cashback-right">
-                <div class="cashback-saved">已为 {{USERS_SAVED}}人</div>
-                <div class="cashback-total">省下¥{{TOTAL_SAVED}}</div>
-            </div>
-        </div>
-        
-        <!-- 价格信息（可选，如果需要的话）-->
-        <div class="price-section" style="display: none;">
-            <div class="price-row">
-                <span class="price-label">原价：</span>
-                <span class="price-original">¥{{BUDGET}}</span>
-            </div>
-            <div class="price-row">
-                <span class="price-label">折扣后：</span>
-                <span class="price-discounted">¥{{DISCOUNTED_PRICE}}</span>
+            <div class="cashback-badge">
+                💰 预订推荐餐厅可返现 ¥27
             </div>
         </div>
         
@@ -511,11 +374,225 @@
         
         <!-- Day标签 -->
         <div class="day-tabs">
-            {{DAY_TABS}}
+            <div class="day-tab active" data-day="1" onclick="switchDay(1)">Day 1</div>
+
         </div>
         
         <!-- 时间线内容 -->
-        {{TIMELINE_CONTENT}}
+        <div id="day-1" class="day-content active">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">09:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">东门市场</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">12:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">14:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">骑楼老街（非主街）</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">17:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">白沙门废弃渔港</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">19:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">晚餐</div>
+    </div>
+</div>
+</div>
+<div id="day-2" class="day-content ">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">09:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">雷琼火山群（非主景区）</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">12:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">14:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">火山村咖啡实验室</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">17:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">万绿园慢生活</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">19:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">晚餐</div>
+    </div>
+</div>
+</div>
+<div id="day-3" class="day-content ">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">08:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">老爸茶早场</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">11:00</div>
+    </div>
+    <div class="timeline-icon icon-food">
+        🍜
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">海南省博物馆（冷门展厅）</div>
+<div class="restaurant-info">
+    <span class="restaurant-price">¥50/人</span>
+    <span class="restaurant-rating">⭐ 4.6</span>
+    <span class="cashback-tag">返¥5</span>
+</div>
+<button class="booking-btn" onclick="bookRestaurant('海南省博物馆（冷门展厅）', '海南省博物馆（冷门展厅）')">
+    立即预订，返¥5
+</button>
+
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">13:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">15:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">海口最后的渔村</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">17:00</div>
+    </div>
+    <div class="timeline-icon icon-food">
+        🍜
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">云洞图书馆（外围）</div>
+<div class="restaurant-info">
+    <span class="restaurant-price">¥55/人</span>
+    <span class="restaurant-rating">⭐ 4.8</span>
+    <span class="cashback-tag">返¥5</span>
+</div>
+<button class="booking-btn" onclick="bookRestaurant('云洞图书馆（外围）', '云洞图书馆（外围）')">
+    立即预订，返¥5
+</button>
+
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">19:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">告别晚餐</div>
+    </div>
+</div>
+</div>
+
     </div>
     
     <!-- 底部按钮 -->
@@ -569,7 +646,7 @@
         
         // 生成iCalendar文件
         function generateICS() {
-            const events = {{ICS_DATA}};
+            const events = [{"start": "20260205T090007", "end": "20260205T100007", "title": "东门市场", "desc": "东门市场", "location": "东门市场"}, {"start": "20260205T120007", "end": "20260205T130007", "title": "午餐", "desc": "午餐", "location": "午餐"}, {"start": "20260205T143007", "end": "20260205T153007", "title": "骑楼老街（非主街）", "desc": "骑楼老街（非主街）", "location": "骑楼老街（非主街）"}, {"start": "20260205T170007", "end": "20260205T180007", "title": "白沙门废弃渔港", "desc": "白沙门废弃渔港", "location": "白沙门废弃渔港"}, {"start": "20260205T193007", "end": "20260205T203007", "title": "晚餐", "desc": "晚餐", "location": "晚餐"}, {"start": "20260206T093007", "end": "20260206T103007", "title": "雷琼火山群（非主景区）", "desc": "雷琼火山群（非主景区）", "location": "雷琼火山群（非主景区）"}, {"start": "20260206T120007", "end": "20260206T130007", "title": "午餐", "desc": "午餐", "location": "午餐"}, {"start": "20260206T140007", "end": "20260206T150007", "title": "火山村咖啡实验室", "desc": "火山村咖啡实验室", "location": "火山村咖啡实验室"}, {"start": "20260206T170007", "end": "20260206T180007", "title": "万绿园慢生活", "desc": "万绿园慢生活", "location": "万绿园慢生活"}, {"start": "20260206T193007", "end": "20260206T203007", "title": "晚餐", "desc": "晚餐", "location": "晚餐"}, {"start": "20260207T083007", "end": "20260207T093007", "title": "老爸茶早场", "desc": "老爸茶早场", "location": "老爸茶早场"}, {"start": "20260207T110007", "end": "20260207T120007", "title": "海南省博物馆（冷门展厅）", "desc": "海南省博物馆（冷门展厅）", "location": "海南省博物馆（冷门展厅）"}, {"start": "20260207T130007", "end": "20260207T140007", "title": "午餐", "desc": "午餐", "location": "午餐"}, {"start": "20260207T150007", "end": "20260207T160007", "title": "海口最后的渔村", "desc": "海口最后的渔村", "location": "海口最后的渔村"}, {"start": "20260207T170007", "end": "20260207T180007", "title": "云洞图书馆（外围）", "desc": "云洞图书馆（外围）", "location": "云洞图书馆（外围）"}, {"start": "20260207T190007", "end": "20260207T200007", "title": "告别晚餐", "desc": "告别晚餐", "location": "告别晚餐"}];
             
             let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//野游记//NONSGML v1.0//EN\n';
             
@@ -600,7 +677,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = '{{TITLE}}.ics';
+            a.download = '🌴 海口野路子三天游：不当游客，当岛民！.ics';
             a.click();
             URL.revokeObjectURL(url);
         }

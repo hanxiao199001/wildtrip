@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{TITLE}} - 我的行程 - 野游记</title>
+    <title>🐼 成都3天“野路子”美食游：2000块吃出本地人灵魂 - 我的行程 - 野游记</title>
     <style>
         * {
             margin: 0;
@@ -64,147 +64,46 @@
             padding: 20px;
         }
         
-        /* 顶部标题卡片（橙粉渐变）*/
-        .header-card {
-            background: linear-gradient(135deg, #FB923C 0%, #EC4899 100%);
-            border-radius: 20px 20px 0 0;
-            padding: 24px;
+        /* 行程概览卡片（绿色渐变）*/
+        .overview-card {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border-radius: 20px;
+            padding: 28px 24px;
             color: white;
-            margin: -16px -16px 0 -16px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
         }
         
-        .header-title {
-            font-size: 24px;
+        .overview-title {
+            font-size: 26px;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         
-        .header-meta {
+        .overview-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            font-size: 14px;
-            opacity: 0.95;
-        }
-        
-        /* 返现提示框（黄色）*/
-        .cashback-notice {
-            background: #FEF3C7;
-            border: 2px solid #FCD34D;
-            border-radius: 16px;
-            padding: 16px;
-            margin: 16px 0;
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-        
-        .notice-icon {
-            font-size: 32px;
-            flex-shrink: 0;
-        }
-        
-        .notice-content {
-            flex: 1;
-        }
-        
-        .notice-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #92400E;
-            margin-bottom: 4px;
-        }
-        
-        .notice-desc {
-            font-size: 14px;
-            color: #78350F;
-            line-height: 1.5;
-        }
-        
-        /* 返现金额卡片（绿色）*/
-        .cashback-card {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            border-radius: 16px;
-            padding: 24px;
-            color: white;
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .cashback-left {
-            display: flex;
-            align-items: center;
             gap: 16px;
+            margin-bottom: 16px;
+            font-size: 15px;
         }
         
-        .cashback-icon {
-            font-size: 48px;
-        }
-        
-        .cashback-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .cashback-label {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 4px;
-        }
-        
-        .cashback-amount {
-            font-size: 48px;
-            font-weight: 700;
-            line-height: 1;
-        }
-        
-        .cashback-right {
-            text-align: right;
-        }
-        
-        .cashback-saved {
-            font-size: 13px;
-            opacity: 0.9;
-            margin-bottom: 4px;
-        }
-        
-        .cashback-total {
-            font-size: 20px;
-            font-weight: 700;
-        }
-        
-        /* 价格显示 */
-        .price-section {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-        
-        .price-row {
+        .meta-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 8px 0;
+            gap: 6px;
         }
         
-        .price-label {
+        .cashback-badge {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 12px;
             font-size: 15px;
-            color: #6b7280;
-        }
-        
-        .price-original {
-            font-size: 18px;
-            color: #9ca3af;
-            text-decoration: line-through;
-        }
-        
-        .price-discounted {
-            font-size: 24px;
-            font-weight: 700;
-            color: #DC2626;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         
         /* 导入日历按钮 */
@@ -454,52 +353,16 @@
     
     <!-- 内容 -->
     <div class="container">
-        <!-- 顶部标题卡片 -->
-        <div class="header-card">
-            <div class="header-title">✨ 你的专属野路子攻略</div>
-            <div class="header-meta">
-                <span>📝 {{WORD_COUNT}}字</span>
-                <span>• 🏨 {{HOTELS_COUNT}}家酒店</span>
-                <span>• 🍔 {{RESTAURANTS_COUNT}}家餐厅</span>
+        <!-- 行程概览卡片 -->
+        <div class="overview-card">
+            <div class="overview-title">🐼 成都3天“野路子”美食游：2000块吃出本地人灵魂</div>
+            <div class="overview-meta">
+                <div class="meta-item">📅 3天2晚</div>
+                <div class="meta-item">💰 预算¥2000</div>
+                <div class="meta-item">📍 18个地点</div>
             </div>
-        </div>
-        
-        <!-- 返现提示框 -->
-        <div class="cashback-notice">
-            <div class="notice-icon">💰</div>
-            <div class="notice-content">
-                <div class="notice-title">攻略带返现！</div>
-                <div class="notice-desc">点击下方黄色按钮前往美团预订，购买后自动获得返现奖励 🤑</div>
-            </div>
-        </div>
-        
-        <!-- 行程标题 -->
-        <h2 style="font-size: 20px; margin: 20px 0 12px 0;">🌴 {{TITLE}}</h2>
-        
-        <!-- 返现金额卡片 -->
-        <div class="cashback-card">
-            <div class="cashback-left">
-                <div class="cashback-icon">💰</div>
-                <div class="cashback-info">
-                    <div class="cashback-label">本攻略预估可返现</div>
-                    <div class="cashback-amount">¥{{TOTAL_CASHBACK}}</div>
-                </div>
-            </div>
-            <div class="cashback-right">
-                <div class="cashback-saved">已为 {{USERS_SAVED}}人</div>
-                <div class="cashback-total">省下¥{{TOTAL_SAVED}}</div>
-            </div>
-        </div>
-        
-        <!-- 价格信息（可选，如果需要的话）-->
-        <div class="price-section" style="display: none;">
-            <div class="price-row">
-                <span class="price-label">原价：</span>
-                <span class="price-original">¥{{BUDGET}}</span>
-            </div>
-            <div class="price-row">
-                <span class="price-label">折扣后：</span>
-                <span class="price-discounted">¥{{DISCOUNTED_PRICE}}</span>
+            <div class="cashback-badge">
+                💰 预订推荐餐厅可返现 ¥27
             </div>
         </div>
         
@@ -511,11 +374,197 @@
         
         <!-- Day标签 -->
         <div class="day-tabs">
-            {{DAY_TABS}}
+            <div class="day-tab active" data-day="1" onclick="switchDay(1)">Day 1</div>
+<div class="day-tab " data-day="2" onclick="switchDay(2)">Day 2</div>
+<div class="day-tab " data-day="3" onclick="switchDay(3)">Day 3</div>
+
         </div>
         
         <!-- 时间线内容 -->
-        {{TIMELINE_CONTENT}}
+        <div id="day-1" class="day-content active">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">09:00</div>
+    </div>
+    <div class="timeline-icon icon-food">
+        🍜
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">观音阁老茶馆 → 体验百年茶铺</div>
+<div class="restaurant-info">
+    <span class="restaurant-price">¥10/人</span>
+    <span class="restaurant-rating">⭐ 4.5</span>
+    <span class="cashback-tag">返¥5</span>
+</div>
+<button class="booking-btn" onclick="bookRestaurant('观音阁老茶馆 → 体验百年茶铺', '观音阁老茶馆 → 体验百年茶铺')">
+    立即预订，返¥5
+</button>
+
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">12:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐 | 曹家巷菜市场 & 周边</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">14:30</div>
+    </div>
+    <div class="timeline-icon icon-food">
+        🍜
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">文殊院 → 静心与甜水面</div>
+<div class="restaurant-info">
+    <span class="restaurant-price">¥65/人</span>
+    <span class="restaurant-rating">⭐ 4.6</span>
+    <span class="cashback-tag">返¥5</span>
+</div>
+<button class="booking-btn" onclick="bookRestaurant('文殊院 → 静心与甜水面', '文殊院 → 静心与甜水面')">
+    立即预订，返¥5
+</button>
+
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">17:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">晚餐 | 抚琴第一烤</div>
+    </div>
+</div>
+</div>
+<div id="day-2" class="day-content ">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">10:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">东郊记忆 → 工业遗址拍大片</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">12:30</div>
+    </div>
+    <div class="timeline-icon icon-food">
+        🍜
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐 | 建设路小吃扫荡（避雷指南版）</div>
+<div class="restaurant-info">
+    <span class="restaurant-price">¥15/人</span>
+    <span class="restaurant-rating">⭐ 4.9</span>
+    <span class="cashback-tag">返¥5</span>
+</div>
+<button class="booking-btn" onclick="bookRestaurant('午餐 | 建设路小吃扫荡（避雷指南版）', '午餐 | 建设路小吃扫荡（避雷指南版）')">
+    立即预订，返¥5
+</button>
+
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">15:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">望平街 & 香香巷 → 河边喝咖啡</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">19:00</div>
+    </div>
+    <div class="timeline-icon icon-food">
+        🍜
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">晚餐 | 终极火锅体验（不吃小龙坎！）</div>
+<div class="restaurant-info">
+    <span class="restaurant-price">¥85/人</span>
+    <span class="restaurant-rating">⭐ 4.8</span>
+    <span class="cashback-tag">返¥5</span>
+</div>
+<button class="booking-btn" onclick="bookRestaurant('晚餐 | 终极火锅体验（不吃小龙坎！）', '晚餐 | 终极火锅体验（不吃小龙坎！）')">
+    立即预订，返¥5
+</button>
+
+    </div>
+</div>
+</div>
+<div id="day-3" class="day-content ">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">08:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">玉林综合市场 → 早餐天堂</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">10:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">小通巷 & 奎星楼街 → 文艺漫步</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">12:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐 | 最后一顿</div><div class="content-desc">吃个扎实的</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">15:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">采购伴手礼</div>
+    </div>
+</div>
+</div>
+
     </div>
     
     <!-- 底部按钮 -->
@@ -569,7 +618,7 @@
         
         // 生成iCalendar文件
         function generateICS() {
-            const events = {{ICS_DATA}};
+            const events = [{"start": "20260205T090057", "end": "20260205T100057", "title": "观音阁老茶馆 → 体验百年茶铺", "desc": "观音阁老茶馆 → 体验百年茶铺", "location": "观音阁老茶馆 → 体验百年茶铺"}, {"start": "20260205T120057", "end": "20260205T130057", "title": "午餐 | 曹家巷菜市场 & 周边", "desc": "午餐 | 曹家巷菜市场 & 周边", "location": "午餐 | 曹家巷菜市场 & 周边"}, {"start": "20260205T143057", "end": "20260205T153057", "title": "文殊院 → 静心与甜水面", "desc": "文殊院 → 静心与甜水面", "location": "文殊院 → 静心与甜水面"}, {"start": "20260205T173057", "end": "20260205T183057", "title": "晚餐 | 抚琴第一烤", "desc": "晚餐 | 抚琴第一烤", "location": "晚餐 | 抚琴第一烤"}, {"start": "20260206T100057", "end": "20260206T110057", "title": "东郊记忆 → 工业遗址拍大片", "desc": "东郊记忆 → 工业遗址拍大片", "location": "东郊记忆 → 工业遗址拍大片"}, {"start": "20260206T123057", "end": "20260206T133057", "title": "午餐 | 建设路小吃扫荡（避雷指南版）", "desc": "午餐 | 建设路小吃扫荡（避雷指南版）", "location": "午餐 | 建设路小吃扫荡（避雷指南版）"}, {"start": "20260206T150057", "end": "20260206T160057", "title": "望平街 & 香香巷 → 河边喝咖啡", "desc": "望平街 & 香香巷 → 河边喝咖啡", "location": "望平街 & 香香巷 → 河边喝咖啡"}, {"start": "20260206T190057", "end": "20260206T200057", "title": "晚餐 | 终极火锅体验（不吃小龙坎！）", "desc": "晚餐 | 终极火锅体验（不吃小龙坎！）", "location": "晚餐 | 终极火锅体验（不吃小龙坎！）"}, {"start": "20260207T083057", "end": "20260207T093057", "title": "玉林综合市场 → 早餐天堂", "desc": "玉林综合市场 → 早餐天堂", "location": "玉林综合市场 → 早餐天堂"}, {"start": "20260207T103057", "end": "20260207T113057", "title": "小通巷 & 奎星楼街 → 文艺漫步", "desc": "小通巷 & 奎星楼街 → 文艺漫步", "location": "小通巷 & 奎星楼街 → 文艺漫步"}, {"start": "20260207T123057", "end": "20260207T133057", "title": "午餐 | 最后一顿", "desc": "午餐 | 最后一顿，吃个扎实的", "location": "午餐 | 最后一顿"}, {"start": "20260207T150057", "end": "20260207T160057", "title": "采购伴手礼", "desc": "采购伴手礼", "location": "采购伴手礼"}];
             
             let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//野游记//NONSGML v1.0//EN\n';
             
@@ -600,7 +649,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = '{{TITLE}}.ics';
+            a.download = '🐼 成都3天“野路子”美食游：2000块吃出本地人灵魂.ics';
             a.click();
             URL.revokeObjectURL(url);
         }
