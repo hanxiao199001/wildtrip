@@ -129,11 +129,21 @@ class ItineraryGenerator:
         return restaurants + hotels + min(attractions, 5)
     
     def _calculate_cashback(self, content: str) -> int:
-        """计算总返现金额"""
-        # 查找所有"返¥X"
+        """计算总返现金额（仅酒店）"""
+        # 🔥 实际上只有酒店有返佣
+        # 查找所有"返¥X"，但只统计酒店相关的
+        hotels_count = self._count_hotels(content)
+        
+        # 假设每家酒店平均返现50元
+        estimated_cashback = hotels_count * 50
+        
+        # 如果内容中明确提到返现金额，使用实际金额
         cashbacks = re.findall(r'返[¥￥](\d+)', content)
-        total = sum(int(cb) for cb in cashbacks)
-        return total if total > 0 else 150  # 默认150
+        if cashbacks:
+            total = sum(int(cb) for cb in cashbacks)
+            return total if total > 0 else estimated_cashback
+        
+        return estimated_cashback if estimated_cashback > 0 else 100  # 至少显示100
     
     def _count_hotels(self, content: str) -> int:
         """统计酒店数量"""
@@ -147,18 +157,18 @@ class ItineraryGenerator:
     
     def _calculate_users_saved(self, cashback: int) -> int:
         """计算已为多少人省钱（社会证明）"""
-        # 基于返现金额估算用户数
-        # 返现越高，用户数越多（但有上限）
+        # 🔥 基于酒店返现金额估算用户数
+        # 返现越高，说明攻略越受欢迎，用户数越多
         if cashback >= 200:
-            return 150
+            return 156  # 大型旅游攻略
         elif cashback >= 150:
-            return 99
+            return 98   # 热门路线
         elif cashback >= 100:
-            return 66
+            return 67   # 中等热度
         elif cashback >= 50:
-            return 42
+            return 43   # 小众路线
         else:
-            return 28
+            return 28   # 新路线
     
     def _generate_day_tabs(self, days_info: list) -> str:
         """生成Day标签HTML"""

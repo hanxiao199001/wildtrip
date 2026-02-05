@@ -13,13 +13,22 @@ class AffiliateManager:
     """联盟链接管理器"""
     
     def __init__(self):
-        # 联盟链接状态
-        self.meituan_status = 'pending'  # pending | approved
-        self.fliggy_status = 'pending'   # pending | approved
+        # 🔥 实际变现情况（2026-02-05更新）
+        # 酒店：美团联盟有活动，可返佣
+        self.hotel_status = 'approved'  # 酒店可以用联盟链接
+        self.hotel_has_commission = True
         
-        # 联盟链接模板（审核通过后填入）
-        self.meituan_template = None  # 例如: "https://union.meituan.com/..."
-        self.fliggy_template = None   # 例如: "https://s.click.taobao.com/..."
+        # 餐饮：暂无返佣，但保留搜索链接（提升用户体验）
+        self.restaurant_status = 'search_only'  # 只能搜索，无返佣
+        self.restaurant_has_commission = False
+        
+        # 门票：待定（需查"到综"或接入飞猪）
+        self.ticket_status = 'pending'  # 待定
+        self.ticket_has_commission = False
+        
+        # 联盟链接模板（一键取链生成）
+        self.meituan_hotel_template = None  # 酒店推广链接
+        self.fliggy_template = None  # 飞猪联盟（备用）
     
     def generate_booking_link(
         self, 
@@ -29,26 +38,32 @@ class AffiliateManager:
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
         """
-        生成预订链接
+        生成预订链接（根据实际变现情况）
         
         Args:
             poi_type: POI类型（餐厅/酒店/门票）
             name: 名称
             city: 城市（可选）
-            affiliate_link: 联盟链接（审核通过后）
+            affiliate_link: 联盟链接（一键取链生成）
         
         Returns:
             {
                 'url': '链接地址',
                 'text': '显示文本',
-                'status': 'approved' | 'pending',
-                'platform': 'meituan' | 'fliggy'
+                'status': 'approved' | 'search_only',
+                'platform': 'meituan',
+                'has_commission': True | False
             }
         """
         if poi_type == 'restaurant':
+            # 餐饮：无返佣，搜索链接
             return self._generate_meituan_link(name, city, affiliate_link)
-        elif poi_type in ['hotel', 'ticket']:
-            return self._generate_fliggy_link(poi_type, name, city, affiliate_link)
+        elif poi_type == 'hotel':
+            # 酒店：美团联盟有返佣
+            return self._generate_hotel_link(name, city, affiliate_link)
+        elif poi_type == 'ticket':
+            # 门票：待定
+            return self._generate_ticket_link(name, city, affiliate_link)
         else:
             return self._generate_search_link(name, city)
     
@@ -60,68 +75,67 @@ class AffiliateManager:
     ) -> Dict[str, str]:
         """生成美团链接（餐饮）"""
         
-        if self.meituan_status == 'approved' and affiliate_link:
-            # 审核通过，使用联盟链接
-            return {
-                'url': affiliate_link,
-                'text': f'🛒 团购：{name}',
-                'status': 'approved',
-                'platform': 'meituan'
-            }
-        else:
-            # 审核中，使用搜索链接
-            keyword = f"{city} {name}" if city else name
-            search_url = f"https://www.meituan.com/s/{quote(keyword)}"
-            
-            return {
-                'url': search_url,
-                'text': f'🔍 美团搜索：{name}',
-                'status': 'pending',
-                'platform': 'meituan'
-            }
+        # 🔥 餐饮暂无返佣，只提供搜索链接
+        keyword = f"{city} {name}" if city else name
+        search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
+        
+        return {
+            'url': search_url,
+            'text': f'去美团查看',  # 不显示"搜索"，更友好
+            'status': 'search_only',  # 特殊状态：只搜索，无返佣
+            'platform': 'meituan',
+            'has_commission': False
+        }
     
-    def _generate_fliggy_link(
+    def _generate_hotel_link(
         self,
-        poi_type: str,
         name: str,
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
-        """生成飞猪链接（酒店/门票）"""
+        """生成酒店链接（美团联盟，有返佣）"""
         
-        if self.fliggy_status == 'approved' and affiliate_link:
-            # 审核通过，使用联盟链接
-            type_emoji = '🏨' if poi_type == 'hotel' else '🎫'
-            type_text = '酒店预订' if poi_type == 'hotel' else '门票预订'
-            
+        if affiliate_link:
+            # 有联盟链接，显示返佣按钮
             return {
                 'url': affiliate_link,
-                'text': f'{type_emoji} {type_text}：{name}',
+                'text': f'预订返现',  # 简洁有力
                 'status': 'approved',
-                'platform': 'fliggy'
+                'platform': 'meituan',
+                'has_commission': True
             }
         else:
-            # 审核中，使用搜索链接
+            # 暂无联盟链接，使用搜索（但提示可返现）
             keyword = f"{city} {name}" if city else name
+            search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
             
-            if poi_type == 'hotel':
-                # 飞猪酒店搜索
-                search_url = f"https://s.fliggy.com/hotel/?keyword={quote(keyword)}"
-                return {
-                    'url': search_url,
-                    'text': f'🔍 飞猪搜索：{name}',
-                    'status': 'pending',
-                    'platform': 'fliggy'
-                }
-            else:
-                # 飞猪门票搜索
-                search_url = f"https://s.fliggy.com/ticket/?keyword={quote(keyword)}"
-                return {
-                    'url': search_url,
-                    'text': f'🔍 飞猪搜索：{name}',
-                    'status': 'pending',
-                    'platform': 'fliggy'
-                }
+            return {
+                'url': search_url,
+                'text': f'去美团预订',
+                'status': 'approved',  # 酒店是approved，只是暂无具体链接
+                'platform': 'meituan',
+                'has_commission': True  # 潜在有返佣
+            }
+    
+    def _generate_ticket_link(
+        self,
+        name: str,
+        city: str = '',
+        affiliate_link: Optional[str] = None
+    ) -> Dict[str, str]:
+        """生成门票链接（待定：美团或飞猪）"""
+        
+        # 🔥 门票暂时用美团搜索（后续可切换到飞猪）
+        keyword = f"{city} {name} 门票" if city else f"{name} 门票"
+        search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
+        
+        return {
+            'url': search_url,
+            'text': f'查看门票',
+            'status': 'search_only',
+            'platform': 'meituan',
+            'has_commission': False  # 待确认
+        }
     
     def _generate_search_link(self, name: str, city: str = '') -> Dict[str, str]:
         """生成通用搜索链接"""
@@ -145,31 +159,37 @@ class AffiliateManager:
         affiliate_link: Optional[str] = None
     ) -> str:
         """
-        渲染预订按钮HTML
+        渲染预订按钮HTML（根据实际变现情况）
         
         Args:
             poi_type: POI类型
             name: 名称
             price: 价格（可选）
-            cashback: 返现金额（可选）
+            cashback: 返现金额（可选，仅酒店显示）
             city: 城市
-            affiliate_link: 联盟链接
+            affiliate_link: 联盟链接（一键取链）
         
         Returns:
-            HTML字符串（审核中返回空字符串）
+            HTML字符串
         """
         link_info = self.generate_booking_link(poi_type, name, city, affiliate_link)
         
-        # 🔥 审核中不显示任何按钮
-        if link_info['status'] == 'pending':
-            return ''
-        
-        # 审核通过 - 显示绿色按钮
+        # 构建按钮文本
         button_text = link_info['text']
-        if cashback:
+        
+        # 🔥 只有酒店显示返现金额
+        if poi_type == 'hotel' and link_info.get('has_commission') and cashback:
             button_text += f' 💰返¥{cashback}'
         
-        return f'''<a href="{link_info['url']}" class="booking-btn approved" target="_blank" rel="noopener">
+        # 按钮样式
+        if link_info.get('has_commission'):
+            # 有返佣：绿色按钮
+            button_class = 'booking-btn has-commission'
+        else:
+            # 无返佣（如餐饮）：蓝色按钮
+            button_class = 'booking-btn no-commission'
+        
+        return f'''<a href="{link_info['url']}" class="{button_class}" target="_blank" rel="noopener">
     {button_text}
 </a>'''
 
