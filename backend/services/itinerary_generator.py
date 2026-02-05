@@ -34,6 +34,9 @@ class ItineraryGenerator:
         
         template = self.template_path.read_text(encoding='utf-8')
         
+        # 🔥 预处理：转换Markdown表格
+        content = self._convert_markdown_tables(content)
+        
         # 提取信息
         title = self._extract_title(query, content)
         days_info = self._extract_days_info(query, content)
@@ -58,6 +61,9 @@ class ItineraryGenerator:
         
         # 生成时间线内容
         timeline_content = self._generate_timeline(content, days_info)
+        
+        # 🔥 转换Markdown表格为HTML表格
+        timeline_content = self._convert_markdown_tables(timeline_content)
         
         # 🔥 生成住宿推荐section（追加到时间线后面）
         hotels_html = self._extract_hotels_section(content)
@@ -523,6 +529,36 @@ class ItineraryGenerator:
     </a>
 </div>
 """
+
+
+    def _convert_markdown_tables(self, text: str) -> str:
+        """将Markdown表格转换为HTML表格"""
+        import re
+        table_pattern = r'(\|[^\n]+\|\n\|[-:\s|]+\|\n(?:\|[^\n]+\|\n?)+)'
+        
+        def replace_table(match):
+            table_text = match.group(1)
+            lines = [line.strip() for line in table_text.split('\n') if line.strip()]
+            if len(lines) < 2:
+                return table_text
+            header_cells = [cell.strip() for cell in lines[0].split('|') if cell.strip()]
+            data_lines = lines[2:]
+            html = '<table style="width: 100%; border-collapse: collapse; margin: 16px 0; background: white; border-radius: 8px;">\n'
+            html += '<thead><tr style="background: #f3f4f6;">'
+            for cell in header_cells:
+                html += f'<th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">{cell}</th>'
+            html += '</tr></thead>\n<tbody>'
+            for line in data_lines:
+                cells = [cell.strip() for cell in line.split('|') if cell.strip()]
+                if cells:
+                    html += '<tr>'
+                    for cell in cells:
+                        html += f'<td style="border: 1px solid #e5e7eb; padding: 12px;">{cell}</td>'
+                    html += '</tr>\n'
+            html += '</tbody></table>'
+            return html
+        
+        return re.sub(table_pattern, replace_table, text, flags=re.MULTILINE)
 
 
 # 单例
