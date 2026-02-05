@@ -24,23 +24,28 @@ function markdownToHtml(markdown) {
         .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />')
         // Bold
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        // 🔥 特殊处理：美团搜索提示（临时方案）
+        // 🔥 特殊处理：美团搜索提示 → 渲染为醒目按钮
         .replace(/\[([^\]]*?(?:美团|团购|预订|查看详情|门票)[^\]]*?)\]\(SEARCH_HINT:([^)]+)\)/gi, function(match, text, keyword) {
-            // 检测到SEARCH_HINT格式，渲染为纯文字提示（不是可点击的链接）
+            // 检测到SEARCH_HINT格式，渲染为可点击的美团按钮
             let icon = '🍽️';
+            let type = '团购';
             if (text.includes('预订') || text.includes('酒店')) {
                 icon = '🏨';
+                type = '预订';
             } else if (text.includes('门票') || text.includes('景点')) {
                 icon = '🎫';
+                type = '门票';
             }
             
-            // 渲染为纯文字，带复制提示（点击可复制）
-            return `<span class="meituan-search-hint" 
-                          title="点击复制关键词，粘贴到美团App搜索" 
-                          onclick="copyToClipboard('${keyword}', this)">
-                ${icon} <strong>美团搜索：${keyword}</strong> 
-                <span style="font-size: 0.9em; color: #999;">👆点击复制</span>
-            </span>`;
+            // 构建美团搜索链接（移动端会直接跳转App）
+            const meituan_url = `https://i.meituan.com/search?q=${encodeURIComponent(keyword)}`;
+            
+            // 渲染为醒目的美团按钮（黄色渐变，有返现标识）
+            return `<a href="${meituan_url}" target="_blank" rel="noopener" class="meituan-button" 
+                       title="在美团搜索：${keyword}">
+                ${icon} ${type}：${keyword} 
+                <span class="cashback-badge">⏳ 审核中</span>
+            </a>`;
         })
         // 🔥 兜底：如果还有真实美团链接，渲染为按钮
         .replace(/\[([^\]]*?(?:美团|团购|预订|查看详情|门票)[^\]]*?)\]\(([^)]+(?:meituan|i\.meituan)[^)]*)\)/gi, function(match, text, url) {
