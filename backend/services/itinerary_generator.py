@@ -535,29 +535,46 @@ class ItineraryGenerator:
 
 
     def _convert_markdown_tables(self, text: str) -> str:
-        """将Markdown表格转换为HTML表格"""
+        """
+        将Markdown表格转换为HTML表格（增强版）
+        
+        支持格式：
+        | 项目 | 金额 | 说明 |
+        |------|------|------|
+        | 住宿 | ¥900 | 2晚 |
+        """
         import re
-        table_pattern = r'(\|[^\n]+\|\n\|[-:\s|]+\|\n(?:\|[^\n]+\|\n?)+)'
+        
+        # 匹配Markdown表格（更宽松的正则）
+        table_pattern = r'\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)'
         
         def replace_table(match):
-            table_text = match.group(1)
-            lines = [line.strip() for line in table_text.split('\n') if line.strip()]
-            if len(lines) < 2:
-                return table_text
-            header_cells = [cell.strip() for cell in lines[0].split('|') if cell.strip()]
-            data_lines = lines[2:]
-            html = '<table style="width: 100%; border-collapse: collapse; margin: 16px 0; background: white; border-radius: 8px;">\n'
-            html += '<thead><tr style="background: #f3f4f6;">'
-            for cell in header_cells:
-                html += f'<th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">{cell}</th>'
-            html += '</tr></thead>\n<tbody>'
-            for line in data_lines:
-                cells = [cell.strip() for cell in line.split('|') if cell.strip()]
-                if cells:
-                    html += '<tr>'
-                    for cell in cells:
-                        html += f'<td style="border: 1px solid #e5e7eb; padding: 12px;">{cell}</td>'
-                    html += '</tr>\n'
+            header_line = match.group(1)
+            body_lines = match.group(2)
+            
+            # 解析表头
+            headers = [h.strip() for h in header_line.split('|') if h.strip()]
+            
+            # 生成HTML表格（带美观样式）
+            html = '''<table class="budget-table" style="width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+<thead>
+<tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">'''
+            
+            for h in headers:
+                html += f'<th style="padding: 16px; text-align: left; font-weight: 600; font-size: 15px;">{h}</th>'
+            
+            html += '</tr>\n</thead>\n<tbody>'
+            
+            # 解析行
+            rows = [r.strip() for r in body_lines.strip().split('\n') if r.strip()]
+            for idx, row in enumerate(rows):
+                cells = [c.strip() for c in row.split('|') if c.strip()]
+                bg_color = '#f9fafb' if idx % 2 == 0 else 'white'
+                html += f'<tr style="background: {bg_color}; border-bottom: 1px solid #e5e7eb;">'
+                for cell in cells:
+                    html += f'<td style="padding: 14px; font-size: 14px;">{cell}</td>'
+                html += '</tr>\n'
+            
             html += '</tbody></table>'
             return html
         
@@ -623,6 +640,54 @@ class ItineraryGenerator:
             return match.group(0)
         
         return re.sub(link_pattern, replace_link, text)
+
+    def _render_restaurant_card(self, restaurant_info: dict, city: str = '') -> str:
+        """
+        统一的餐厅卡片渲染（增强版）
+        
+        Args:
+            restaurant_info: 餐厅信息字典
+            city: 城市名
+        
+        Returns:
+            HTML字符串
+        """
+        from urllib.parse import quote
+        
+        name = restaurant_info.get('name', '')
+        price = restaurant_info.get('price', 0)
+        rating = restaurant_info.get('rating', 0)
+        features = restaurant_info.get('features', [])
+        desc = restaurant_info.get('desc', '')
+        
+        # 生成预订按钮
+        from services.affiliate_manager import get_affiliate_manager
+        
+        affiliate_mgr = get_affiliate_manager()
+        booking_btn = affiliate_mgr.render_booking_button(
+            poi_type='restaurant',
+            name=name,
+            price=price,
+            city=city
+        )
+        
+        return f"""
+<div class="restaurant-card" style="background: white; border-radius: 12px; padding: 20px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #10B981;">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0;">🍜 {name}</h4>
+        <div class="rating" style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: #F59E0B; font-size: 14px;">⭐ {rating}</span>
+            <span style="color: #DC2626; font-weight: 600; font-size: 16px;">¥{price}/人</span>
+        </div>
+    </div>
+    
+    {f'<p style="color: #6b7280; font-size: 14px; margin-bottom: 12px;">{desc}</p>' if desc else ''}
+    
+    {f'<div class="features" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">' + ''.join([f'<span style="background: #F3F4F6; color: #4B5563; padding: 4px 12px; border-radius: 12px; font-size: 13px;">{f}</span>' for f in features]) + '</div>' if features else ''}
+    
+    {booking_btn}
+</div>
+"""
 
 
 # 单例

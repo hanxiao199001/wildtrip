@@ -181,17 +181,28 @@ class AffiliateManager:
         if poi_type == 'hotel' and link_info.get('has_commission') and cashback:
             button_text += f' 💰返¥{cashback}'
         
+        # 根据状态返回不同样式
+        if link_info.get('status') == 'pending':
+            # 审核中 - 不显示按钮
+            return ''
+        
         # 按钮样式
         if link_info.get('has_commission'):
             # 有返佣：绿色按钮
             button_class = 'booking-btn has-commission'
+            return f'''<div class="booking-card">
+    <a href="{link_info['url']}" class="{button_class}" target="_blank" rel="noopener">
+        {button_text}
+    </a>
+</div>'''
         else:
-            # 无返佣（如餐饮）：蓝色按钮
+            # 无返佣（餐饮/搜索）：蓝色按钮
             button_class = 'booking-btn no-commission'
-        
-        return f'''<a href="{link_info['url']}" class="{button_class}" target="_blank" rel="noopener">
-    {button_text}
-</a>'''
+            return f'''<div class="booking-card">
+    <a href="{link_info['url']}" class="{button_class}" target="_blank" rel="noopener">
+        {button_text}
+    </a>
+</div>'''
 
 
 # 单例
