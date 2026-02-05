@@ -385,14 +385,6 @@ class ItineraryGenerator:
         return events
 
 
-# 单例
-_generator = None
-
-def get_itinerary_generator():
-    global _generator
-    if _generator is None:
-        _generator = ItineraryGenerator()
-    return _generator
 
     def _extract_hotels_section(self, content: str) -> str:
         """
@@ -410,7 +402,6 @@ def get_itinerary_generator():
         hotel_content = hotel_match.group(1).strip()
         
         # 解析酒店信息（### 1. 酒店名 ¥XXX/晚）
-        hotel_items = []
         hotel_item_pattern = r'###\s*\d+\.\s*([^¥\n]+)[¥￥](\d+)/晚.*?⭐([\d.]+)(.*?)(?=###\s*\d+\.|$)'
         hotels = re.findall(hotel_item_pattern, hotel_content, re.S)
         
@@ -437,11 +428,11 @@ def get_itinerary_generator():
             booking_btn = affiliate_mgr.render_booking_button(
                 poi_type='hotel',
                 name=name,
-                cashback=50,  # 假设每家酒店返现50元
+                cashback=50,
                 city=''
             )
             
-            hotels_html += f'''
+            hotels_html += f"""
 <div style="padding: 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px;">
     <h4 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">
         🏨 {name}
@@ -454,8 +445,19 @@ def get_itinerary_generator():
     {f'<p style="color: #6b7280; font-size: 14px; margin-bottom: 12px;">✨ {features}</p>' if features else ''}
     {booking_btn}
 </div>
-'''
+"""
         
         hotels_html += '</div>'
         
         return hotels_html
+
+
+# 单例
+_generator = None
+
+def get_itinerary_generator():
+    global _generator
+    if _generator is None:
+        _generator = ItineraryGenerator()
+    return _generator
+

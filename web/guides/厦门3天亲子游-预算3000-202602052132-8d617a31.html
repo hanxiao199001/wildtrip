@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>厦门3天亲子游，预算3000 - 野游记</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #f5f7fa;
+        }
+        
+        /* 顶部导航 */
+        .nav {
+            background: white;
+            padding: 16px 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2563eb;
+        }
+        
+        /* 内容容器 */
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        
+        /* Section标题 */
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin: 24px 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #2563eb;
+            display: inline-block;
+            width: auto;
+            margin-left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* 信息卡片 */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .info-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 12px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .info-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        /* Day卡片 */
+        .day-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .day-badge {
+            width: 44px;
+            height: 44px;
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .day-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            margin: 16px 0;
+            font-size: 15px;
+        }
+        
+        .timeline-time {
+            width: 60px;
+            flex-shrink: 0;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        
+        .timeline-content {
+            flex: 1;
+            color: #4b5563;
+            line-height: 1.7;
+        }
+        
+        /* 预订链接 */
+        .booking-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .booking-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* 预订卡片（内嵌在Day中）*/
+        .inline-booking {
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+            border: 2px solid #FFB300;
+            border-radius: 10px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        
+        .inline-booking-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .inline-booking-name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .inline-booking-price {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #DC2626;
+        }
+        
+        .cashback-badge {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .inline-booking-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        /* 返回按钮 */
+        .back-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="nav">
+        <div class="nav-title">厦门3天亲子游</div>
+    </div>
+    
+    <!-- 内容 -->
+    <div class="container">
+        <div class="section-title">行程规划与路线安排</div>
+<div class="info-card">
+    <h3>整体时间安排</h3>
+    <div class="info-item"><span class="info-icon">📅</span><div>总时长：** 3天2晚</div></div><div class="info-item"><span class="info-icon">💰</span><div>预算：** 3000元（两大一小，孩子按半价算，绰绰有余）</div></div><div class="info-item"><span class="info-icon">👥</span><div>适合：** 想避开人潮、体验真实厦门、带娃不累的佛系家庭</div></div>
+</div>
+<div class="section-title">详细行程安排</div>
+<div class="day-card">
+    <div class="day-header">
+        <div class="day-badge">1</div>
+        <div class="day-title">Day 1：老厦门味觉觉醒 + 海上地铁奇遇</div>
+    </div>
+    <div class="timeline-item"><div class="timeline-time">上午</div><div class="timeline-content">老厦门味觉觉醒 + 海上地铁奇遇 主题： 用胃认识一座城</div></div><div class="timeline-item"><div class="timeline-time">下午</div><div class="timeline-content">| 时间 | 地点 | 活动 | |------|------|------| | 10:00 | 抵达厦门 | 建议高铁到厦门站（在市区），比机场近。打车去酒店放行李。 | | 11:30 | 八市周边老巷 | 不去八市主干道挤！ 导航“开禾小学”，在周边横巷里钻。看阿嬷坐在门口剥海蛎，阿公在骑楼下喝茶，这才是厦门底色。 | | 12:30 | 午餐 | 在老巷里解决（推荐见下） | | 15:00 | 地铁1号线 | 体验“千与千寻”同款海上地铁！ 从“镇海路”站坐到“集美学村”站。精华段在高崎站→集美学村站之间，地铁冲出地面驶上海堤，窗外是蔚蓝海面，像开往大海的列车。孩子会尖叫！ | | 16:00 | 集美龙舟池 & 大社 | 下地铁步行到龙舟池，看闽南式亭台楼阁倒映水中。然后拐进旁边的集美大社，这里是陈嘉庚先生的故里，红砖古厝安静文艺，完全没有商业气息，拍照绝美。 | | 18:30 | 晚餐 | 在集美吃地道海鲜排档（推荐见下），吃完坐地铁轻松回市区。 |</div></div><div class="timeline-item"><div class="timeline-time">傍晚</div><div class="timeline-content">午餐推荐： 1. 横竹路无名小笼包 ¥30/人 ⭐无评分，靠口碑</div></div>
+</div>
+
+<div class="day-card">
+    <div class="day-header">
+        <div class="day-badge">2</div>
+        <div class="day-title">Day 2：山海步道漫步 + 小众沙滩赶海</div>
+    </div>
+    <div class="timeline-item"><div class="timeline-time">上午</div><div class="timeline-content">山海步道漫步 + 小众沙滩赶海 主题： 拥抱自然，消耗神兽电量</div></div><div class="timeline-item"><div class="timeline-time">下午</div><div class="timeline-content">| 时间 | 地点 | 活动 | |------|------|------| | 09:30 | 山海健康步道林海线 | 重点：不去网红“万石沧海”段人挤人！ 打车到“东坪山旅游客运服务中心”（6号入口）。从这里往“梅海花台”方向走。这段路平缓，风景好，人少，两边是树林和水库，像在森林里散步。 | | 12:00 | 东坪山农家菜 | 步道上有出口通往东坪山社，有几家农家乐。 | | 14:30 | 观音山沙滩 | 放弃白城和黄厝！ 打车去观音山沙滩。这里沙滩宽阔，人相对少，而且有免费的儿童游乐设施（攀爬网、滑梯等）。更重要的是，退潮时（查好潮汐表）可以带娃在礁石区赶海（捡小贝壳、小螃蟹，注意安全）。 | | 17:30 | 晚餐 | 在观音山商业街或打车去附近居民区吃。 | | 19:30 | 环岛路骑行 | 在观音山沙滩附近租一辆亲子自行车（前面带儿童座椅的），沿着环岛路往会展中心方向骑一段。晚风、海浪、灯光，非常惬意。 |</div></div><div class="timeline-item"><div class="timeline-time">傍晚</div><div class="timeline-content">午餐推荐： 1. 东坪山羊肉馆 ¥60/人 ⭐4.4</div></div>
+</div>
+
+<div class="day-card">
+    <div class="day-header">
+        <div class="day-badge">3</div>
+        <div class="day-title">Day 3：科技探索 + 伴手礼采购（不买馅饼！）</div>
+    </div>
+    <div class="timeline-item"><div class="timeline-time">上午</div><div class="timeline-content">科技探索 + 伴手礼采购（不买馅饼！） 主题： 动脑动手，轻松返程</div></div><div class="timeline-item"><div class="timeline-time">下午</div><div class="timeline-content">| 时间 | 地点 | 活动 | |------|------|------| | 09:30 | 厦门科技馆（主馆） | 带娃必去！比很多景点值。 互动项目超多，从物理原理到人体奥秘，孩子能玩一上午。重点玩“海洋馆”和“儿童馆”。 | | 12:00 | 午餐 | 科技馆附近解决，或去SM城市广场。 | | 14:00 | 联发华美空间 or 旧物仓 | 二选一。 如果孩子喜欢文创、旧物，可以去“旧物仓”（需预约），里面是老物件博物馆，也有咖啡。如果喜欢现代点，去联发华美空间，是个旧厂房改造的文创园，人少，好拍照，有书店和咖啡馆。 | | 16:00 | 阿吉仔买馅饼？NO！ | 别在景区买！ 打车去“阿吉仔（大元路老店）”。这里是本地阿公阿嬷排队买的，味道最正，价格是景区一半。买点马蹄酥、绿豆馅饼就好。 | | 17:00 | 前往车站/机场 | 圆满结束，不累不赶。 |</div></div><div class="timeline-item"><div class="timeline-time">傍晚</div><div class="timeline-content">午餐推荐： 1. 黑明餐厅（体育路店） ¥100/人 ⭐4.5 特色菜： 厦门薄饼、低温慢烤牛肉 为什么推荐： 离科技馆近，环境精致，主打新派厦门菜。厦门薄饼可以自己动手卷，好玩又好吃，孩子参与感强。 <a href="https://i.meituan.com/search?q=黑明餐厅" class="booking-link" target="_blank">美团团购</a> 2. SM城市广场餐饮层 ¥60/人 选择多</div></div>
+</div>
+
+<div class="info-card">
+    <h3>1. 厦门泛太平洋大酒店 ¥550/晚 ⭐4.7</h3>
+    <div class="info-item"><div>地址： 思明区湖滨北路19号（近厦门市政府、筼筜湖） 特点： 高端之选，服务好，亲子友好 优势： 位置核心，去山海步道、科技馆、八市打车都在15分钟内。 房间大，床品舒服，有的房间看筼筜湖景。 有泳池（孩子喜欢），早餐丰富。 为什么推荐： 不是最网红的，但品质稳定，带娃图个安心和省心。用这个价格住国际五星，在厦门很值。 预订： <a href="https://i.meituan.com/search?q=厦门泛太平洋大酒店" class="booking-link" target="_blank">美团预订</a></div></div>
+</div>
+
+<div class="info-card">
+    <h3>2. 厦门宾馆（中山路店） ¥380/晚 ⭐4.6</h3>
+    <div class="info-item"><div>地址： 思明区虎园路16号（近中山公园、植物园） 特点： 老牌国营宾馆，历史感，性价比高 优势： 地理位置绝佳： 在市中心的山坡上，非常安静，像个大公园。去中山公园（免费，有儿童乐园）、植物园、百家村都很近。 房间重新装修过，干净整洁。园林式酒店，环境好。 早餐有厦门特色小吃。 为什么推荐： 能体验到老厦门的静谧，安全系数高。带孩子在山林间的酒店散步，很舒服。 预订： <a href="https://i.meituan.com/search?q=厦门宾馆" class="booking-link" target="_blank">美团预订</a></div></div>
+</div>
+
+<div class="info-card">
+    <h3>3. 厦门蓝屿海景民宿（环岛路店） ¥300/晚 ⭐4.8</h3>
+    <div class="info-item"><div>地址： 思明区环岛路黄厝溪头下（近椰风寨） 特点： 设计感民宿，出门是海，文艺清新 优势： 真正的海景房： 部分房间躺在床上就能看海，听海浪声入睡。 民宿公共区域漂亮，适合拍照。老板通常很热情，会推荐本地玩法。 出门过马路就是沙滩，人比白城少很多，孩子玩沙方便。 为什么推荐： 如果你想体验“面朝大海”，又不想住昂贵的酒店，这是好选择。但注意，在黄厝，去市区景点需要打车（15-20分钟）。 预订： <a href="https://i.meituan.com/search?q=厦门蓝屿海景民宿" class="booking-link" target="_blank">美团预订</a> ---</div></div>
+</div>
+
+<div class="info-card">
+    <h3>💰 费用预算（按两大一小，孩子部分费用折半估算）</h3>
+    <div class="info-item"><div>| 项目 | 金额 | 说明 | |------|------|------| | 住宿（2晚） | ¥760 | 按厦门宾馆标准算，¥380/晚 × 2晚 | | 餐饮（3天） | ¥1200 | 早中晚+零食饮料，日均¥400（吃得不错了） | | 门票 | ¥340 | 仅科技馆套票：¥140×2 + ¥120 = ¥400，按孩子半价折后估算 | | 交通（市内） | ¥300 | 全程打车（厦门不大，单次一般¥20-30） + 地铁公交 | | 总计 | ¥2600 | 人均预算约 ¥1300，在3000预算内非常宽松 | ---</div></div>
+</div>
+
+<div class="info-card">
+    <h3>💡 省钱Tips（野路子版）</h3>
+    <div class="info-item"><div>1. 交通省钱大法： 用美团打车或高德打车，经常有优惠券。厦门公交发达，1块钱坐全程，如果孩子不闹，体验一下公交也挺好。 2. 海鲜防宰指南： 如果去排档点海鲜，问清楚价格单位是“份”还是“斤”，以及是“市斤”还是“公斤”。最稳妥的方式是直接点美团团购套餐，明码标价。 3. 水果这样买： 别在景区买切好的水果拼盘！去居民区的水果店，买本地当季的，比如芭乐、莲雾，让老板现切，便宜又新鲜。 4. 野路子玩沙： 自己带个小桶和铲子，沙滩边卖的死贵。矿泉水瓶装点自来水，玩完沙给孩子冲脚，省下冲脚钱。 ---</div></div>
+</div>
+
+<div class="info-card">
+    <h3>⚠️ 避坑指南（血泪经验）</h3>
+    <div class="info-item"><div>1. 别去的地方： 曾厝垵： 求你了，别去！就是一条充斥着义乌小商品和烤鱿串的拥挤小巷，带娃体验极差。 鼓浪屿（旺季）： 如果非要去，请早起赶第一班船。否则排队两小时，上岛看人头，孩子哭大人累。岛上东西又贵又难吃。 厦门大学（目前未对游客开放）： 别白跑一趟，关注官方通知。外面看看就行了。 2. 别吃的餐厅： 任何门口有“网红”、“抖音推荐”字样，且服务员在门口拉客的海鲜大排档。 快跑！ 中山路主街上的“老字号”小吃店。 很多是山寨的，味道不正宗还贵。往里走走，拐进小街巷。 3. 别住的区域： 曾厝垵内部民宿： 吵，乱，拉着行李箱走石板路想死，晚上酒吧吵。 过于偏僻的“海景民宿”： 有些在很偏的村里，晚上黑灯瞎火，吃饭出行都不便，打车都难。 ---</div></div>
+</div>
+
+<div class="info-card">
+    <h3>🎒 行前准备</h3>
+    <div class="info-item"><div>必带物品： 孩子： 防晒霜（SPF50+）、帽子、泳衣/备用衣服多套（玩沙玩水必湿）、挖沙工具、驱蚊液、常用药（肠胃药、创可贴）。 大人： 舒服的鞋（要走很多路）、充电宝、晴雨伞（厦门天气多变）。 天气提醒： 厦门春夏潮湿多雨，秋冬凉爽。出行前查天气预报，准备一件薄外套，室内空调和海风可能凉。 当地注意事项： 厦门是文明城市，公共场所不要吸烟、乱扔垃圾。 尊重当地习俗，在寺庙等场所保持安静。 对陌生人（尤其是景区）的“热心”推荐保持警惕。 带孩子注意海边安全，不要游到非泳区，看好孩子。 最后一句野路子忠告： 在厦门，慢下来才是正确的打开方式。别想着打卡所有</div></div>
+</div>
+
+        
+        <button class="back-btn" onclick="window.location.href='/'">
+            🌴 返回野游记首页
+        </button>
+    </div>
+</body>
+</html>
