@@ -156,23 +156,20 @@ class AffiliateManager:
             affiliate_link: 联盟链接
         
         Returns:
-            HTML字符串
+            HTML字符串（审核中返回空字符串）
         """
         link_info = self.generate_booking_link(poi_type, name, city, affiliate_link)
         
-        # 按钮样式根据状态不同
-        if link_info['status'] == 'approved':
-            # 审核通过 - 绿色按钮
-            button_class = 'booking-btn approved'
-            button_text = link_info['text']
-            if cashback:
-                button_text += f' 返¥{cashback}'
-        else:
-            # 审核中 - 橙色按钮
-            button_class = 'booking-btn pending'
-            button_text = link_info['text']
+        # 🔥 审核中不显示任何按钮
+        if link_info['status'] == 'pending':
+            return ''
         
-        return f'''<a href="{link_info['url']}" class="{button_class}" target="_blank" rel="noopener">
+        # 审核通过 - 显示绿色按钮
+        button_text = link_info['text']
+        if cashback:
+            button_text += f' 💰返¥{cashback}'
+        
+        return f'''<a href="{link_info['url']}" class="booking-btn approved" target="_blank" rel="noopener">
     {button_text}
 </a>'''
 

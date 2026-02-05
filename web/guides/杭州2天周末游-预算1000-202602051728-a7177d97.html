@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{TITLE}} - 我的行程 - 野游记</title>
+    <title>杭州2天周末野路子攻略：1000块玩出3000块的质感 - 我的行程 - 野游记</title>
     <style>
         * {
             margin: 0;
@@ -456,7 +456,7 @@
     <!-- 顶部栏 -->
     <div class="header">
         <div class="header-left">
-            📋 我的行程规划
+            📋 我的行程
         </div>
         <div class="header-actions">
             <button class="action-btn" onclick="toggleFavorite()">
@@ -474,9 +474,9 @@
         <div class="header-card">
             <div class="header-title">✨ 你的专属野路子攻略</div>
             <div class="header-meta">
-                <span>📝 {{WORD_COUNT}}字</span>
-                <span>• 🏨 {{HOTELS_COUNT}}家酒店</span>
-                <span>• 🍔 {{RESTAURANTS_COUNT}}家餐厅</span>
+                <span>📝 6058字</span>
+                <span>• 🏨 2家酒店</span>
+                <span>• 🍔 8家餐厅</span>
             </div>
         </div>
         
@@ -484,17 +484,18 @@
         <div class="cashback-notice">
             <div class="notice-icon">💰</div>
             <div class="notice-content">
-                <div class="notice-title">联盟返现说明</div>
+                <div class="notice-title">攻略带返现！</div>
                 <div class="notice-desc">
-                    • 🍔 餐饮：美团联盟（审核中，暂不显示链接）<br>
-                    • 🏨 酒店/🎫 门票：飞猪联盟（审核中，暂不显示链接）<br>
-                    • 审核通过后，将显示绿色🟢预订按钮，点击可获返现
+                    • 🍔 餐饮：美团联盟返现<br>
+                    • 🏨 酒店/🎫 门票：飞猪联盟返现<br>
+                    • 🟠 橙色按钮 = 审核中（搜索）<br>
+                    • 🟢 绿色按钮 = 审核通过（返现）
                 </div>
             </div>
         </div>
         
         <!-- 行程标题 -->
-        <h2 style="font-size: 20px; margin: 20px 0 12px 0;">🌴 {{TITLE}}</h2>
+        <h2 style="font-size: 20px; margin: 20px 0 12px 0;">🌴 杭州2天周末野路子攻略：1000块玩出3000块的质感</h2>
         
         <!-- 返现金额卡片 -->
         <div class="cashback-card">
@@ -502,12 +503,12 @@
                 <div class="cashback-icon">💰</div>
                 <div class="cashback-info">
                     <div class="cashback-label">本攻略预估可返现</div>
-                    <div class="cashback-amount">¥{{TOTAL_CASHBACK}}</div>
+                    <div class="cashback-amount">¥150</div>
                 </div>
             </div>
             <div class="cashback-right">
-                <div class="cashback-saved">已为 {{USERS_SAVED}}人</div>
-                <div class="cashback-total">省下¥{{TOTAL_SAVED}}</div>
+                <div class="cashback-saved">已为 99人</div>
+                <div class="cashback-total">省下¥14,850</div>
             </div>
         </div>
         
@@ -515,11 +516,11 @@
         <div class="price-section" style="display: none;">
             <div class="price-row">
                 <span class="price-label">原价：</span>
-                <span class="price-original">¥{{BUDGET}}</span>
+                <span class="price-original">¥1000</span>
             </div>
             <div class="price-row">
                 <span class="price-label">折扣后：</span>
-                <span class="price-discounted">¥{{DISCOUNTED_PRICE}}</span>
+                <span class="price-discounted">¥850</span>
             </div>
         </div>
         
@@ -531,11 +532,132 @@
         
         <!-- Day标签 -->
         <div class="day-tabs">
-            {{DAY_TABS}}
+            <div class="day-tab active" data-day="1" onclick="switchDay(1)">Day 1</div>
+<div class="day-tab " data-day="2" onclick="switchDay(2)">Day 2</div>
+
         </div>
         
         <!-- 时间线内容 -->
-        {{TIMELINE_CONTENT}}
+        <div id="day-1" class="day-content active">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">09:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">拱宸桥西历史街区</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">12:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐 | 小河直街周边</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">14:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">大兜路历史街区 & 香积寺</div>
+<a href="https://s.fliggy.com/ticket/?keyword=%E5%A4%A7%E5%85%9C%E8%B7%AF%E5%8E%86%E5%8F%B2%E8%A1%97%E5%8C%BA%20%26%20%E9%A6%99%E7%A7%AF%E5%AF%BA" class="booking-btn pending" target="_blank" rel="noopener">
+    🔍 飞猪搜索：大兜路历史街区 & 香积寺
+</a>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">17:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">晚餐 | 胜利河美食街（但不去美食街）</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">20:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">夜游运河/或找个清吧</div>
+    </div>
+</div>
+</div>
+<div id="day-2" class="day-content ">
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">09:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">茅家埠</div>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">12:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">午餐 | 西湖景区周边（避开雷区）</div>
+<a href="https://s.fliggy.com/ticket/?keyword=%E5%8D%88%E9%A4%90%20%7C%20%E8%A5%BF%E6%B9%96%E6%99%AF%E5%8C%BA%E5%91%A8%E8%BE%B9%EF%BC%88%E9%81%BF%E5%BC%80%E9%9B%B7%E5%8C%BA%EF%BC%89" class="booking-btn pending" target="_blank" rel="noopener">
+    🔍 飞猪搜索：午餐 | 西湖景区周边（避开雷区）
+</a>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">14:00</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">凤凰御元艺术基地 & 馒头山社区</div>
+<a href="https://s.fliggy.com/ticket/?keyword=%E5%87%A4%E5%87%B0%E5%BE%A1%E5%85%83%E8%89%BA%E6%9C%AF%E5%9F%BA%E5%9C%B0%20%26%20%E9%A6%92%E5%A4%B4%E5%B1%B1%E7%A4%BE%E5%8C%BA" class="booking-btn pending" target="_blank" rel="noopener">
+    🔍 飞猪搜索：凤凰御元艺术基地 & 馒头山社区
+</a>
+    </div>
+</div>
+
+<div class="timeline-item">
+    <div class="timeline-time">
+        <div class="time-text">16:30</div>
+    </div>
+    <div class="timeline-icon icon-activity">
+        🚶
+    </div>
+    <div class="timeline-content">
+        <div class="content-title">返程前的小确幸</div>
+    </div>
+</div>
+</div>
+
     </div>
     
     <!-- 底部按钮 -->
@@ -589,7 +711,7 @@
         
         // 生成iCalendar文件
         function generateICS() {
-            const events = {{ICS_DATA}};
+            const events = [{"start": "20260205T093043", "end": "20260205T103043", "title": "拱宸桥西历史街区", "desc": "拱宸桥西历史街区", "location": "拱宸桥西历史街区"}, {"start": "20260205T120043", "end": "20260205T130043", "title": "午餐 | 小河直街周边", "desc": "午餐 | 小河直街周边", "location": "午餐 | 小河直街周边"}, {"start": "20260205T143043", "end": "20260205T153043", "title": "大兜路历史街区 & 香积寺", "desc": "大兜路历史街区 & 香积寺", "location": "大兜路历史街区 & 香积寺"}, {"start": "20260205T173043", "end": "20260205T183043", "title": "晚餐 | 胜利河美食街（但不去美食街）", "desc": "晚餐 | 胜利河美食街（但不去美食街）", "location": "晚餐 | 胜利河美食街（但不去美食街）"}, {"start": "20260205T200043", "end": "20260205T210043", "title": "夜游运河/或找个清吧", "desc": "夜游运河/或找个清吧", "location": "夜游运河/或找个清吧"}, {"start": "20260206T090043", "end": "20260206T100043", "title": "茅家埠", "desc": "茅家埠", "location": "茅家埠"}, {"start": "20260206T120043", "end": "20260206T130043", "title": "午餐 | 西湖景区周边（避开雷区）", "desc": "午餐 | 西湖景区周边（避开雷区）", "location": "午餐 | 西湖景区周边（避开雷区）"}, {"start": "20260206T140043", "end": "20260206T150043", "title": "凤凰御元艺术基地 & 馒头山社区", "desc": "凤凰御元艺术基地 & 馒头山社区", "location": "凤凰御元艺术基地 & 馒头山社区"}, {"start": "20260206T163043", "end": "20260206T173043", "title": "返程前的小确幸", "desc": "返程前的小确幸", "location": "返程前的小确幸"}];
             
             let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//野游记//NONSGML v1.0//EN\n';
             
@@ -620,7 +742,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = '{{TITLE}}.ics';
+            a.download = '杭州2天周末野路子攻略：1000块玩出3000块的质感.ics';
             a.click();
             URL.revokeObjectURL(url);
         }
