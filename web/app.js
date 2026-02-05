@@ -661,12 +661,12 @@ function insertBookingCards(guideHtml, bookingItems) {
     return result;
 }
 
-// 从HTML内容中提取餐厅信息
+// 从HTML内容中提取餐厅信息（HTML格式）
 function extractRestaurantsFromContent(content) {
     const restaurants = [];
     
-    // 正则匹配：1. **餐厅名** ¥XX/人 ⭐X.X
-    const pattern = /\d+\.\s*\*\*([^*]+)\*\*\s*[¥￥](\d+)\/人\s*⭐([\d.]+)/gi;
+    // 正则匹配HTML格式：<strong>餐厅名</strong> ¥XX/人 ⭐X.X
+    const pattern = /<strong>([^<]+)<\/strong>\s*[¥￥](\d+)\/人\s*⭐([\d.]+)/gi;
     let match;
     
     while ((match = pattern.exec(content)) !== null) {
@@ -674,59 +674,71 @@ function extractRestaurantsFromContent(content) {
         const price = parseInt(match[2]);
         const rating = match[3];
         
-        // 提取特色菜（在"特色菜："后面）
-        const specialtyMatch = content.match(new RegExp(`${name}[\\s\\S]{0,200}特色菜[：:](.*?)(?:<br>|\\n|<p>)`, 'i'));
-        const specialties = specialtyMatch ? specialtyMatch[1].trim() : '特色美食';
+        // 提取特色菜
+        const specialtyMatch = content.match(new RegExp(`${name}[\\s\\S]{0,300}<strong>特色菜[：:]?<\/strong>[\\s]*(.*?)(?:<br|<\/li|<p)`, 'i'));
+        const specialties = specialtyMatch ? specialtyMatch[1].replace(/<[^>]+>/g, '').trim() : '特色美食';
         
         // 提取美团链接
-        const linkMatch = content.match(new RegExp(`${name}[\\s\\S]{0,300}SEARCH_HINT:([^)]+)`, 'i'));
+        const linkMatch = content.match(new RegExp(`${name}[\\s\\S]{0,400}SEARCH_HINT:([^"]+)"`, 'i'));
         const searchKeyword = linkMatch ? linkMatch[1] : name;
         
         restaurants.push({
             name: name,
             price: price,
             rating: rating,
-            specialties: specialties,
+            specialties: specialties.substring(0, 50),  // 限制长度
             searchKeyword: searchKeyword,
             type: 'restaurant'
         });
     }
     
+    console.log(`📝 提取到 ${restaurants.length} 家餐厅`);
     return restaurants;
 }
 
-// 从HTML内容中提取酒店信息
+// 从HTML内容中提取酒店信息（HTML格式）
 function extractHotelsFromContent(content) {
     const hotels = [];
     
-    // 正则匹配：### 1. 高端选择：酒店名 \n - **价格：** ¥XXX/晚
-    const namePattern = /###\s*\d+\.\s*[^：:]+[：:]([^<\n]+)/gi;
-    const pricePattern = /价格[：:]\s*[¥￥](\d+)\/晚/gi;
-    const ratingPattern = /⭐([\d.]+)/g;
+    // 正则匹配HTML格式：<h3>1. 高端选择：酒店名</h3>
+    const h3Pattern = /<h3>\s*\d+\.\s*[^：:]+[：:]([^<]+)<\/h3>/gi;
+    const names = [...content.matchAll(h3Pattern)].map(m => m[1].trim());
     
-    const names = [...content.matchAll(namePattern)].map(m => m[1].trim());
-    const prices = [...content.matchAll(pricePattern)].map(m => parseInt(m[1]));
-    const ratings = [...content.matchAll(ratingPattern)].map(m => m[1]);
-    
-    for (let i = 0; i < names.length && i < prices.length; i++) {
+    // 为每个酒店名提取详情
+    for (const name of names) {
+        // 找到这个酒店名所在的section
+        const sectionMatch = content.match(new RegExp(`<h3>[^<]*${name}[^<]*<\/h3>([\\s\\S]{0,800}?)(?:<h3>|<h2>|$)`, 'i'));
+        if (!sectionMatch) continue;
+        
+        const section = sectionMatch[1];
+        
+        // 提取价格
+        const priceMatch = section.match(/[¥￥](\d+)\/晚/);
+        const price = priceMatch ? parseInt(priceMatch[1]) : 300;
+        
+        // 提取评分
+        const ratingMatch = section.match(/⭐([\d.]+)/);
+        const rating = ratingMatch ? ratingMatch[1] : '4.7';
+        
         // 提取特色
-        const featureMatch = content.match(new RegExp(`${names[i]}[\\s\\S]{0,300}特色[：:](.*?)(?:<br>|\\n|<li>)`, 'i'));
-        const features = featureMatch ? featureMatch[1].trim() : '设计独特，位置优越';
+        const featureMatch = section.match(/<strong>特色[：:]?<\/strong>[\\s]*(.*?)(?:<br|<\/li|<strong)/i);
+        const features = featureMatch ? featureMatch[1].replace(/<[^>]+>/g, '').trim().substring(0, 50) : '位置优越，设计独特';
         
         // 提取美团链接
-        const linkMatch = content.match(new RegExp(`${names[i]}[\\s\\S]{0,300}SEARCH_HINT:([^)]+)`, 'i'));
-        const searchKeyword = linkMatch ? linkMatch[1] : names[i];
+        const linkMatch = section.match(/SEARCH_HINT:([^"]+)"/i);
+        const searchKeyword = linkMatch ? linkMatch[1] : name;
         
         hotels.push({
-            name: names[i],
-            price: prices[i],
-            rating: ratings[i] || '4.7',
+            name: name,
+            price: price,
+            rating: rating,
             features: features,
             searchKeyword: searchKeyword,
             type: 'hotel'
         });
     }
     
+    console.log(`📝 提取到 ${hotels.length} 家酒店`);
     return hotels;
 }
 

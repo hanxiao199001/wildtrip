@@ -85,7 +85,8 @@ class PrivacyCleaner:
                 elif pattern_name == 'passport':
                     cleaned = pattern.sub('[护照已隐藏]', cleaned)
                 elif pattern_name == 'money_detail':
-                    cleaned = pattern.sub('[金额]', cleaned)
+                    # 🔥 不清洗！预算金额是攻略核心内容，保留
+                    pass  # 保持原样
                 elif pattern_name == 'wechat':
                     cleaned = pattern.sub('[微信已隐藏]', cleaned)
                 elif pattern_name == 'qq':

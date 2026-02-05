@@ -234,6 +234,14 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         # 实际调用AI（这里会阻塞一段时间）
         content = ai_engine.generate(full_prompt, query, mode)
         
+        # 🔥 后处理：替换AI生成的[预算]占位符为真实数字
+        import re
+        budget_match = re.search(r'预算\s*[：:]\s*(\d+)', query, re.I)
+        if budget_match:
+            budget_value = budget_match.group(1)
+            content = content.replace('[预算]', budget_value)
+            logger.info(f"✅ 已替换[预算] → {budget_value}")
+        
         # AI生成完成
         emit_progress(socketio, task_id, 'ai_done', '✅ 攻略生成完成！', 65)
         time.sleep(0.5)

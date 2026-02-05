@@ -187,6 +187,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://wildtrip.com.cn/guides/三亚5天度假游-海景酒店和海鲜推荐-202602050933-f47d6ba6.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://wildtrip.com.cn/guides/杭州3天情侣游-西湖断桥浪漫路线-202602050933-ac82d4c8.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
@@ -344,6 +350,12 @@
   </url>
   <url>
     <loc>https://wildtrip.com.cn/guides/北京3天深度游-故宫-长城必打卡-202602042223-99bbefa6.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://wildtrip.com.cn/guides/成都3天美食游-预算2000-202602051558-43c088ed.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -511,12 +523,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wildtrip.com.cn/guides/济南2天文化游-趵突泉大明湖-202602051016-ddc8cb78.html</loc>
-    <lastmod>2026-02-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://wildtrip.com.cn/guides/西安4天文化游-兵马俑华清池必去-202602050933-9149a1be.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
@@ -535,7 +541,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://wildtrip.com.cn/guides/三亚5天度假游-海景酒店和海鲜推荐-202602050933-f47d6ba6.html</loc>
+    <loc>https://wildtrip.com.cn/guides/济南2天文化游-趵突泉大明湖-202602051016-ddc8cb78.html</loc>
     <lastmod>2026-02-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

@@ -31,13 +31,14 @@ class ImageCrawler:
         # 🔥 图片关键词黑名单（过滤无关图片）
         self.keyword_blacklist = [
             'PS', 'ps', 'Photoshop', 'photoshop',
-            '人群', '分析图', '活动', '营销', '海报', '广告',
+            '人群', '分析图', '活动分析', '营销', '海报', '广告',
             '设计', '模板', '素材', '矢量', 'PPT', 'ppt',
-            '图表', 'chart', 'graph', '统计', 'statistics',
+            '图表', 'chart', 'graph', '统计', 'statistics', 'analysis',
             '封面', 'cover', '宣传', 'promotion', '推广',
             '卡通', 'cartoon', '插画', 'illustration',
             '二维码', 'QR', 'qr', '扫码', '关注', '公众号',
-            '水印', 'watermark', 'logo', 'LOGO'
+            '水印', 'watermark', 'logo', 'LOGO',
+            '健康', '娱乐', '休闲', '智能化', 'Crowd', 'activity'  # 🔥 新增：针对"人群活动分析图"
         ]
     
     def search_and_download_images(self, keyword: str, max_images: int = 1) -> list:
@@ -62,9 +63,9 @@ class ImageCrawler:
             # 餐厅类：添加"店面"或"菜品"
             elif any(word in keyword for word in ['餐厅', '饭店', '火锅', '烧烤', '小吃', '店', '馆', '楼']):
                 enhanced_keyword = f"{keyword} 店面 菜品"
-            # 景点类：添加"景点"或"风景"
+            # 景点类：添加"景点"或"风景"，排除"废墟"、"石碑"等
             elif any(word in keyword for word in ['公园', '景区', '海滩', '岛', '山', '寺', '塔', '博物馆', '广场', '古镇', '村']):
-                enhanced_keyword = f"{keyword} 景点 风景 实拍"
+                enhanced_keyword = f"{keyword} 景点 风景照 旅游 -废墟 -石碑"
             else:
                 # 通用：添加"实拍照片"
                 enhanced_keyword = f"{keyword} 实拍照片"
