@@ -27,6 +27,18 @@ class ImageCrawler:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Referer': 'https://www.baidu.com'
         }
+        
+        # 🔥 图片关键词黑名单（过滤无关图片）
+        self.keyword_blacklist = [
+            'PS', 'ps', 'Photoshop', 'photoshop',
+            '人群', '分析图', '活动', '营销', '海报', '广告',
+            '设计', '模板', '素材', '矢量', 'PPT', 'ppt',
+            '图表', 'chart', 'graph', '统计', 'statistics',
+            '封面', 'cover', '宣传', 'promotion', '推广',
+            '卡通', 'cartoon', '插画', 'illustration',
+            '二维码', 'QR', 'qr', '扫码', '关注', '公众号',
+            '水印', 'watermark', 'logo', 'LOGO'
+        ]
     
     def search_and_download_images(self, keyword: str, max_images: int = 1) -> list:
         """
@@ -61,6 +73,20 @@ class ImageCrawler:
                 for filename in os.listdir(temp_dir):
                     if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp')):
                         temp_path = os.path.join(temp_dir, filename)
+                        
+                        # 🔥 过滤检查：检查文件名是否包含黑名单关键词
+                        filename_lower = filename.lower()
+                        is_blacklisted = False
+                        for blackword in self.keyword_blacklist:
+                            if blackword.lower() in filename_lower:
+                                logger.warning(f"⚠️ 过滤无关图片: {filename} (包含: {blackword})")
+                                is_blacklisted = True
+                                break
+                        
+                        if is_blacklisted:
+                            # 删除这张图片，不保存
+                            os.remove(temp_path)
+                            continue
                         
                         # 移动到正式目录并重命名
                         keyword_clean = re.sub(r'[^\w\u4e00-\u9fff]', '', keyword)[:20]
