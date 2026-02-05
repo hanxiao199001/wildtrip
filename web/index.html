@@ -10,96 +10,300 @@
     <!-- Socket.IO客户端 - 实时进度更新 -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     
-    <!-- 预订卡片组件样式 -->
+    <!-- 预订卡片组件样式（按新设计重构）-->
     <style>
-    /* 预订卡片样式 */
-    .booking-card {
-        background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
-        border: 2px solid #FFB300;
-        border-radius: 16px;
-        padding: 20px;
-        margin: 24px 0;
-        box-shadow: 0 4px 16px rgba(255, 179, 0, 0.2);
-        transition: all 0.3s ease;
-    }
-    .booking-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(255, 179, 0, 0.3);
-    }
-    .booking-card-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-    .booking-card-icon {
-        font-size: 32px;
-        line-height: 1;
-    }
-    .booking-card-title {
-        flex: 1;
-    }
-    .booking-card-title h4 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 700;
-        color: #000;
-    }
-    .booking-card-title p {
-        margin: 4px 0 0 0;
-        font-size: 14px;
-        color: #666;
-    }
-    .booking-card-cashback {
-        background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%);
+    /* 1️⃣ 顶部返现总览 - 固定显示，利益前置 */
+    .cashback-summary {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
         color: white;
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 16px;
+        padding: 16px 20px;
+        border-radius: 16px;
+        margin: 20px 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-weight: 600;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     }
-    .cashback-amount {
-        font-size: 24px;
-        font-weight: 800;
+    .cashback-summary-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
-    .booking-btn {
-        flex: 1;
-        padding: 14px 24px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 700;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: none;
+    .cashback-summary-icon {
+        font-size: 32px;
     }
-    .booking-btn-primary {
-        background: linear-gradient(135deg, #FFD100 0%, #FFA000 100%);
-        color: #000;
-        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
-    }
-    .booking-btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
-    }
-    /* 攻略顶部返现总览 */
-    .cashback-summary {
-        background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 16px;
-        margin: 20px 0;
-        text-align: center;
+    .cashback-summary-text {
+        font-size: 14px;
+        opacity: 0.95;
     }
     .cashback-summary-amount {
-        font-size: 36px;
+        font-size: 32px;
         font-weight: 800;
+        margin: 0;
+    }
+    .cashback-summary-right {
+        text-align: right;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+    
+    /* 2️⃣ Tab切换 */
+    .booking-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #E5E7EB;
+        margin: 24px 0 20px 0;
+    }
+    .booking-tab {
+        flex: 1;
+        padding: 14px 0;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: #6B7280;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .booking-tab.active {
+        color: #10B981;
+        border-bottom-color: #10B981;
+    }
+    .booking-tab:hover {
+        color: #059669;
+    }
+    
+    /* 3️⃣ 单品卡片 */
+    .booking-card {
+        background: white;
+        border: 2px solid #E5E7EB;
+        border-radius: 16px;
+        padding: 16px;
+        margin: 16px 0;
+        transition: all 0.3s ease;
+    }
+    .booking-card:hover {
+        border-color: #10B981;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+    }
+    .booking-card-header {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .booking-card-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 12px;
+        background: #F3F4F6;
+        flex-shrink: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+    }
+    .booking-card-info {
+        flex: 1;
+    }
+    .booking-card-name {
+        font-size: 17px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 6px 0;
+    }
+    .booking-card-rating {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: #F59E0B;
+        margin-bottom: 4px;
+    }
+    .booking-card-location {
+        font-size: 13px;
+        color: #6B7280;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .booking-card-tags {
+        display: flex;
+        gap: 8px;
         margin: 12px 0;
     }
+    .booking-tag {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #F0FDF4;
+        color: #10B981;
+        font-size: 12px;
+        border-radius: 6px;
+        border: 1px solid #D1FAE5;
+    }
+    
+    /* 4️⃣ 价格区 - 三层结构 */
+    .booking-card-price-section {
+        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        border-radius: 12px;
+        padding: 14px;
+        margin: 12px 0;
+    }
+    .booking-price-original {
+        font-size: 14px;
+        color: #9CA3AF;
+        text-decoration: line-through;
+        margin-bottom: 4px;
+    }
+    .booking-price-main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+    .booking-price-discounted {
+        font-size: 15px;
+        color: #DC2626;
+        font-weight: 400;
+    }
+    .booking-price-amount {
+        font-size: 32px;
+        font-weight: 800;
+        color: #DC2626;
+    }
+    .booking-price-unit {
+        font-size: 15px;
+        font-weight: 400;
+    }
+    .booking-cashback-badge {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    }
+    .booking-cashback-rate {
+        font-size: 12px;
+        color: #DC2626;
+        text-align: right;
+    }
+    
+    /* 5️⃣ 紧迫感 */
+    .booking-urgency {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        margin: 12px 0;
+        padding: 10px;
+        background: #FEF2F2;
+        border-radius: 8px;
+    }
+    .booking-urgency-left {
+        color: #DC2626;
+        font-weight: 600;
+    }
+    .booking-urgency-right {
+        color: #DC2626;
+        font-weight: 700;
+    }
+    
+    /* 6️⃣ CTA按钮 - 金额在按钮上 */
+    .booking-btn-cta {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+    }
+    .booking-btn-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5);
+    }
+    .booking-trust-tags {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        font-size: 12px;
+        color: #6B7280;
+    }
+    
+    /* 7️⃣ 打包预订卡片 */
+    .booking-bundle-card {
+        background: linear-gradient(135deg, #A855F7 0%, #9333EA 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin: 24px 0;
+        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+    }
+    .booking-bundle-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .booking-bundle-icon {
+        font-size: 28px;
+    }
+    .booking-bundle-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+    }
+    .booking-bundle-items {
+        font-size: 13px;
+        opacity: 0.95;
+        margin-bottom: 16px;
+    }
+    .booking-bundle-price {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .booking-bundle-price-old {
+        font-size: 16px;
+        text-decoration: line-through;
+        opacity: 0.8;
+    }
+    .booking-bundle-price-new {
+        font-size: 32px;
+        font-weight: 800;
+    }
+    .booking-bundle-price-save {
+        background: rgba(255,255,255,0.25);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .booking-bundle-btn {
+        width: 100%;
+        padding: 14px;
+        background: white;
+        color: #9333EA;
+        font-size: 17px;
+        font-weight: 700;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .booking-bundle-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 16px rgba(255,255,255,0.3);
+    }
+    
     /* 引导预订弹窗 */
     .booking-modal {
         position: fixed;
@@ -123,6 +327,10 @@
         max-height: 80vh;
         overflow-y: auto;
         animation: slideUp 0.4s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     @keyframes slideUp {
         from { transform: translateY(30px); opacity: 0; }

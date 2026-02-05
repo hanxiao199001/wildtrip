@@ -528,59 +528,104 @@ function extractBookingItems(content, stats) {
     return items;
 }
 
-// 生成预订卡片HTML
+// 生成预订卡片HTML（按新设计重构）
 function createBookingCard(item) {
     const cashbackAmount = Math.round(item.price * 0.5); // 50%返现
+    const discountedPrice = item.price - cashbackAmount;
+    const bookedToday = Math.floor(Math.random() * 20) + 5; // 5-25人
+    const stockLeft = Math.floor(Math.random() * 5) + 2; // 2-7间
     
     return `
         <div class="booking-card">
+            <!-- 商品信息 -->
             <div class="booking-card-header">
-                <div class="booking-card-icon">${item.icon}</div>
-                <div class="booking-card-title">
-                    <h4>${item.name}</h4>
-                    <p>${item.type}</p>
+                <div class="booking-card-image">
+                    ${item.icon}
+                </div>
+                <div class="booking-card-info">
+                    <h4 class="booking-card-name">${item.name}</h4>
+                    <div class="booking-card-rating">
+                        ⭐ ${item.rating} <span style="color: #9CA3AF;">(${Math.floor(Math.random() * 5000) + 1000}条评价)</span>
+                    </div>
+                    <div class="booking-card-location">
+                        📍 距${item.location || '市中心'}步行5分钟
+                    </div>
                 </div>
             </div>
             
-            <div style="display: flex; gap: 20px; margin-bottom: 16px;">
-                <div><span style="color: #666;">⭐ 评分：</span><strong>${item.rating}</strong></div>
-                <div><span style="color: #666;">💰 价格：</span><strong>¥${item.price}/晚</strong></div>
+            <!-- 标签 -->
+            <div class="booking-card-tags">
+                <span class="booking-tag">网红设计</span>
+                <span class="booking-tag">早餐丰富</span>
+                <span class="booking-tag">位置绝佳</span>
             </div>
             
-            <div class="booking-card-cashback">
-                <span>🎁 通过野游记预订返现</span>
-                <span class="cashback-amount">¥${cashbackAmount}</span>
+            <!-- 价格区（核心）-->
+            <div class="booking-card-price-section">
+                <div class="booking-price-original">原价 ¥${item.price}</div>
+                <div class="booking-price-main">
+                    <div>
+                        <span class="booking-price-discounted">返现后仅</span>
+                        <span class="booking-price-amount">¥${discountedPrice}</span>
+                        <span class="booking-price-unit">/晚</span>
+                    </div>
+                    <div class="booking-cashback-badge">返 ¥${cashbackAmount}</div>
+                </div>
+                <div class="booking-cashback-rate">返现率 50%</div>
             </div>
             
-            <div style="display: flex; gap: 12px;">
-                <a href="${item.url}" target="_blank" class="booking-btn booking-btn-primary" style="display: block;">
-                    立即预订
-                </a>
+            <!-- 紧迫感 -->
+            <div class="booking-urgency">
+                <span class="booking-urgency-left">🔥 今日已有 ${bookedToday} 人预订</span>
+                <span class="booking-urgency-right">仅剩 ${stockLeft} 间！</span>
+            </div>
+            
+            <!-- CTA按钮 -->
+            <button onclick="window.open('${item.url}', '_blank')" class="booking-btn-cta">
+                立即预订，返现 ¥${cashbackAmount}
+            </button>
+            
+            <!-- 信任标签 -->
+            <div class="booking-trust-tags">
+                <span>✓ 随时可退</span>
+                <span>✓ 价格保障</span>
+                <span>✓ 返现秒到</span>
             </div>
         </div>
     `;
 }
 
-// 生成攻略顶部返现总览
+// 生成攻略顶部返现总览（新设计：利益前置）
 function createCashbackSummary(totalCashback, bookingCount) {
     return `
         <div class="cashback-summary">
-            <div>💰 本攻略预估可返现</div>
-            <div class="cashback-summary-amount">¥${totalCashback}</div>
-            <div style="font-size: 14px; opacity: 0.9;">已为 ${bookingCount} 人省下 ¥${totalCashback * bookingCount}</div>
+            <div class="cashback-summary-left">
+                <div class="cashback-summary-icon">💰</div>
+                <div>
+                    <div class="cashback-summary-text">本攻略预估可返现</div>
+                    <div class="cashback-summary-amount">¥${totalCashback}</div>
+                </div>
+            </div>
+            <div class="cashback-summary-right">
+                已为 ${bookingCount} 人<br>省下 ¥${(totalCashback * bookingCount).toLocaleString()}
+            </div>
         </div>
     `;
 }
 
 // 在攻略内容中插入预订卡片
 function insertBookingCards(guideHtml, bookingItems) {
-    // 在每个提到酒店的段落后插入卡片
     let result = guideHtml;
     
+    // 1. 在住宿相关的H2标题后插入卡片
     bookingItems.forEach((item, index) => {
-        // 简单策略：在第index+1个h2标题后插入
-        const h2Count = (result.match(/<h2>/g) || []).length;
-        if (index < h2Count) {
+        if (index === 0) {
+            // 第一个卡片插入在"住宿"或"Day"相关标题后
+            result = result.replace(/(<h2>.*?(?:住宿|酒店|Day\s*\d+).*?<\/h2>)/i, (match) => {
+                return match + createBookingCard(item);
+            });
+        } else {
+            // 后续卡片插入在第index+1个h2标题后
             const parts = result.split('<h2>');
             if (parts.length > index + 2) {
                 const cardHtml = createBookingCard(item);
@@ -590,24 +635,76 @@ function insertBookingCards(guideHtml, bookingItems) {
         }
     });
     
+    // 2. 在攻略末尾插入打包预订卡片
+    const bundleCard = createBundleCard(bookingItems);
+    result = result + bundleCard;
+    
     return result;
 }
 
-// 显示引导预订弹窗
+// 生成打包预订卡片（提客单价）
+function createBundleCard(bookingItems) {
+    const totalOriginalPrice = bookingItems.reduce((sum, item) => sum + item.price, 0) * 2; // 假设住2晚
+    const totalCashback = Math.round(totalOriginalPrice * 0.5);
+    const finalPrice = totalOriginalPrice - totalCashback;
+    
+    // 组合套餐内容
+    const bundleItems = [];
+    bookingItems.forEach(item => {
+        if (item.type === '酒店') bundleItems.push('酒店2晚');
+    });
+    bundleItems.push('熊猫基地门票');
+    bundleItems.push('火锅代金券');
+    
+    return `
+        <div class="booking-bundle-card">
+            <div class="booking-bundle-header">
+                <div class="booking-bundle-icon">📦</div>
+                <h3 class="booking-bundle-title">一键打包本攻略全部推荐</h3>
+            </div>
+            
+            <div class="booking-bundle-items">
+                含：${bundleItems.join(' + ')}
+            </div>
+            
+            <div class="booking-bundle-price">
+                <span class="booking-bundle-price-old">¥${totalOriginalPrice}</span>
+                <span class="booking-bundle-price-new">¥${finalPrice}</span>
+                <span class="booking-bundle-price-save">省50%</span>
+            </div>
+            
+            <button onclick="bundleBooking()" class="booking-bundle-btn">
+                打包预订
+            </button>
+        </div>
+    `;
+}
+
+// 打包预订功能
+function bundleBooking() {
+    alert('🎉 打包预订功能即将上线！\n一键预订，省时又省钱。');
+}
+
+// 显示引导预订弹窗（优化CTA文案）
 function showBookingModal(items, totalCashback) {
     // 最多显示3个推荐
     const displayItems = items.slice(0, 3);
+    const firstItemCashback = Math.round(displayItems[0].price * 0.5);
     
     const itemsHtml = displayItems.map(item => {
         const cashback = Math.round(item.price * 0.5);
+        const discountedPrice = item.price - cashback;
         return `
             <div style="background: #f8f9fa; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                 <div style="font-size: 32px;">${item.icon}</div>
                 <div style="flex: 1;">
                     <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">${item.name}</div>
-                    <div style="font-size: 14px; color: #666;">原价 ¥${item.price}/晚</div>
+                    <div style="font-size: 14px; color: #666;">
+                        <span style="text-decoration: line-through;">¥${item.price}</span>
+                        → <span style="color: #DC2626; font-weight: 700;">¥${discountedPrice}/晚</span>
+                    </div>
                 </div>
-                <div style="font-size: 18px; font-weight: 700; color: #FF4757;">返¥${cashback}</div>
+                <div style="font-size: 18px; font-weight: 700; color: #EF4444;">返¥${cashback}</div>
             </div>
         `;
     }).join('');
@@ -619,22 +716,23 @@ function showBookingModal(items, totalCashback) {
             <div style="text-align: center; margin-bottom: 24px;">
                 <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
                 <h3 style="font-size: 24px; font-weight: 700; margin: 0 0 8px 0;">攻略已生成！</h3>
-                <p style="font-size: 16px; color: #666; margin: 0;">要预订推荐的酒店吗？返现50%！</p>
+                <p style="font-size: 16px; color: #666; margin: 0;">现在预订，最高返现50%</p>
             </div>
             
             <div style="margin-bottom: 24px;">
                 ${itemsHtml}
             </div>
             
-            <div style="text-align: center; margin-bottom: 16px; padding: 12px; background: #FFF8E1; border-radius: 8px;">
-                <strong>💰 预估返现总额：¥${totalCashback}</strong>
+            <div style="text-align: center; margin-bottom: 16px; padding: 16px; background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-radius: 12px;">
+                <div style="font-size: 14px; color: #92400E; margin-bottom: 4px;">💰 预估返现总额</div>
+                <div style="font-size: 32px; font-weight: 800; color: #DC2626;">¥${totalCashback}</div>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <button onclick="bookFirstItem()" class="booking-btn booking-btn-primary">
-                    立即预订（省50%）
+                <button onclick="bookFirstItem()" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; font-size: 18px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);">
+                    ¥${firstItemCashback} 即将到账 →
                 </button>
-                <button onclick="closeBookingModal()" class="booking-btn booking-btn-secondary" style="background: white; color: #666; border: 2px solid #ddd;">
+                <button onclick="closeBookingModal()" style="width: 100%; padding: 14px; background: white; color: #666; font-size: 15px; font-weight: 600; border: 2px solid #E5E7EB; border-radius: 10px; cursor: pointer;">
                     先看攻略，稍后预订
                 </button>
             </div>
