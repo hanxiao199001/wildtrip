@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from loguru import logger
 from datetime import datetime, timedelta
+from urllib.parse import quote
 
 
 class ItineraryGenerator:
@@ -68,13 +69,17 @@ class ItineraryGenerator:
         # 🔥 转换Markdown表格为HTML表格
         timeline_content = self._convert_markdown_tables(timeline_content)
         
-        # 🔥 生成住宿推荐section（追加到时间线后面）
-        hotels_html = self._extract_hotels_section(content)
+        # 🔥 生成住宿推荐section（使用HotelExtractor）
+        hotel_extractor = HotelExtractor()
+        hotels = hotel_extractor.extract_hotels(content, query)
         hotel_quick_card = ''
         
-        if hotels_html:
+        if hotels:
+            # 渲染所有酒店卡片
+            hotels_html = '\n'.join([hotel_extractor.render_hotel_card(hotel) for hotel in hotels])
+            
             # 提取第一家酒店信息，生成顶部快速预订卡片
-            hotel_quick_card = self._generate_hotel_quick_card(content)
+            hotel_quick_card = hotel_extractor.render_hotel_card(hotels[0])
             
             timeline_content += f'''
 <div style="margin-top: 32px;">
@@ -688,6 +693,131 @@ class ItineraryGenerator:
     {booking_btn}
 </div>
 """
+
+
+
+class HotelExtractor:
+    """酒店信息提取器"""
+    
+    def extract_hotels(self, content: str, query: str) -> list:
+        """
+        从攻略内容提取酒店信息
+        
+        Args:
+            content: 攻略内容
+            query: 用户查询（用于提取城市）
+        
+        Returns:
+            酒店信息列表
+        """
+        hotels = []
+        
+        # 查找住宿推荐section
+        hotel_pattern = r'##\s*(?:🏨\s*)?住宿推荐(.*?)(?=##\s+[^#]|$)'
+        hotel_match = re.search(hotel_pattern, content, re.S | re.I)
+        
+        if not hotel_match:
+            return hotels
+        
+        hotel_content = hotel_match.group(1).strip()
+        
+        # 解析酒店信息（### 1. 酒店名）
+        hotel_item_pattern = r'###\s*\d+\.\s*([^\n]+?)\n.*?\*\*价格[：:]\*\*\s*[¥￥](\d+)/晚.*?⭐([\d.]+)(.*?)(?=###\s*\d+\.|$)'
+        hotel_matches = re.findall(hotel_item_pattern, hotel_content, re.S)
+        
+        # 提取城市
+        city_match = re.search(r'([\u4e00-\u9fa5]{2,})\d*天', query)
+        city = city_match.group(1) if city_match else ''
+        
+        for name, price, rating, details in hotel_matches:
+            name = name.strip()
+            price_int = int(price)
+            
+            # 提取位置
+            location_match = re.search(r'\*\*位置[：:]\*\*\s*([^\n]+)', details)
+            location = location_match.group(1).strip() if location_match else ''
+            
+            # 提取特点
+            feature_match = re.search(r'\*\*特点[：:]\*\*\s*([^\n]+)', details)
+            features = feature_match.group(1).strip() if feature_match else ''
+            
+            # 提取推荐理由
+            reason_match = re.search(r'\*\*为什么推荐[：:]\*\*\s*([^\n]+)', details)
+            reason = reason_match.group(1).strip() if reason_match else features
+            
+            # 计算返现金额（门市价10%佣金率，50%返给用户）
+            commission_rate = 0.10  # 10%佣金率
+            cashback_rate = 0.50    # 50%返给用户
+            cashback = int(price_int * commission_rate * cashback_rate)
+            
+            # 计算门市价（假设预订价是门市价的85%）
+            market_price = int(price_int / 0.85)
+            
+            hotels.append({
+                'name': name,
+                'price': price_int,
+                'market_price': market_price,
+                'rating': rating,
+                'location': location,
+                'features': features,
+                'reason': reason,
+                'cashback': cashback,
+                'city': city
+            })
+        
+        return hotels
+    
+    def render_hotel_card(self, hotel: dict) -> str:
+        """
+        渲染酒店预订卡片
+        
+        Args:
+            hotel: 酒店信息字典
+        
+        Returns:
+            HTML字符串
+        """
+        # 生成美团搜索链接
+        search_query = f"{hotel['city']} {hotel['name']}"
+        meituan_url = f"https://i.meituan.com/search?q={quote(search_query)}"
+        
+        return f'''
+<div class="hotel-booking-card" style="background: linear-gradient(135deg, #FFF5E6 0%, #FFE8CC 100%); border: 2px solid #FB923C; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 4px 16px rgba(251, 146, 60, 0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">
+                🏨 {hotel['name']}
+            </h3>
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 8px 0;">
+                📍 {hotel['location']}
+            </p>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <span style="color: #F59E0B; font-size: 14px;">⭐ {hotel['rating']}</span>
+                <span style="color: #9ca3af; font-size: 16px; text-decoration: line-through;">¥{hotel['market_price']}/晚</span>
+                <span style="color: #DC2626; font-weight: 700; font-size: 24px;">¥{hotel['price']}/晚</span>
+            </div>
+        </div>
+        <div style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; padding: 8px 16px; border-radius: 20px; font-size: 16px; font-weight: 700; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
+            返¥{hotel['cashback']}
+        </div>
+    </div>
+    
+    <p style="color: #4b5563; font-size: 14px; margin: 0 0 16px 0; line-height: 1.6;">
+        ✨ {hotel['features']}
+    </p>
+    
+    <a href="{meituan_url}" target="_blank" rel="noopener" style="display: block; width: 100%; padding: 16px; background: linear-gradient(90deg, #10B981 0%, #059669 100%); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 18px; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); margin-bottom: 12px;">
+        💰 美团预订，返现¥{hotel['cashback']}
+    </a>
+    
+    <div style="display: flex; justify-content: space-around; padding-top: 12px; border-top: 1px dashed #FB923C;">
+        <span style="color: #6b7280; font-size: 13px;">✅ 免费取消</span>
+        <span style="color: #6b7280; font-size: 13px;">💳 到店付款</span>
+        <span style="color: #6b7280; font-size: 13px;">⚡ 返现秒到</span>
+    </div>
+</div>
+'''
+
 
 
 # 单例
