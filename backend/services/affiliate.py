@@ -155,23 +155,25 @@ class MeituanAffiliate:
     
     def get_search_link(self, query: str, category: str = "all") -> str:
         """
-        生成美团搜索提示（临时方案 - 等待联盟审核）
-        
+        生成美团搜索链接
+
         Args:
-            query: 搜索关键词
+            query: 搜索关键词（如"海口 希尔顿酒店"）
             category: 分类（hotel/food/ticket/all）
-            
+
         Returns:
-            特殊格式的字符串，前端会渲染为纯文字提示
+            美团搜索URL
         """
-        # 🔥 临时方案：返回特殊格式 SEARCH_HINT:{关键词}
-        # 前端检测到这个格式，会渲染为"📱 美团搜索：XXX"的纯文字
-        # 不是可点击的链接，用户需要手动复制到美团App
-        
-        # 清理关键词（去掉城市名，只保留商家名）
-        clean_query = query.split()[-1] if ' ' in query else query
-        
-        return f"SEARCH_HINT:{clean_query}"
+        from urllib.parse import quote
+
+        # 根据分类选择不同的搜索路径
+        if category == "hotel":
+            return f"https://i.meituan.com/search?q={quote(query)}"
+        elif category == "ticket":
+            return f"https://i.meituan.com/search?q={quote(query)}"
+        else:
+            # food / all
+            return f"https://i.meituan.com/search?q={quote(query)}"
     
     def format_recommendation(self, item: Dict) -> str:
         """
