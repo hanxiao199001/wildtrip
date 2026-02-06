@@ -24,63 +24,25 @@ function markdownToHtml(markdown) {
         .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<div style="text-align: center; margin: 24px 0; padding: 0;"><img src="$2" alt="$1" style="max-width: 90%; max-height: 500px; height: auto; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: inline-block;" loading="lazy" /></div>')
         // Bold
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        // 🔥 特殊处理：美团搜索提示 → 渲染为醒目按钮
-        .replace(/\[([^\]]*?(?:美团|团购|预订|查看详情|门票)[^\]]*?)\]\(SEARCH_HINT:([^)]+)\)/gi, function(match, text, keyword) {
-            // 检测到SEARCH_HINT格式，渲染为可点击的美团按钮
-            let icon = '🍽️';
-            let type = '团购';
-            if (text.includes('预订') || text.includes('酒店')) {
-                icon = '🏨';
-                type = '预订';
-            } else if (text.includes('门票') || text.includes('景点')) {
-                icon = '🎫';
-                type = '门票';
-            }
-            
-            // 构建美团搜索链接（移动端会直接跳转App）
-            const meituan_url = `https://i.meituan.com/search?q=${encodeURIComponent(keyword)}`;
-            
-            // 渲染为醒目的美团按钮（黄色渐变，有返现标识）
-            return `<a href="${meituan_url}" target="_blank" rel="noopener" class="meituan-button" 
-                       title="在美团搜索：${keyword}">
-                ${icon} ${type}：${keyword} 
-                <span class="cashback-badge">⏳ 审核中</span>
-            </a>`;
-        })
-        // 🔥 兜底：如果还有真实美团链接，渲染为按钮
+        // 🔥 美团链接渲染为醒目按钮
         .replace(/\[([^\]]*?(?:美团|团购|预订|查看详情|门票)[^\]]*?)\]\(([^)]+(?:meituan|i\.meituan)[^)]*)\)/gi, function(match, text, url) {
             // 判断类型
             let icon = '🍽️';
-            let type = '团购';
-            let searchHint = '';
-            
+            let btnText = '团购';
+
             if (text.includes('预订') || text.includes('酒店') || text.includes('住宿')) {
                 icon = '🏨';
-                type = '预订';
-                searchHint = '在美团搜索酒店名';
+                btnText = '预订';
             } else if (text.includes('门票') || text.includes('景点')) {
                 icon = '🎫';
-                type = '门票';
-                searchHint = '在美团搜索景点名';
-            } else if (text.includes('团购') || text.includes('美食')) {
-                icon = '🍽️';
-                type = '团购';
-                searchHint = '在美团搜索餐厅名';
+                btnText = '门票';
             }
-            
-            // 检查文字中是否已包含"有返现"，避免重复显示
-            let cashbackBadge = '';
-            if (!text.includes('有返现') && !text.includes('返现')) {
-                cashbackBadge = '<span class="cashback-badge" title="联盟审核通过后有返现">⏳ 审核中</span>';
-            }
-            
-            // 清理文字中的emoji和"有返现"字样（统一在badge中显示）
+
+            // 清理文字中的emoji和"有返现"字样
             let cleanText = text.replace(/💰\s*有返现/gi, '').replace(/💰/g, '').trim();
-            
-            // 添加title提示
-            return `<a href="${url}" target="_blank" rel="noopener" class="meituan-button" 
-                       title="打开美团App，${searchHint}">
-                ${icon} ${cleanText} ${cashbackBadge}
+
+            return `<a href="${url}" target="_blank" rel="noopener" class="meituan-button">
+                ${icon} ${cleanText}
             </a>`;
         })
         // 普通链接（排除图片，图片是 ![...](...)）
@@ -678,9 +640,8 @@ function extractRestaurantsFromContent(content) {
         const specialtyMatch = content.match(new RegExp(`${name}[\\s\\S]{0,300}<strong>特色菜[：:]?<\/strong>[\\s]*(.*?)(?:<br|<\/li|<p)`, 'i'));
         const specialties = specialtyMatch ? specialtyMatch[1].replace(/<[^>]+>/g, '').trim() : '特色美食';
         
-        // 提取美团链接
-        const linkMatch = content.match(new RegExp(`${name}[\\s\\S]{0,400}SEARCH_HINT:([^"]+)"`, 'i'));
-        const searchKeyword = linkMatch ? linkMatch[1] : name;
+        // 提取美团链接关键词
+        const searchKeyword = name;
         
         restaurants.push({
             name: name,
@@ -724,9 +685,8 @@ function extractHotelsFromContent(content) {
         const featureMatch = section.match(/<strong>特色[：:]?<\/strong>[\\s]*(.*?)(?:<br|<\/li|<strong)/i);
         const features = featureMatch ? featureMatch[1].replace(/<[^>]+>/g, '').trim().substring(0, 50) : '位置优越，设计独特';
         
-        // 提取美团链接
-        const linkMatch = section.match(/SEARCH_HINT:([^"]+)"/i);
-        const searchKeyword = linkMatch ? linkMatch[1] : name;
+        // 提取美团链接关键词
+        const searchKeyword = name;
         
         hotels.push({
             name: name,

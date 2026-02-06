@@ -417,20 +417,41 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
     
     # 🔥 替换所有酒店的预订链接
     for hotel in recommendations['hotels']:
+        hotel_name = hotel['name']
+        link = hotel['link']
+
         # 方案1：替换Markdown格式 [携程/美团](链接占位)
         content = re.sub(
             r'\[(?:携程|美团|预订)[^\]]*?\]\((?:链接占位|占位|#)\)',
-            f'[美团预订]({hotel["link"]})',
+            f'[美团预订]({link})',
             content,
             count=1
         )
         # 方案2：替换纯文本"查看详情"
         content = re.sub(
             r'预订[：:]\s*查看详情',
-            f'预订：[查看详情]({hotel["link"]})',
+            f'预订：[查看详情]({link})',
             content,
             count=1
         )
+
+    # 🔥 酒店兜底：为没有预订链接的酒店注入链接
+    # 查找酒店section中每个 ### N. 酒店名 块，如果缺少预订链接则追加
+    for hotel in recommendations['hotels']:
+        hotel_name = re.escape(hotel['name'])
+        link = hotel['link']
+        # 检查该酒店附近是否已有预订链接（向后搜索到下一个 ### 或 ## 为止）
+        hotel_section_pattern = rf'(###\s+\d+\.\s+[^\n]*?{hotel_name}[^\n]*?\n)(.*?)(?=###\s+\d+\.|##\s+[^#]|$)'
+        hotel_section_match = re.search(hotel_section_pattern, content, re.S)
+        if hotel_section_match:
+            section_text = hotel_section_match.group(2)
+            # 如果这个section中没有美团预订链接
+            if '美团预订' not in section_text and 'meituan.com' not in section_text and 'LINK_HOTEL' not in section_text:
+                # 在section末尾（下一个 ### 之前）注入预订链接
+                insert_point = hotel_section_match.end(2)
+                booking_line = f'\n- **预订：** [美团预订]({link})\n'
+                content = content[:insert_point] + booking_line + content[insert_point:]
+                logger.info(f"🏨 兜底注入酒店链接: {hotel['name']}")
     
     # === 3. 餐厅链接替换（优化正则，匹配多种格式） ===
     # 格式1：**XX文昌鸡饭** ¥50/人
