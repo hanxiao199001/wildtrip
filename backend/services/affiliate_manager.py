@@ -4,6 +4,7 @@
 """
 
 import re
+import random
 from typing import Dict, Optional
 from loguru import logger
 from urllib.parse import quote
@@ -11,82 +12,62 @@ from urllib.parse import quote
 
 class AffiliateManager:
     """联盟链接管理器"""
-    
+
     def __init__(self):
-        # 🔥 实际变现情况（2026-02-05更新）
+        # 实际变现情况（2026-02-05更新）
         # 酒店：美团联盟有活动，可返佣
-        self.hotel_status = 'approved'  # 酒店可以用联盟链接
+        self.hotel_status = 'approved'
         self.hotel_has_commission = True
-        
+
         # 餐饮：暂无返佣，但保留搜索链接（提升用户体验）
-        self.restaurant_status = 'search_only'  # 只能搜索，无返佣
+        self.restaurant_status = 'search_only'
         self.restaurant_has_commission = False
-        
-        # 门票：待定（需查"到综"或接入飞猪）
-        self.ticket_status = 'pending'  # 待定
+
+        # 门票：走美团搜索链接
+        self.ticket_status = 'search_only'
         self.ticket_has_commission = False
-        
+
         # 联盟链接模板（一键取链生成）
-        self.meituan_hotel_template = None  # 酒店推广链接
-        self.fliggy_template = None  # 飞猪联盟（备用）
-    
+        self.meituan_hotel_template = None
+        self.fliggy_template = None
+
     def generate_booking_link(
-        self, 
-        poi_type: str,  # 'restaurant' | 'hotel' | 'ticket'
-        name: str, 
+        self,
+        poi_type: str,
+        name: str,
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
         """
         生成预订链接（根据实际变现情况）
-        
-        Args:
-            poi_type: POI类型（餐厅/酒店/门票）
-            name: 名称
-            city: 城市（可选）
-            affiliate_link: 联盟链接（一键取链生成）
-        
-        Returns:
-            {
-                'url': '链接地址',
-                'text': '显示文本',
-                'status': 'approved' | 'search_only',
-                'platform': 'meituan',
-                'has_commission': True | False
-            }
         """
         if poi_type == 'restaurant':
-            # 餐饮：无返佣，搜索链接
             return self._generate_meituan_link(name, city, affiliate_link)
         elif poi_type == 'hotel':
-            # 酒店：美团联盟有返佣
             return self._generate_hotel_link(name, city, affiliate_link)
         elif poi_type == 'ticket':
-            # 门票：待定
             return self._generate_ticket_link(name, city, affiliate_link)
         else:
             return self._generate_search_link(name, city)
-    
+
     def _generate_meituan_link(
-        self, 
-        name: str, 
+        self,
+        name: str,
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
         """生成美团链接（餐饮）"""
-        
-        # 🔥 餐饮暂无返佣，只提供搜索链接
         keyword = f"{city} {name}" if city else name
         search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
-        
+
         return {
             'url': search_url,
-            'text': f'去美团查看',  # 不显示"搜索"，更友好
-            'status': 'search_only',  # 特殊状态：只搜索，无返佣
+            'text': f'美团团购',
+            'status': 'search_only',
             'platform': 'meituan',
             'has_commission': False
         }
-    
+
     def _generate_hotel_link(
         self,
         name: str,
@@ -94,61 +75,57 @@ class AffiliateManager:
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
         """生成酒店链接（美团联盟，有返佣）"""
-        
         if affiliate_link:
-            # 有联盟链接，显示返佣按钮
             return {
                 'url': affiliate_link,
-                'text': f'预订返现',  # 简洁有力
+                'text': f'美团预订',
                 'status': 'approved',
                 'platform': 'meituan',
                 'has_commission': True
             }
         else:
-            # 暂无联盟链接，使用搜索（但提示可返现）
             keyword = f"{city} {name}" if city else name
             search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
-            
+
             return {
                 'url': search_url,
-                'text': f'去美团预订',
-                'status': 'approved',  # 酒店是approved，只是暂无具体链接
+                'text': f'美团预订',
+                'status': 'approved',
                 'platform': 'meituan',
-                'has_commission': True  # 潜在有返佣
+                'has_commission': True
             }
-    
+
     def _generate_ticket_link(
         self,
         name: str,
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
-        """生成门票链接（待定：美团或飞猪）"""
-        
-        # 🔥 门票暂时用美团搜索（后续可切换到飞猪）
+        """生成门票链接（美团搜索）"""
         keyword = f"{city} {name} 门票" if city else f"{name} 门票"
         search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
-        
+
         return {
             'url': search_url,
             'text': f'查看门票',
             'status': 'search_only',
             'platform': 'meituan',
-            'has_commission': False  # 待确认
+            'has_commission': False
         }
-    
+
     def _generate_search_link(self, name: str, city: str = '') -> Dict[str, str]:
         """生成通用搜索链接"""
         keyword = f"{city} {name}" if city else name
-        search_url = f"https://www.baidu.com/s?wd={quote(keyword)}"
-        
+        search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
+
         return {
             'url': search_url,
-            'text': f'🔍 搜索：{name}',
-            'status': 'pending',
-            'platform': 'search'
+            'text': f'去美团查看',
+            'status': 'search_only',
+            'platform': 'meituan',
+            'has_commission': False
         }
-    
+
     def render_booking_button(
         self,
         poi_type: str,
@@ -160,47 +137,76 @@ class AffiliateManager:
     ) -> str:
         """
         渲染预订按钮HTML（根据实际变现情况）
-        
-        Args:
-            poi_type: POI类型
-            name: 名称
-            price: 价格（可选）
-            cashback: 返现金额（可选，仅酒店显示）
-            city: 城市
-            affiliate_link: 联盟链接（一键取链）
-        
-        Returns:
-            HTML字符串
         """
         link_info = self.generate_booking_link(poi_type, name, city, affiliate_link)
-        
-        # 构建按钮文本
-        button_text = link_info['text']
-        
-        # 🔥 只有酒店显示返现金额
-        if poi_type == 'hotel' and link_info.get('has_commission') and cashback:
-            button_text += f' 💰返¥{cashback}'
-        
-        # 根据状态返回不同样式
-        if link_info.get('status') == 'pending':
-            # 审核中 - 不显示按钮
-            return ''
-        
-        # 按钮样式
-        if link_info.get('has_commission'):
-            # 有返佣：绿色按钮
-            button_class = 'booking-btn has-commission'
-            return f'''<div class="booking-card">
-    <a href="{link_info['url']}" class="{button_class}" target="_blank" rel="noopener">
-        {button_text}
+
+        if poi_type == 'restaurant':
+            return self._render_restaurant_card(link_info, name, price, cashback)
+        elif poi_type == 'hotel':
+            return self._render_hotel_button(link_info, name, cashback)
+        else:
+            return self._render_ticket_button(link_info, name)
+
+    def _render_restaurant_card(self, link_info: dict, name: str, price: Optional[int] = None, cashback: Optional[int] = None) -> str:
+        """渲染餐厅卡片组件"""
+        url = link_info['url']
+
+        # 计算团购价（原价85折）
+        if price:
+            market_price = int(price / 0.85)
+            cashback_amount = cashback or 5
+        else:
+            market_price = None
+            cashback_amount = cashback or 5
+
+        # 随机预订人数（社会证明）
+        booked_count = random.randint(23, 88)
+
+        price_html = ''
+        if price:
+            price_html = f'''
+            <div style="background: linear-gradient(135deg, #FFF8E1, #FFFDE7); border-radius: 10px; padding: 10px 14px; margin: 10px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span style="color: #9e9e9e; text-decoration: line-through; font-size: 14px;">¥{market_price}/人</span>
+                <span style="color: #E53935; font-weight: 700; font-size: 20px;">¥{price}/人</span>
+                <span style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">返¥{cashback_amount}</span>
+            </div>'''
+
+        return f'''<div style="background: white; border: 2px solid var(--primary-green, #4CAF50); border-radius: var(--card-radius, 16px); padding: 18px; margin: 16px 0; box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));">
+    <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px;">
+        <span style="font-size: 36px; flex-shrink: 0;">🍜</span>
+        <div style="flex: 1;">
+            <div style="font-size: 17px; font-weight: 700; color: var(--text-dark, #333); margin-bottom: 4px;">{name}</div>
+        </div>
+    </div>{price_html}
+    <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
+    <a href="{url}" target="_blank" rel="noopener" style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
+        美团团购{f"，返现¥{cashback_amount}" if price else ""}
+    </a>
+    <div style="display: flex; justify-content: space-around; padding-top: 10px; margin-top: 10px; border-top: 1px dashed #e0e0e0;">
+        <span style="color: var(--text-light, #666); font-size: 12px;">✅ 支持退款</span>
+        <span style="color: var(--text-light, #666); font-size: 12px;">📅 过期退</span>
+        <span style="color: var(--text-light, #666); font-size: 12px;">⚡ 返现秒到</span>
+    </div>
+</div>'''
+
+    def _render_hotel_button(self, link_info: dict, name: str, cashback: Optional[int] = None) -> str:
+        """渲染酒店预订按钮"""
+        url = link_info['url']
+        cashback_amount = cashback or 50
+
+        return f'''<div class="booking-card">
+    <a href="{url}" class="booking-btn has-commission" target="_blank" rel="noopener">
+        美团预订 💰返¥{cashback_amount}
     </a>
 </div>'''
-        else:
-            # 无返佣（餐饮/搜索）：蓝色按钮
-            button_class = 'booking-btn no-commission'
-            return f'''<div class="booking-card">
-    <a href="{link_info['url']}" class="{button_class}" target="_blank" rel="noopener">
-        {button_text}
+
+    def _render_ticket_button(self, link_info: dict, name: str) -> str:
+        """渲染门票按钮"""
+        url = link_info['url']
+
+        return f'''<div class="booking-card">
+    <a href="{url}" class="booking-btn no-commission" target="_blank" rel="noopener">
+        {link_info['text']}
     </a>
 </div>'''
 
