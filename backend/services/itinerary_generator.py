@@ -717,13 +717,16 @@ class HotelExtractor:
         hotel_match = re.search(hotel_pattern, content, re.S | re.I)
         
         if not hotel_match:
+            logger.debug("未找到住宿推荐section")
             return hotels
         
         hotel_content = hotel_match.group(1).strip()
+        logger.debug(f"找到住宿推荐section，长度: {len(hotel_content)}")
         
         # 解析酒店信息（### 1. 酒店名）
         hotel_item_pattern = r'###\s*\d+\.\s*([^\n]+?)\n.*?\*\*价格[：:]\*\*\s*[¥￥](\d+)/晚.*?⭐([\d.]+)(.*?)(?=###\s*\d+\.|$)'
         hotel_matches = re.findall(hotel_item_pattern, hotel_content, re.S)
+        logger.debug(f"匹配到 {len(hotel_matches)} 家酒店")
         
         # 提取城市
         city_match = re.search(r'([\u4e00-\u9fa5]{2,})\d*天', query)
