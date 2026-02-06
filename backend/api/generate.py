@@ -357,7 +357,9 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         logger.info(f"✅ 任务完成: {task_id} | 字数: {stats['word_count']} | 酒店: {stats['hotels_count']}")
         
     except Exception as e:
-        logger.error(f"❌ 任务失败: {task_id} | 错误: {e}")
+        import traceback
+        error_traceback = traceback.format_exc()
+        logger.error(f"❌ 任务失败: {task_id} | 错误: {e}\n{error_traceback}")
         active_tasks[task_id]['status'] = 'failed'
         active_tasks[task_id]['error'] = str(e)
         emit_progress(socketio, task_id, 'error', f'生成失败: {str(e)}', 0)
