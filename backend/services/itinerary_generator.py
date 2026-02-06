@@ -713,7 +713,7 @@ class HotelExtractor:
         hotels = []
         
         # 查找住宿推荐section
-        hotel_pattern = r'##\s*(?:🏨\s*)?住宿推荐(.*?)(?=##\s+[^#]|$)'
+        hotel_pattern = r'##\s*(?:🏨\s*)?住宿推荐(.*?)(?=\n##\s+(?!#)|$)'
         hotel_match = re.search(hotel_pattern, content, re.S | re.I)
         
         if not hotel_match:
