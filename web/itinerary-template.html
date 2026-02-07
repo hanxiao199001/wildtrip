@@ -525,17 +525,254 @@
             margin: 16px 0;
         }
 
-        /* Day标题 */
-        h2 {
-            font-size: 18px;
+        /* ===== 排版层次系统 ===== */
+
+        /* 大标题（行程概览、详细行程、住宿推荐等） */
+        h2, .section-title {
+            font-size: 24px;
             font-weight: 700;
             color: var(--text-dark);
+            margin: 32px 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--primary-green);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         h3 {
             font-size: 16px;
             font-weight: 600;
             color: var(--text-dark);
+        }
+
+        /* 加粗文字 - 重点高亮 */
+        strong, b {
+            color: var(--warning-red);
+            font-weight: 700;
+        }
+        /* 排除特定容器中的 strong 变红 */
+        .cashback-notice strong,
+        .header-card strong,
+        .cashback-card strong,
+        .day-title strong,
+        .overview-card strong,
+        .booking-btn strong {
+            color: inherit;
+        }
+
+        /* 地名高亮 */
+        .place-highlight {
+            color: var(--warning-red);
+            font-weight: 700;
+            border-bottom: 2px solid rgba(229, 57, 53, 0.3);
+            padding-bottom: 1px;
+        }
+
+        /* Day标题卡片 */
+        .day-title {
+            background: linear-gradient(135deg, var(--accent-orange), #FF6B00);
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 18px 22px;
+            border-radius: 14px;
+            margin: 28px 0 18px 0;
+            box-shadow: 0 6px 18px rgba(255, 149, 0, 0.35);
+        }
+
+        .day-subtitle {
+            color: rgba(255,255,255,0.92);
+            font-size: 14px;
+            font-weight: 400;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 时间点胶囊 */
+        .time-point {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-right: 10px;
+            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.25);
+        }
+
+        /* 活动名称 */
+        .activity-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            display: inline;
+        }
+
+        /* 活动名称容器（带橙色左边框） */
+        .activity-name {
+            border-left: 3px solid var(--accent-orange);
+            padding-left: 12px;
+            margin: 10px 0;
+        }
+
+        /* 活动描述（灰色正文） */
+        .activity-desc {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.7;
+            margin: 8px 0;
+        }
+
+        /* 用餐标注 */
+        .meal-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+
+        /* POI 名称突出 */
+        .poi-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .poi-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .poi-price {
+            color: var(--warning-red);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .poi-rating {
+            color: var(--accent-orange);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* 特色菜/亮点标签 */
+        .feature-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* 推荐理由高亮 */
+        .recommend-reason {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-left: 4px solid var(--primary-green);
+            padding: 12px 16px;
+            border-radius: 0 12px 12px 0;
+            margin: 12px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #2E7D32;
+        }
+
+        /* 核心亮点列表 */
+        .highlight-list {
+            background: linear-gradient(135deg, #FFFDE7, #FFF9C4);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin: 16px 0;
+            border: 1px solid #FFF176;
+        }
+
+        .highlight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #E0E0E0;
+        }
+
+        .highlight-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .highlight-number {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(255, 152, 0, 0.3);
+        }
+
+        .highlight-title {
+            font-weight: 700;
+            color: #E65100;
+            font-size: 15px;
+        }
+
+        .highlight-desc {
+            color: #5D4037;
+            font-size: 14px;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        /* 行程概览卡片 */
+        .overview-card {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin: 16px 0;
+            border: 1px solid #90CAF9;
+        }
+
+        .overview-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .overview-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .overview-label {
+            color: #1976D2;
+            font-weight: 600;
+            min-width: 60px;
+        }
+
+        .overview-value {
+            font-weight: 600;
+            color: #1a1a1a;
         }
 
         /* 底部添加到日历按钮 */
