@@ -21,27 +21,8 @@ module.exports = {
         'todo'                      // todo支持
     ],
 
-    // 代码高亮配置，保留需要的选项即可（尽量越少越好，不要随意调整顺序。部分高亮有顺序依赖）
+    // 代码高亮配置，旅游攻略不需要代码高亮，清空以避免模块加载错误
     highlight:[
-        'c-like',
-        'c',
-        'bash',
-        'css',
-        'dart',
-        'go',
-        'java',
-        'javascript',
-        'json',
-        'less',
-        'scss',
-        'shell',
-        'xml',
-        'htmlbars',
-        'nginx',
-        'php',
-        'python',
-        'python-repl',
-        'typescript',
         
         // 'csharp',
         // 'http',

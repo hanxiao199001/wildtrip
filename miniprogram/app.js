@@ -1,19 +1,21 @@
 // 野游记 WildTrip - 小程序入口
-const Towxml = require('./towxml/index')  // 🔥 引入towxml
+const towxmlFn = require('./towxml/index')  // 🔥 引入towxml
 
 App({
   globalData: {
     // API配置
     apiBaseUrl: 'http://47.82.159.93:5000/api',
-    
+
     // 用户信息
     userInfo: null,
-    
+
     // 返现比例
     cashbackRate: 0.5,  // 50%返现
-    
-    // 🔥 towxml实例
-    towxml: new Towxml()
+
+    // 🔥 towxml（包装为对象，提供toJson方法供页面调用）
+    towxml: {
+      toJson: (str, type, option) => towxmlFn(str, type, option)
+    }
   },
 
   onLaunch() {

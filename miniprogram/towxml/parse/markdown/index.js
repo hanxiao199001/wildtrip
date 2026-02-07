@@ -36,10 +36,20 @@ const config = require('../../config'),
     })(),
     md = require('./markdown')(mdOption);
 
-// 应用Markdown解析扩展，包括自定义组件（['sub','sup','ins','mark','emoji','todo','latex','yuml','echarts']）
+// 应用Markdown解析扩展（静态require，避免动态路径在新版基础库中报错）
+const pluginModules = {
+    'sub': require('./plugins/sub'),
+    'sup': require('./plugins/sup'),
+    'ins': require('./plugins/ins'),
+    'mark': require('./plugins/mark'),
+    'emoji': require('./plugins/emoji'),
+    'todo': require('./plugins/todo'),
+    'latex': require('./plugins/latex'),
+    'yuml': require('./plugins/yuml')
+};
 [...config.markdown,...config.components].forEach(item => {
-    if(!/^audio-player|table|todogroup|img$/.test(item)){
-        md.use(require(`./plugins/${item}`));
+    if(!/^audio-player|table|todogroup|img$/.test(item) && pluginModules[item]){
+        md.use(pluginModules[item]);
     };
 });
 
