@@ -5,7 +5,7 @@
 
 import re
 from urllib.parse import quote
-from backend.services.ui_fix_complete import (
+from services.ui_fix_complete import (
     render_overview_card,
     render_day_header,
     render_timeline_item,

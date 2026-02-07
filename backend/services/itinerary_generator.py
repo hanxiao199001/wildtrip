@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from urllib.parse import quote
 
 # 🎨 导入UI修复渲染方法
-from backend.services.ui_fix_complete import (
+from services.ui_fix_complete import (
     render_overview_card,
     render_day_header,
     render_timeline_item,
@@ -23,7 +23,7 @@ from backend.services.ui_fix_complete import (
 )
 
 # 🎨 导入内容转换器
-from backend.services.content_transformer import ContentTransformer
+from services.content_transformer import ContentTransformer
 
 
 class ItineraryGenerator:
