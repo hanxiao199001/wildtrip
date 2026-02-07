@@ -22,6 +22,9 @@ from backend.services.ui_fix_complete import (
     COMPLETE_CSS
 )
 
+# 🎨 导入内容转换器
+from backend.services.content_transformer import ContentTransformer
+
 
 class ItineraryGenerator:
     """行程规划生成器"""
@@ -81,33 +84,33 @@ class ItineraryGenerator:
         # 生成Day标签
         day_tabs = self._generate_day_tabs(days_info)
 
-        # 提取概览和亮点
-        overview_html = self._extract_overview_card(content)
-        highlights_html = self._extract_highlights(content)
+        # 🎨 使用ContentTransformer转换Markdown为HTML组件
+        # ContentTransformer会自动处理：概览卡片、返现横幅、时间线、餐厅/酒店卡片等
+        transformer = ContentTransformer(city=city)
+        timeline_content = transformer.transform(content)
+        
+        # 原有的概览和亮点提取逻辑（保留作为备份）
+        # overview_html = self._extract_overview_card(content)
+        # highlights_html = self._extract_highlights(content)
+        
+        # 原有的时间线生成逻辑（已被ContentTransformer替代）
+        # timeline_content = self._generate_timeline(content, days_info, city)
 
-        # 生成时间线内容（带新的排版层次）
-        timeline_content = self._generate_timeline(content, days_info, city)
-
-        # 插入概览和亮点到时间线顶部
+        # ContentTransformer已包含概览、亮点、返现横幅，无需额外添加
         preamble = ''
-        if overview_html:
-            preamble += overview_html
-        
-        # 🎨 添加返现横幅（如果有返现金额）
-        if total_cashback > 0:
-            preamble += render_cashback_banner(total_cashback)
-        
-        if highlights_html:
-            preamble += highlights_html
+        # if overview_html:
+        #     preamble += overview_html
+        # if total_cashback > 0:
+        #     preamble += render_cashback_banner(total_cashback)
+        # if highlights_html:
+        #     preamble += highlights_html
 
-        # 转换Markdown表格为HTML表格
-        timeline_content = self._convert_markdown_tables(timeline_content)
+        # ContentTransformer已输出HTML，无需再转换Markdown
+        # timeline_content = self._convert_markdown_tables(timeline_content)
+        # timeline_content = self._fix_html_leakage(timeline_content)
 
-        # 清理时间线中的HTML代码泄露
-        timeline_content = self._fix_html_leakage(timeline_content)
-
-        # 组合 preamble + timeline
-        full_timeline = preamble + timeline_content
+        # 直接使用转换后的内容
+        full_timeline = timeline_content
 
         # 生成住宿推荐section（使用HotelExtractor）
         hotel_extractor = HotelExtractor()
