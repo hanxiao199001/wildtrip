@@ -11,6 +11,17 @@ from loguru import logger
 from datetime import datetime, timedelta
 from urllib.parse import quote
 
+# 🎨 导入UI修复渲染方法
+from backend.services.ui_fix_complete import (
+    render_overview_card,
+    render_day_header,
+    render_timeline_item,
+    render_restaurant_card,
+    render_hotel_card,
+    render_cashback_banner,
+    COMPLETE_CSS
+)
+
 
 class ItineraryGenerator:
     """行程规划生成器"""
@@ -81,6 +92,11 @@ class ItineraryGenerator:
         preamble = ''
         if overview_html:
             preamble += overview_html
+        
+        # 🎨 添加返现横幅（如果有返现金额）
+        if total_cashback > 0:
+            preamble += render_cashback_banner(total_cashback)
+        
         if highlights_html:
             preamble += highlights_html
 
@@ -139,45 +155,36 @@ class ItineraryGenerator:
     # ========== 概览与亮点提取 ==========
 
     def _extract_overview_card(self, content: str) -> str:
-        """提取行程概览，渲染为蓝色渐变卡片"""
-        overview_pattern = r'##\s*(?:📋\s*)?行程概览(.*?)(?=\n##\s|$)'
-        match = re.search(overview_pattern, content, re.S | re.I)
-        if not match:
+        """🎨 提取行程概览，使用新的渲染方法"""
+        # 提取标题
+        title_match = re.search(r'^#\s*(.+?)$', content, re.M)
+        title = title_match.group(1) if title_match else "旅游攻略"
+        
+        # 提取天数
+        days_match = re.search(r'(\d+)\s*[天日]', content)
+        days = int(days_match.group(1)) if days_match else 2
+        
+        # 提取预算
+        budget_match = re.search(r'[预预算¥￥]\s*(\d+)', content)
+        budget = int(budget_match.group(1)) if budget_match else 1000
+        
+        # 提取亮点
+        highlights = []
+        highlight_patterns = [
+            r'✨\s*(.+?)(?:\n|$)',
+            r'亮点[：:]\s*(.+?)(?:\n|$)',
+            r'特色[：:]\s*(.+?)(?:\n|$)'
+        ]
+        for pattern in highlight_patterns:
+            matches = re.findall(pattern, content)
+            highlights.extend([m.strip() for m in matches if m.strip()])
+        
+        if not highlights:
+            # 如果没找到亮点，返回空
             return ''
-
-        overview_text = match.group(1).strip()
-
-        items_html = ''
-        for line in overview_text.split('\n'):
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            line = re.sub(r'^[-*•]\s*', '', line)
-            # Parse **label：** value pattern
-            kv = re.match(r'\*\*([^*]+)\*\*\s*[：:]?\s*(.*)', line)
-            if kv:
-                label = kv.group(1).strip()
-                value = kv.group(2).strip()
-                items_html += f'''<div class="overview-item">
-    <span class="overview-label">{label}</span>
-    <span class="overview-value">{value}</span>
-</div>
-'''
-            elif line:
-                items_html += f'''<div class="overview-item">
-    <span class="overview-value">{line}</span>
-</div>
-'''
-
-        if not items_html:
-            return ''
-
-        return f'''
-<div class="section-title">📋 行程概览</div>
-<div class="overview-card">
-    {items_html}
-</div>
-'''
+        
+        # 使用新的渲染方法
+        return render_overview_card(title, days, budget, highlights[:5])
 
     def _extract_highlights(self, content: str) -> str:
         """提取核心亮点列表，渲染为黄色背景卡片"""
@@ -415,13 +422,8 @@ class ItineraryGenerator:
                 if theme_match:
                     theme = theme_match.group(1).strip()
 
-            # Day标题卡片
-            day_title_html = f'''
-<div class="day-title">
-    📅 Day {day_num}
-    {'<div class="day-subtitle">' + theme + '</div>' if theme else ''}
-</div>
-'''
+            # 🎨 使用新的渲染方法生成Day标题
+            day_title_html = render_day_header(day_num, theme or f"第{day_num}天行程")
 
             # 解析时间线条目
             items = self._parse_timeline_items(day_content)
@@ -434,77 +436,53 @@ class ItineraryGenerator:
                 icon_class = 'icon-food' if item['type'] == 'food' else ('icon-hotel' if item['type'] == 'hotel' else 'icon-activity')
                 icon_emoji = item.get('emoji', '🍜' if item['type'] == 'food' else '🚶')
 
-                # 用餐标注
-                meal_label = ''
-                if item['type'] == 'food':
-                    meal_type = ''
-                    title_lower = item['title']
-                    if '早餐' in title_lower or '早' in title_lower:
-                        meal_type = '早餐'
-                    elif '午餐' in title_lower or '午' in title_lower:
-                        meal_type = '午餐'
-                    elif '晚餐' in title_lower or '晚' in title_lower:
-                        meal_type = '晚餐'
-                    elif '宵夜' in title_lower:
-                        meal_type = '宵夜'
-                    if meal_type:
-                        meal_label = f'<span class="meal-label">{meal_type}</span>'
-
-                # 时间点胶囊 + 活动名称（带橙色左边框）
-                content_html = f'''<div style="margin-bottom: 8px;">
-    <span class="time-point">{item["time"]}</span>{meal_label}
-</div>
-<div class="activity-name">
-    <span class="activity-title">{item["title"]}</span>
-</div>'''
-
-                if item.get('desc'):
-                    content_html += f'<div class="activity-desc">{item["desc"]}</div>'
-
+                # 🎨 使用新的时间线渲染方法
+                # 提取描述和Tips
+                description = item.get('desc', '')
+                
+                # 添加特色标签到描述中
                 if item.get('tags'):
-                    content_html += '<div style="margin: 8px 0;">'
-                    for tag in item['tags']:
-                        content_html += f'<span class="feature-tag">{tag}</span>'
-                    content_html += '</div>'
+                    tags_text = '、'.join(item['tags'])
+                    description = f"{description} 特色：{tags_text}" if description else f"特色：{tags_text}"
+                
+                tips = item.get('reason', None)
+                duration = item.get('duration', None)
+                
+                # 使用render_timeline_item生成基础时间线
+                content_html = render_timeline_item(
+                    time=item['time'],
+                    icon=icon_emoji,
+                    name=item['title'],
+                    description=description,
+                    tips=tips,
+                    duration=duration
+                )
 
-                if item.get('reason'):
-                    content_html += f'<div class="recommend-reason">💡 {item["reason"]}</div>'
-
-                # 餐厅：使用完整卡片
+                # 🎨 餐厅：使用新的餐厅卡片渲染方法
                 if item['type'] == 'food' and item.get('price'):
-                    from services.affiliate_manager import get_affiliate_manager
-                    affiliate_mgr = get_affiliate_manager()
-
-                    # 构造特色菜标签
-                    features_html = ''
-                    if item.get('features'):
-                        features_html = '<div style="margin: 8px 0;">'
-                        for feat in item['features']:
-                            features_html += f'<span class="feature-tag">{feat}</span>'
-                        features_html += '</div>'
-
-                    booking_btn = affiliate_mgr.render_booking_button(
-                        poi_type='restaurant',
+                    # 提取推荐菜品
+                    dishes = '、'.join(item.get('features', [])) if item.get('features') else item.get('desc', '')
+                    
+                    restaurant_card = render_restaurant_card(
                         name=item['title'],
-                        price=item.get('price'),
-                        cashback=item.get('cashback', 5),
-                        city=city,
-                        rating=item.get('rating', '4.5'),
-                        features=item.get('features', []),
-                        reason=item.get('reason', '')
-                    )
-                    content_html += f'\n{features_html}\n{booking_btn}'
-
-                # 酒店
-                elif item['type'] == 'hotel' or '酒店' in item['title'] or '民宿' in item['title']:
-                    from services.affiliate_manager import get_affiliate_manager
-                    affiliate_mgr = get_affiliate_manager()
-                    booking_btn = affiliate_mgr.render_booking_button(
-                        poi_type='hotel',
-                        name=item['title'],
+                        price=item.get('price', 50),
+                        rating=item.get('rating', 4.5),
+                        dishes=dishes[:50],  # 限制长度
                         city=city
                     )
-                    content_html += f'\n{booking_btn}'
+                    content_html += f'\n{restaurant_card}'
+
+                # 🎨 酒店：使用新的酒店卡片渲染方法
+                elif item['type'] == 'hotel' or '酒店' in item['title'] or '民宿' in item['title']:
+                    hotel_card = render_hotel_card(
+                        name=item['title'],
+                        price=item.get('price', 300),
+                        rating=item.get('rating', 4.5),
+                        location=item.get('desc', city),
+                        features=item.get('features', item.get('tags', [])),
+                        city=city
+                    )
+                    content_html += f'\n{hotel_card}'
 
                 # 景点/门票
                 elif any(word in item['title'] for word in ['公园', '景区', '博物馆', '寺', '塔', '山', '岛']):
