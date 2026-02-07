@@ -525,15 +525,197 @@
             margin: 16px 0;
         }
 
-        /* Day标题 */
-        h2 {
-            font-size: 18px;
+        /* ===== 排版层次系统 ===== */
+
+        /* 大标题（行程概览、详细行程、住宿推荐等） */
+        h2, .section-title {
+            font-size: 24px;
             font-weight: 700;
             color: var(--text-dark);
+            margin: 32px 0 16px 0;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--primary-green);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         h3 {
             font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* 加粗文字 - 重点高亮 */
+        strong, b {
+            color: var(--warning-red);
+            font-weight: 700;
+        }
+        /* 排除特定容器中的 strong 变红 */
+        .cashback-notice strong,
+        .header-card strong,
+        .cashback-card strong {
+            color: inherit;
+        }
+
+        /* Day标题卡片 */
+        .day-title {
+            background: linear-gradient(135deg, var(--accent-orange), #FF6B00);
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 24px 0 16px 0;
+            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+        }
+
+        .day-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        /* 时间点胶囊 */
+        .time-point {
+            display: inline-flex;
+            align-items: center;
+            background: var(--primary-green);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-right: 8px;
+        }
+
+        .activity-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: inline;
+        }
+
+        /* POI 名称突出 */
+        .poi-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .poi-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .poi-price {
+            color: var(--warning-red);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .poi-rating {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        /* 特色菜/亮点标签 */
+        .feature-tag {
+            display: inline-block;
+            background: #FFF3E0;
+            color: #FF6B00;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* 推荐理由高亮 */
+        .recommend-reason {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-left: 4px solid var(--primary-green);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #2E7D32;
+        }
+
+        /* 核心亮点列表 */
+        .highlight-list {
+            background: #FFFDE7;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        .highlight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #E0E0E0;
+        }
+
+        .highlight-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .highlight-number {
+            background: var(--accent-orange);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .highlight-title {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* 行程概览卡片 */
+        .overview-card {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .overview-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .overview-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .overview-label {
+            color: var(--text-light);
+            min-width: 60px;
+        }
+
+        .overview-value {
             font-weight: 600;
             color: var(--text-dark);
         }

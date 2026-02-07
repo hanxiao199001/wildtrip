@@ -45,6 +45,9 @@ class ItineraryGenerator:
         # 预处理：清理HTML代码泄露
         content = self._fix_html_leakage(content)
 
+        # 提取城市
+        city = self._extract_city(query)
+
         # 提取信息
         title = self._extract_title(query, content)
         days_info = self._extract_days_info(query, content)
@@ -67,8 +70,19 @@ class ItineraryGenerator:
         # 生成Day标签
         day_tabs = self._generate_day_tabs(days_info)
 
-        # 生成时间线内容
-        timeline_content = self._generate_timeline(content, days_info)
+        # 提取概览和亮点
+        overview_html = self._extract_overview_card(content)
+        highlights_html = self._extract_highlights(content)
+
+        # 生成时间线内容（带新的排版层次）
+        timeline_content = self._generate_timeline(content, days_info, city)
+
+        # 插入概览和亮点到时间线顶部
+        preamble = ''
+        if overview_html:
+            preamble += overview_html
+        if highlights_html:
+            preamble += highlights_html
 
         # 转换Markdown表格为HTML表格
         timeline_content = self._convert_markdown_tables(timeline_content)
@@ -76,25 +90,21 @@ class ItineraryGenerator:
         # 清理时间线中的HTML代码泄露
         timeline_content = self._fix_html_leakage(timeline_content)
 
+        # 组合 preamble + timeline
+        full_timeline = preamble + timeline_content
+
         # 生成住宿推荐section（使用HotelExtractor）
         hotel_extractor = HotelExtractor()
         hotels = hotel_extractor.extract_hotels(content, query)
         hotel_quick_card = ''
 
         if hotels:
-            # 渲染所有酒店卡片
             hotels_html = '\n'.join([hotel_extractor.render_hotel_card(hotel) for hotel in hotels])
-
-            # 提取第一家酒店信息，生成顶部快速预订卡片
             hotel_quick_card = hotel_extractor.render_hotel_card(hotels[0])
 
-            timeline_content += f'''
-<div style="margin-top: 32px;">
-    <h2 style="font-size: 22px; font-weight: 700; color: var(--text-dark, #333); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid var(--primary-green, #4CAF50);">
-        🏨 住宿推荐
-    </h2>
-    {hotels_html}
-</div>
+            full_timeline += f'''
+<div class="section-title" style="margin-top: 32px;">🏨 住宿推荐</div>
+{hotels_html}
 '''
 
         # 生成iCalendar数据
@@ -113,43 +123,136 @@ class ItineraryGenerator:
         html = html.replace('{{USERS_SAVED}}', str(users_saved))
         html = html.replace('{{TOTAL_SAVED}}', f"{total_saved:,}")
         html = html.replace('{{DAY_TABS}}', day_tabs)
-        html = html.replace('{{TIMELINE_CONTENT}}', timeline_content)
+        html = html.replace('{{TIMELINE_CONTENT}}', full_timeline)
         html = html.replace('{{ICS_DATA}}', json.dumps(ics_data, ensure_ascii=False))
 
-        # 插入酒店快速预订卡片（如果有的话）
+        # 插入酒店快速预订卡片
         if hotel_quick_card:
             html = html.replace('<!-- 这里会通过JS动态插入酒店预订卡片 -->', hotel_quick_card)
             html = html.replace('style="display:none;"', '')
 
-        # 最终清理：修复所有残留的HTML代码泄露
+        # 最终清理
         html = self._fix_html_leakage(html)
 
         return html
 
+    # ========== 概览与亮点提取 ==========
+
+    def _extract_overview_card(self, content: str) -> str:
+        """提取行程概览，渲染为蓝色渐变卡片"""
+        overview_pattern = r'##\s*(?:📋\s*)?行程概览(.*?)(?=\n##\s|$)'
+        match = re.search(overview_pattern, content, re.S | re.I)
+        if not match:
+            return ''
+
+        overview_text = match.group(1).strip()
+
+        items_html = ''
+        for line in overview_text.split('\n'):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            line = re.sub(r'^[-*•]\s*', '', line)
+            # Parse **label：** value pattern
+            kv = re.match(r'\*\*([^*]+)\*\*\s*[：:]?\s*(.*)', line)
+            if kv:
+                label = kv.group(1).strip()
+                value = kv.group(2).strip()
+                items_html += f'''<div class="overview-item">
+    <span class="overview-label">{label}</span>
+    <span class="overview-value">{value}</span>
+</div>
+'''
+            elif line:
+                items_html += f'''<div class="overview-item">
+    <span class="overview-value">{line}</span>
+</div>
+'''
+
+        if not items_html:
+            return ''
+
+        return f'''
+<div class="section-title">📋 行程概览</div>
+<div class="overview-card">
+    {items_html}
+</div>
+'''
+
+    def _extract_highlights(self, content: str) -> str:
+        """提取核心亮点列表，渲染为黄色背景卡片"""
+        highlight_pattern = r'(?:核心亮点|行程亮点|特色亮点)[：:](.*?)(?=\n##\s|\n###\s*Day|\n\*\*\d{2}:\d{2}|$)'
+        match = re.search(highlight_pattern, content, re.S | re.I)
+        if not match:
+            return ''
+
+        highlights_text = match.group(1).strip()
+
+        items = []
+        for line in highlights_text.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            line = re.sub(r'^\d+\.\s*', '', line)
+            line = re.sub(r'^[-*•]\s*', '', line)
+            if not line:
+                continue
+
+            bold_match = re.match(r'\*\*([^*]+)\*\*[：:]?\s*(.*)', line)
+            if bold_match:
+                items.append({
+                    'title': bold_match.group(1).strip(),
+                    'desc': bold_match.group(2).strip()
+                })
+            else:
+                items.append({'title': line[:20], 'desc': line})
+
+        if not items:
+            return ''
+
+        items_html = ''
+        for idx, item in enumerate(items[:6], 1):
+            desc_html = f'<div style="color: var(--text-light); font-size: 14px; margin-top: 4px;">{item["desc"]}</div>' if item['desc'] else ''
+            items_html += f'''<div class="highlight-item">
+    <div class="highlight-number">{idx}</div>
+    <div>
+        <div class="highlight-title">{item['title']}</div>
+        {desc_html}
+    </div>
+</div>
+'''
+
+        return f'''
+<div class="highlight-list">
+    {items_html}
+</div>
+'''
+
+    # ========== 城市提取 ==========
+
+    def _extract_city(self, query: str) -> str:
+        """从 query 提取城市"""
+        city_match = re.search(r'([\u4e00-\u9fa5]{2,})\d*天', query)
+        return city_match.group(1) if city_match else ''
+
+    # ========== HTML泄露修复 ==========
+
     def _fix_html_leakage(self, text: str) -> str:
         """
         修复HTML代码泄露问题
-
-        处理以下模式：
-        - title="在美团搜索：XXX">  （老样式泄露）
-        - SEARCH_HINT:XXX 未转换的链接
-        - 裸露的HTML属性文本
         """
-        # 修复 title="在美团搜索：XXX"> 泄露
         text = re.sub(
             r'title="在美团搜索[：:]([^"]*)">\s*',
             lambda m: self._generate_inline_restaurant_card(m.group(1).strip()),
             text
         )
 
-        # 修复残留的 SEARCH_HINT 链接
         text = re.sub(
             r'<a\s+href="SEARCH_HINT:([^"]*)"[^>]*>([^<]*)</a>',
             lambda m: self._generate_inline_search_button(m.group(1).strip(), m.group(2).strip()),
             text
         )
 
-        # 修复裸露的 SEARCH_HINT 文本
         text = re.sub(
             r'SEARCH_HINT:([^\s<"\']+)',
             lambda m: self._generate_inline_search_button(m.group(1).strip(), '去美团查看'),
@@ -173,6 +276,8 @@ class ItineraryGenerator:
         url = f"https://i.meituan.com/search?q={quote(keyword)}"
         return f'''<a href="{url}" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 20px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-decoration: none; border-radius: 20px; font-size: 14px; font-weight: 600; margin: 6px 0;">{text}</a>'''
 
+    # ========== 信息提取 ==========
+
     def _extract_title(self, query: str, content: str) -> str:
         """提取标题"""
         title_match = re.search(r'^#\s+(.+)$', content, re.M)
@@ -181,23 +286,41 @@ class ItineraryGenerator:
         return query.split('，')[0]
 
     def _extract_days_info(self, query: str, content: str) -> list:
-        """提取每天的信息"""
+        """提取每天的信息（包括主题副标题）"""
         days_match = re.search(r'(\d+)天', query)
         if not days_match:
-            return [{'day': 1, 'weekday': ''}]
+            return [{'day': 1, 'weekday': '', 'theme': ''}]
 
         num_days = int(days_match.group(1))
 
-        weekdays = []
+        # 提取每日主题
+        theme_pattern = r'###?\s*Day\s*(\d+)[：:]\s*(.+?)(?:\n|$)'
+        theme_matches = re.findall(theme_pattern, content, re.I)
+        themes = {}
+        for day_str, theme in theme_matches:
+            themes[int(day_str)] = theme.strip()
+
         weekday_pattern = r'Day\s*\d+[：:]?\s*([周星期].+?)(?:\n|$)'
         weekday_matches = re.findall(weekday_pattern, content, re.I)
 
         days_info = []
         for i in range(num_days):
+            day_num = i + 1
             weekday = weekday_matches[i] if i < len(weekday_matches) else ''
+
+            # 提取当天主题副标题
+            theme = themes.get(day_num, '')
+            # 提取 **主题：** xxx 格式
+            if not theme:
+                day_block_pattern = rf'###?\s*Day\s*{day_num}[：:]?.*?\*\*主题[：:]\*\*\s*(.+?)(?:\n|$)'
+                theme_match = re.search(day_block_pattern, content, re.S | re.I)
+                if theme_match:
+                    theme = theme_match.group(1).strip()
+
             days_info.append({
-                'day': i + 1,
-                'weekday': weekday.strip()
+                'day': day_num,
+                'weekday': weekday.strip(),
+                'theme': theme
             })
 
         return days_info
@@ -214,19 +337,16 @@ class ItineraryGenerator:
         restaurants = len(re.findall(r'\*\*[^*]+\*\*\s*[¥￥]\d+/人', content))
         hotels = len(re.findall(r'###\s*\d+\.\s*[^#\n]+酒店', content, re.I))
         attractions = len(re.findall(r'[公园|景区|博物馆|寺|塔|山|岛|古镇|广场]', content))
-
         return restaurants + hotels + min(attractions, 5)
 
     def _calculate_cashback(self, content: str) -> int:
         """计算总返现金额（仅酒店）"""
         hotels_count = self._count_hotels(content)
         estimated_cashback = hotels_count * 50
-
         cashbacks = re.findall(r'返[¥￥](\d+)', content)
         if cashbacks:
             total = sum(int(cb) for cb in cashbacks)
             return total if total > 0 else estimated_cashback
-
         return estimated_cashback if estimated_cashback > 0 else 100
 
     def _count_hotels(self, content: str) -> int:
@@ -252,6 +372,8 @@ class ItineraryGenerator:
         else:
             return 28
 
+    # ========== Day标签 ==========
+
     def _generate_day_tabs(self, days_info: list) -> str:
         """生成Day标签HTML"""
         tabs_html = ''
@@ -268,8 +390,10 @@ class ItineraryGenerator:
 
         return tabs_html
 
-    def _generate_timeline(self, content: str, days_info: list) -> str:
-        """生成时间线HTML"""
+    # ========== 时间线生成（核心渲染） ==========
+
+    def _generate_timeline(self, content: str, days_info: list, city: str = '') -> str:
+        """生成时间线HTML（使用新的排版层次样式）"""
         timeline_html = ''
 
         day_pattern = r'###?\s*Day\s*(\d+)[：:]?(.*?)(?=###?\s*Day\s*\d+|##\s+[^D]|$)'
@@ -279,72 +403,104 @@ class ItineraryGenerator:
             day_num = int(day_num_str)
             active = 'active' if day_num == 1 else ''
 
+            # 提取当天的主题和副标题
+            theme = ''
+            for info in days_info:
+                if info['day'] == day_num:
+                    theme = info.get('theme', '')
+                    break
+
+            if not theme:
+                theme_match = re.search(r'^\s*\*\*主题[：:]\*\*\s*(.+?)$', day_content, re.M)
+                if theme_match:
+                    theme = theme_match.group(1).strip()
+
+            # Day标题卡片
+            day_title_html = f'''
+<div class="day-title">
+    📅 Day {day_num}
+    {'<div class="day-subtitle">' + theme + '</div>' if theme else ''}
+</div>
+'''
+
+            # 解析时间线条目
             items = self._parse_timeline_items(day_content)
+
+            # 同时提取此天的餐厅推荐块
+            restaurant_blocks = self._extract_restaurant_blocks(day_content, city)
 
             items_html = ''
             for item in items:
-                icon_class = 'icon-food' if item['type'] == 'food' else 'icon-activity'
+                icon_class = 'icon-food' if item['type'] == 'food' else ('icon-hotel' if item['type'] == 'hotel' else 'icon-activity')
                 icon_emoji = item.get('emoji', '🍜' if item['type'] == 'food' else '🚶')
 
-                content_html = f'<div class="content-title">{item["title"]}</div>'
+                # 时间点胶囊 + 活动标题
+                content_html = f'''<div style="margin-bottom: 8px;">
+    <span class="time-point">{item["time"]}</span>
+    <span class="activity-title">{item["title"]}</span>
+</div>'''
 
                 if item.get('desc'):
                     content_html += f'<div class="content-desc">{item["desc"]}</div>'
 
                 if item.get('tags'):
+                    content_html += '<div style="margin: 8px 0;">'
                     for tag in item['tags']:
-                        content_html += f'<span class="content-tag">{tag}</span>'
+                        content_html += f'<span class="feature-tag">{tag}</span>'
+                    content_html += '</div>'
 
-                # 如果是餐厅，添加新的餐厅卡片
+                if item.get('reason'):
+                    content_html += f'<div class="recommend-reason">💡 {item["reason"]}</div>'
+
+                # 餐厅：使用完整卡片
                 if item['type'] == 'food' and item.get('price'):
                     from services.affiliate_manager import get_affiliate_manager
-
                     affiliate_mgr = get_affiliate_manager()
+
+                    # 构造特色菜标签
+                    features_html = ''
+                    if item.get('features'):
+                        features_html = '<div style="margin: 8px 0;">'
+                        for feat in item['features']:
+                            features_html += f'<span class="feature-tag">{feat}</span>'
+                        features_html += '</div>'
+
                     booking_btn = affiliate_mgr.render_booking_button(
                         poi_type='restaurant',
                         name=item['title'],
                         price=item.get('price'),
                         cashback=item.get('cashback', 5),
-                        city=''
+                        city=city,
+                        rating=item.get('rating', '4.5'),
+                        features=item.get('features', []),
+                        reason=item.get('reason', '')
                     )
+                    content_html += f'\n{features_html}\n{booking_btn}'
 
-                    content_html += f'''
-<div class="restaurant-info">
-    <span class="restaurant-price">¥{item["price"]}/人</span>
-    <span class="restaurant-rating">⭐ {item.get("rating", "4.5")}</span>
-</div>
-{booking_btn}
-'''
-
-                # 如果是酒店，添加预订按钮
-                if item['type'] == 'hotel' or '酒店' in item['title'] or '民宿' in item['title']:
+                # 酒店
+                elif item['type'] == 'hotel' or '酒店' in item['title'] or '民宿' in item['title']:
                     from services.affiliate_manager import get_affiliate_manager
-
                     affiliate_mgr = get_affiliate_manager()
                     booking_btn = affiliate_mgr.render_booking_button(
                         poi_type='hotel',
                         name=item['title'],
-                        city=''
+                        city=city
                     )
                     content_html += f'\n{booking_btn}'
 
-                # 如果是景点/门票，添加预订按钮
+                # 景点/门票
                 elif any(word in item['title'] for word in ['公园', '景区', '博物馆', '寺', '塔', '山', '岛']):
                     from services.affiliate_manager import get_affiliate_manager
-
                     affiliate_mgr = get_affiliate_manager()
                     booking_btn = affiliate_mgr.render_booking_button(
                         poi_type='ticket',
                         name=item['title'],
-                        city=''
+                        city=city
                     )
                     content_html += f'\n{booking_btn}'
 
                 items_html += f'''
 <div class="timeline-item">
-    <div class="timeline-time">
-        <div class="time-text">{item["time"]}</div>
-    </div>
     <div class="timeline-icon {icon_class}">
         {icon_emoji}
     </div>
@@ -354,12 +510,72 @@ class ItineraryGenerator:
 </div>
 '''
 
-            timeline_html += f'<div id="day-{day_num}" class="day-content {active}">{items_html}</div>\n'
+            # 插入独立餐厅推荐块（不在时间线条目中的餐厅）
+            for rb in restaurant_blocks:
+                if not any(rb['name'] in item.get('title', '') for item in items):
+                    items_html += rb['html']
+
+            timeline_html += f'''<div id="day-{day_num}" class="day-content {active}">
+    {day_title_html}
+    {items_html}
+</div>
+'''
 
         return timeline_html
 
+    def _extract_restaurant_blocks(self, day_content: str, city: str = '') -> list:
+        """
+        提取独立的餐厅推荐块（午餐推荐、晚餐推荐等）
+        返回带完整卡片HTML的列表
+        """
+        from services.affiliate_manager import get_affiliate_manager
+        affiliate_mgr = get_affiliate_manager()
+
+        restaurants = []
+
+        # 匹配：**店名** ¥XX/人 ⭐X.X
+        restaurant_pattern = r'\*\*([^*]{2,20})\*\*\s*[¥￥](\d+)/人\s*⭐([\d.]+)'
+        matches = re.finditer(restaurant_pattern, day_content)
+
+        for match in matches:
+            name = match.group(1).strip()
+            price = int(match.group(2))
+            rating = match.group(3)
+
+            # 向后搜索特色菜和推荐理由
+            after_text = day_content[match.end():match.end()+600]
+            features = []
+            reason = ''
+
+            feat_match = re.search(r'\*\*特色菜[：:]\*\*\s*([^\n]+)', after_text)
+            if feat_match:
+                feat_text = feat_match.group(1).strip()
+                features = [f.strip() for f in re.split(r'[、，,]', feat_text) if f.strip()][:4]
+
+            reason_match = re.search(r'\*\*为什么推荐[：:]\*\*\s*([^\n]+)', after_text)
+            if reason_match:
+                reason = reason_match.group(1).strip()
+
+            booking_html = affiliate_mgr.render_booking_button(
+                poi_type='restaurant',
+                name=name,
+                price=price,
+                cashback=5,
+                city=city,
+                rating=rating,
+                features=features,
+                reason=reason
+            )
+
+            restaurants.append({
+                'name': name,
+                'html': booking_html
+            })
+
+        return restaurants
+
     def _parse_timeline_items(self, day_content: str) -> list:
-        """解析时间线条目"""
+        """解析时间线条目（增强版：提取特色菜和推荐理由）"""
         items = []
 
         time_patterns = [
@@ -368,21 +584,50 @@ class ItineraryGenerator:
         ]
 
         for pattern, time_type in time_patterns:
-            matches = re.findall(pattern, day_content)
-            for time_str, desc in matches:
+            matches = re.finditer(pattern, day_content)
+            for match in matches:
+                time_str = match.group(1)
+                desc = match.group(2)
                 clean_desc = re.sub(r'\*\*([^*]+)\*\*', r'\1', desc).strip()
 
-                item_type = 'food' if any(word in clean_desc for word in ['餐厅', '馆', '面', '饭', '小吃', '食堂', '火锅']) else 'activity'
+                food_words = ['餐厅', '馆', '面', '饭', '小吃', '食堂', '火锅', '午餐', '晚餐', '早餐', '宵夜']
+                hotel_words = ['入住', '酒店', '民宿', '客栈', '住宿']
 
-                price_match = re.search(r'[¥￥](\d+)/人', day_content[day_content.find(clean_desc):day_content.find(clean_desc)+500])
-                rating_match = re.search(r'⭐([\d.]+)', day_content[day_content.find(clean_desc):day_content.find(clean_desc)+500])
-                cashback_match = re.search(r'返[¥￥](\d+)', day_content[day_content.find(clean_desc):day_content.find(clean_desc)+500])
+                if any(word in clean_desc for word in hotel_words):
+                    item_type = 'hotel'
+                    emoji = '🏨'
+                elif any(word in clean_desc for word in food_words):
+                    item_type = 'food'
+                    emoji = '🍜'
+                else:
+                    item_type = 'activity'
+                    emoji = '🚶'
+
+                # 从该时间点之后截取上下文
+                after_text = day_content[match.end():match.end()+800]
+
+                price_match = re.search(r'[¥￥](\d+)/人', after_text[:500])
+                rating_match = re.search(r'⭐([\d.]+)', after_text[:500])
+                cashback_match = re.search(r'返[¥￥](\d+)', after_text[:500])
 
                 title_match = re.match(r'^([^，。\n]+)', clean_desc)
                 title = title_match.group(1) if title_match else clean_desc[:20]
 
                 desc_match = re.search(r'[：:,，](.+?)(?:\n|$)', clean_desc)
                 desc_text = desc_match.group(1).strip() if desc_match else ''
+
+                # 提取特色菜
+                features = []
+                feat_match = re.search(r'\*\*特色菜[：:]\*\*\s*([^\n]+)', after_text)
+                if feat_match:
+                    feat_text = feat_match.group(1).strip()
+                    features = [f.strip() for f in re.split(r'[、，,]', feat_text) if f.strip()][:4]
+
+                # 提取推荐理由
+                reason = ''
+                reason_match = re.search(r'\*\*为什么推荐[：:]\*\*\s*([^\n]+)', after_text)
+                if reason_match:
+                    reason = reason_match.group(1).strip()
 
                 tags = []
                 tag_match = re.search(r'💡\s*(.+)', desc_text)
@@ -394,20 +639,23 @@ class ItineraryGenerator:
                     'title': title,
                     'desc': desc_text[:100] if desc_text else '',
                     'type': item_type,
-                    'emoji': '🍜' if item_type == 'food' else '🚶',
+                    'emoji': emoji,
                     'price': int(price_match.group(1)) if price_match else None,
                     'rating': rating_match.group(1) if rating_match else None,
                     'cashback': int(cashback_match.group(1)) if cashback_match else 5,
                     'tags': tags,
+                    'features': features,
+                    'reason': reason,
                     'search_keyword': title
                 })
 
         return items[:10]
 
+    # ========== iCalendar ==========
+
     def _generate_ics_data(self, content: str, days_info: list, title: str) -> list:
         """生成iCalendar数据"""
         events = []
-
         start_date = datetime.now()
 
         day_pattern = r'###?\s*Day\s*(\d+)[：:]?(.*?)(?=###?\s*Day\s*\d+|##\s+[^D]|$)'
@@ -437,10 +685,10 @@ class ItineraryGenerator:
 
         return events
 
+    # ========== Markdown转换 ==========
+
     def _convert_markdown_tables(self, text: str) -> str:
-        """
-        将Markdown表格转换为HTML表格（新设计）
-        """
+        """将Markdown表格转换为HTML表格"""
         table_pattern = r'\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)'
 
         def replace_table(match):
@@ -471,14 +719,10 @@ class ItineraryGenerator:
         return re.sub(table_pattern, replace_table, text, flags=re.MULTILINE)
 
     def _convert_markdown_links_to_buttons(self, text: str, query: str) -> str:
-        """
-        将Markdown链接转换为HTML按钮
-        """
+        """将Markdown链接转换为HTML按钮"""
         from services.affiliate_manager import get_affiliate_manager
 
-        city_match = re.search(r'([\u4e00-\u9fa5]{2,})\d*天', query)
-        city = city_match.group(1) if city_match else ''
-
+        city = self._extract_city(query)
         affiliate_mgr = get_affiliate_manager()
 
         link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
@@ -487,7 +731,6 @@ class ItineraryGenerator:
             link_text = match.group(1)
             link_url = match.group(2)
 
-            # 如果是占位符（LINK_FOOD_名称等），生成真实按钮
             if link_url.startswith('LINK_'):
                 parts = link_url.split('_', 2)
                 if len(parts) == 3:
@@ -500,13 +743,11 @@ class ItineraryGenerator:
                         city=city
                     )
 
-            # 如果是SEARCH_HINT链接，转换为搜索按钮
             if link_url.startswith('SEARCH_HINT:'):
                 keyword = link_url.replace('SEARCH_HINT:', '')
                 url = f"https://i.meituan.com/search?q={quote(keyword)}"
                 return f'<a href="{url}" target="_blank" rel="noopener" style="display: inline-block; padding: 8px 20px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-decoration: none; border-radius: 20px; font-size: 14px; font-weight: 600; margin: 6px 0;">{link_text}</a>'
 
-            # 如果是URL链接，判断按钮类型
             if '美团' in link_text or '团购' in link_text:
                 before_text = text[:match.start()]
                 name_match = re.search(r'[\*]{0,2}([^\*\n]{2,10})[\*]{0,2}[\s]*$', before_text)
@@ -525,39 +766,16 @@ class ItineraryGenerator:
                     city=city
                 )
 
-            # 保留原样（普通链接）
             return match.group(0)
 
         return re.sub(link_pattern, replace_link, text)
-
-    def _render_restaurant_card(self, restaurant_info: dict, city: str = '') -> str:
-        """
-        统一的餐厅卡片渲染
-        """
-        from services.affiliate_manager import get_affiliate_manager
-
-        name = restaurant_info.get('name', '')
-        price = restaurant_info.get('price', 0)
-        rating = restaurant_info.get('rating', 0)
-        features = restaurant_info.get('features', [])
-        desc = restaurant_info.get('desc', '')
-
-        affiliate_mgr = get_affiliate_manager()
-        return affiliate_mgr.render_booking_button(
-            poi_type='restaurant',
-            name=name,
-            price=price,
-            city=city
-        )
 
 
 class HotelExtractor:
     """酒店信息提取器"""
 
     def extract_hotels(self, content: str, query: str) -> list:
-        """
-        从攻略内容提取酒店信息
-        """
+        """从攻略内容提取酒店信息"""
         hotels = []
 
         hotel_pattern = r'##\s*(?:🏨\s*)?住宿推荐(.*?)(?=\n##\s+(?!#)|$)'
@@ -584,7 +802,7 @@ class HotelExtractor:
             location_match = re.search(r'\*\*位置[：:]\*\*\s*([^\n]+)', details)
             location = location_match.group(1).strip() if location_match else ''
 
-            feature_match = re.search(r'\*\*特点[：:]\*\*\s*([^\n]+)', details)
+            feature_match = re.search(r'\*\*特[色点][：:]\*\*\s*([^\n]+)', details)
             features = feature_match.group(1).strip() if feature_match else ''
 
             reason_match = re.search(r'\*\*为什么推荐[：:]\*\*\s*([^\n]+)', details)
@@ -611,13 +829,15 @@ class HotelExtractor:
         return hotels
 
     def render_hotel_card(self, hotel: dict) -> str:
-        """
-        渲染酒店预订卡片（新设计：渐变背景）
-        """
+        """渲染酒店预订卡片（新设计：渐变背景 + 排版层次）"""
         search_query = f"{hotel['city']} {hotel['name']}"
         meituan_url = f"https://i.meituan.com/search?q={quote(search_query)}"
 
         booked_count = random.randint(18, 66)
+
+        reason_html = ''
+        if hotel.get('reason'):
+            reason_html = f'<div class="recommend-reason">💡 {hotel["reason"]}</div>'
 
         return f'''
 <div style="background: linear-gradient(135deg, #FFF5E6 0%, #FFFDE7 100%); border: 2px solid var(--accent-orange, #FF9500); border-radius: var(--card-radius, 16px); padding: 24px; margin: 16px 0; box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));">
@@ -625,12 +845,11 @@ class HotelExtractor:
         <div style="display: flex; align-items: flex-start; gap: 14px; flex: 1;">
             <span style="font-size: 42px; flex-shrink: 0;">🏨</span>
             <div>
-                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-dark, #333); margin: 0 0 6px 0;">
-                    {hotel['name']}
-                </h3>
-                <p style="color: var(--text-light, #666); font-size: 14px; margin: 0 0 6px 0;">
-                    ⭐ {hotel['rating']}  |  📍 {hotel['location']}
-                </p>
+                <div class="poi-name">{hotel['name']}</div>
+                <div class="poi-meta">
+                    <span class="poi-rating">⭐ {hotel['rating']}</span>
+                    <span style="color: var(--text-light);">📍 {hotel['location']}</span>
+                </div>
             </div>
         </div>
         <div style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 8px 16px; border-radius: 20px; font-size: 15px; font-weight: 700; flex-shrink: 0;">
@@ -640,13 +859,15 @@ class HotelExtractor:
 
     <div style="background: linear-gradient(135deg, #FFF8E1, #FFFDE7); border-radius: 10px; padding: 10px 14px; margin: 12px 0; display: flex; align-items: center; gap: 12px;">
         <span style="color: #9e9e9e; text-decoration: line-through; font-size: 15px;">门市价 ¥{hotel['market_price']}/晚</span>
-        <span style="color: var(--warning-red, #E53935); font-weight: 700; font-size: 22px;">¥{hotel['price']}/晚</span>
+        <span class="poi-price" style="font-size: 22px;">¥{hotel['price']}/晚</span>
         <span style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">省¥{hotel['market_price'] - hotel['price']}</span>
     </div>
 
-    <p style="color: #4b5563; font-size: 14px; margin: 8px 0 12px 0; line-height: 1.6;">
+    <p style="color: #4b5563; font-size: 14px; margin: 8px 0 4px 0; line-height: 1.6;">
         ✨ {hotel['features']}
     </p>
+
+    {reason_html}
 
     <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
 

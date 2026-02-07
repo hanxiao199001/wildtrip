@@ -133,7 +133,10 @@ class AffiliateManager:
         price: Optional[int] = None,
         cashback: Optional[int] = None,
         city: str = '',
-        affiliate_link: Optional[str] = None
+        affiliate_link: Optional[str] = None,
+        rating: Optional[str] = None,
+        features: Optional[list] = None,
+        reason: Optional[str] = None
     ) -> str:
         """
         渲染预订按钮HTML（根据实际变现情况）
@@ -141,14 +144,14 @@ class AffiliateManager:
         link_info = self.generate_booking_link(poi_type, name, city, affiliate_link)
 
         if poi_type == 'restaurant':
-            return self._render_restaurant_card(link_info, name, price, cashback)
+            return self._render_restaurant_card(link_info, name, price, cashback, rating, features, reason)
         elif poi_type == 'hotel':
             return self._render_hotel_button(link_info, name, cashback)
         else:
             return self._render_ticket_button(link_info, name)
 
-    def _render_restaurant_card(self, link_info: dict, name: str, price: Optional[int] = None, cashback: Optional[int] = None) -> str:
-        """渲染餐厅卡片组件"""
+    def _render_restaurant_card(self, link_info: dict, name: str, price: Optional[int] = None, cashback: Optional[int] = None, rating: Optional[str] = None, features: Optional[list] = None, reason: Optional[str] = None) -> str:
+        """渲染餐厅完整卡片组件（含店名、评分、特色菜、推荐理由、价格区、CTA、信任背书）"""
         url = link_info['url']
 
         # 计算团购价（原价85折）
@@ -162,22 +165,50 @@ class AffiliateManager:
         # 随机预订人数（社会证明）
         booked_count = random.randint(23, 88)
 
+        # 评分
+        rating_val = rating or '4.5'
+
+        # POI元信息行（评分 + 价格）
+        meta_html = f'''<div class="poi-meta">
+        <span class="poi-rating">⭐ {rating_val}</span>'''
+        if price:
+            meta_html += f'<span class="poi-price">¥{price}/人</span>'
+        meta_html += '</div>'
+
+        # 特色菜标签
+        features_html = ''
+        if features:
+            features_html = '<div style="margin: 8px 0;">'
+            for feat in features[:4]:
+                features_html += f'<span class="feature-tag">{feat}</span>'
+            features_html += '</div>'
+
+        # 推荐理由
+        reason_html = ''
+        if reason:
+            reason_html = f'<div class="recommend-reason">💡 {reason}</div>'
+
+        # 价格区
         price_html = ''
         if price:
             price_html = f'''
-            <div style="background: linear-gradient(135deg, #FFF8E1, #FFFDE7); border-radius: 10px; padding: 10px 14px; margin: 10px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <span style="color: #9e9e9e; text-decoration: line-through; font-size: 14px;">¥{market_price}/人</span>
-                <span style="color: #E53935; font-weight: 700; font-size: 20px;">¥{price}/人</span>
-                <span style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">返¥{cashback_amount}</span>
-            </div>'''
+    <div style="background: linear-gradient(135deg, #FFF8E1, #FFFDE7); border-radius: 10px; padding: 10px 14px; margin: 10px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="color: #9e9e9e; text-decoration: line-through; font-size: 14px;">¥{market_price}/人</span>
+        <span style="color: #E53935; font-weight: 700; font-size: 20px;">¥{price}/人</span>
+        <span style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">返¥{cashback_amount}</span>
+    </div>'''
 
         return f'''<div style="background: white; border: 2px solid var(--primary-green, #4CAF50); border-radius: var(--card-radius, 16px); padding: 18px; margin: 16px 0; box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));">
     <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px;">
         <span style="font-size: 36px; flex-shrink: 0;">🍜</span>
         <div style="flex: 1;">
-            <div style="font-size: 17px; font-weight: 700; color: var(--text-dark, #333); margin-bottom: 4px;">{name}</div>
+            <div class="poi-name">{name}</div>
+            {meta_html}
         </div>
-    </div>{price_html}
+    </div>
+    {features_html}
+    {reason_html}
+    {price_html}
     <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
     <a href="{url}" target="_blank" rel="noopener" style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
         美团团购{f"，返现¥{cashback_amount}" if price else ""}
