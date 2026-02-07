@@ -212,7 +212,7 @@ class ItineraryGenerator:
 
         items_html = ''
         for idx, item in enumerate(items[:6], 1):
-            desc_html = f'<div style="color: var(--text-light); font-size: 14px; margin-top: 4px;">{item["desc"]}</div>' if item['desc'] else ''
+            desc_html = f'<div class="highlight-desc">{item["desc"]}</div>' if item['desc'] else ''
             items_html += f'''<div class="highlight-item">
     <div class="highlight-number">{idx}</div>
     <div>
@@ -434,14 +434,32 @@ class ItineraryGenerator:
                 icon_class = 'icon-food' if item['type'] == 'food' else ('icon-hotel' if item['type'] == 'hotel' else 'icon-activity')
                 icon_emoji = item.get('emoji', '🍜' if item['type'] == 'food' else '🚶')
 
-                # 时间点胶囊 + 活动标题
+                # 用餐标注
+                meal_label = ''
+                if item['type'] == 'food':
+                    meal_type = ''
+                    title_lower = item['title']
+                    if '早餐' in title_lower or '早' in title_lower:
+                        meal_type = '早餐'
+                    elif '午餐' in title_lower or '午' in title_lower:
+                        meal_type = '午餐'
+                    elif '晚餐' in title_lower or '晚' in title_lower:
+                        meal_type = '晚餐'
+                    elif '宵夜' in title_lower:
+                        meal_type = '宵夜'
+                    if meal_type:
+                        meal_label = f'<span class="meal-label">{meal_type}</span>'
+
+                # 时间点胶囊 + 活动名称（带橙色左边框）
                 content_html = f'''<div style="margin-bottom: 8px;">
-    <span class="time-point">{item["time"]}</span>
+    <span class="time-point">{item["time"]}</span>{meal_label}
+</div>
+<div class="activity-name">
     <span class="activity-title">{item["title"]}</span>
 </div>'''
 
                 if item.get('desc'):
-                    content_html += f'<div class="content-desc">{item["desc"]}</div>'
+                    content_html += f'<div class="activity-desc">{item["desc"]}</div>'
 
                 if item.get('tags'):
                     content_html += '<div style="margin: 8px 0;">'
