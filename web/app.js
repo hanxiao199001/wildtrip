@@ -1,13 +1,8 @@
 // WildTrip Web App - Frontend Logic
 
-// 自动检测API地址：本地开发用localhost，生产环境用当前域名
-const API_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000/api'
-    : `http://${window.location.hostname}:5000/api`;
-
-const WS_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000'
-    : `http://${window.location.hostname}:5000`;
+// API地址：通过Nginx代理，使用相对路径
+const API_BASE = '/api';
+const WS_BASE = window.location.origin;
 
 let currentTaskId = null;
 let pollInterval = null;
