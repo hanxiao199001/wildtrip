@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from services.ai_engine import AIEngine
+from services.ai_engine_streaming import get_streaming_ai_engine  # 🔥 新增：流式引擎
 from services.affiliate import get_meituan_affiliate
 from prompts.wildtrip_prompt import build_wildtrip_prompt
 
@@ -26,7 +27,8 @@ generate_bp = Blueprint('generate', __name__)
 active_tasks = {}
 
 # 初始化服务
-ai_engine = AIEngine()
+ai_engine = AIEngine()  # 保留旧引擎作为fallback
+streaming_ai_engine = get_streaming_ai_engine()  # 🔥 新增：流式引擎
 affiliate = get_meituan_affiliate()  # 🔥 修复：使用函数读取环境变量
 
 
@@ -205,34 +207,21 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         emit_progress(socketio, task_id, 'rag_search', '🔍 正在搜索本地攻略数据库...', 15)
         time.sleep(0.8)
         
-        # 调用AI生成（启动后台进度更新）
+        # 调用AI生成（使用流式引擎，实时更新进度）
         emit_progress(socketio, task_id, 'generating', f'✍️ AI正在生成{city}攻略...', 25)
         
-        # 启动模拟进度更新线程（因为AI生成是阻塞的）
-        def simulate_ai_progress():
-            """模拟AI生成进度（30% -> 65%）"""
-            for progress in range(30, 66, 5):
-                if active_tasks[task_id]['status'] != 'running':
-                    break
-                time.sleep(2)  # 每2秒更新5%
-                messages = [
-                    '💭 AI正在分析景点信息...',
-                    '🍜 AI正在挖掘本地美食...',
-                    '🏨 AI正在筛选优质酒店...',
-                    '📝 AI正在组织攻略结构...',
-                    '✨ AI正在润色文字...',
-                    '🎯 AI正在优化推荐...',
-                    '🔥 内容即将生成完成...'
-                ]
-                msg = messages[(progress - 30) // 5 % len(messages)]
-                emit_progress(socketio, task_id, 'generating', msg, progress)
+        # 🔥 定义进度回调函数（供流式引擎调用）
+        def on_ai_progress(progress, message, chunk):
+            """AI流式输出进度回调"""
+            emit_progress(socketio, task_id, 'generating', message, progress)
         
-        # 启动模拟进度线程
-        progress_thread = threading.Thread(target=simulate_ai_progress, daemon=True)
-        progress_thread.start()
-        
-        # 实际调用AI（这里会阻塞一段时间）
-        content = ai_engine.generate(full_prompt, query, mode)
+        # 🔥 使用流式引擎生成（实时反馈进度，不再阻塞）
+        content = streaming_ai_engine.generate_stream(
+            full_prompt, 
+            query, 
+            mode,
+            progress_callback=on_ai_progress
+        )
         
         # 🔥 后处理：替换AI生成的[预算]占位符为真实数字
         import re
