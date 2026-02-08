@@ -2,12 +2,12 @@
 
 // 自动检测API地址：本地开发用localhost，生产环境用当前域名
 const API_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000/api'
-    : `http://${window.location.hostname}:5000/api`;
+    ? 'http://localhost:9012/api'
+    : `http://${window.location.hostname}:9012/api`;
 
 const WS_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000'
-    : `http://${window.location.hostname}:5000`;
+    ? 'http://localhost:9012'
+    : `http://${window.location.hostname}:9012`;
 
 let currentTaskId = null;
 let pollInterval = null;
