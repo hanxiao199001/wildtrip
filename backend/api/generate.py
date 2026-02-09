@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from services.ai_engine import AIEngine
 from services.ai_engine_streaming import get_streaming_ai_engine  # 🔥 新增：流式引擎
 from services.affiliate import get_meituan_affiliate
+from services.affiliate_manager import get_affiliate_manager
 from prompts.wildtrip_prompt import build_wildtrip_prompt
 
 # 创建Blueprint
@@ -30,6 +31,7 @@ active_tasks = {}
 ai_engine = AIEngine()  # 保留旧引擎作为fallback
 streaming_ai_engine = get_streaming_ai_engine()  # 🔥 新增：流式引擎
 affiliate = get_meituan_affiliate()  # 🔥 修复：使用函数读取环境变量
+affiliate_manager = get_affiliate_manager()  # 🔥 联盟链接管理器（支持淘宝）
 
 
 @generate_bp.route('/generate', methods=['POST'])
@@ -629,6 +631,9 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
         logger.info(f"兜底替换完成: {replaced_count}个占位符")
     
     logger.info(f"🔗 链接替换完成 | 酒店:{len(recommendations['hotels'])} 餐厅:{len(recommendations['restaurants'])} 门票:{len(recommendations['tickets'])}")
+    
+    # === 🔥 不在Markdown中添加横幅（会被转义）===
+    # 横幅应该在HTML模板中添加
     
     return content, recommendations
 
