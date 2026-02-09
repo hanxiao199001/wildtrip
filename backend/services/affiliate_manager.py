@@ -120,21 +120,23 @@ class AffiliateManager:
                 'has_commission': False
             }
         else:
-            # H5链接（聚推客固定推广链接）
-            promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/nqIBHs3z')
+            keyword = f"{city} {name}" if city else name
+            
+            # 使用美团搜索链接（自动填入关键词）
+            search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
             
             # 小程序跳转参数
             mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-            mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
+            mp_path = f"/index/pages/h5/h5?weburl={quote(search_url)}"
             
-            logger.info(f"🏨 生成酒店推广链接: {name} -> {promo_url}")
+            logger.info(f"🏨 生成酒店搜索链接: {name} -> {search_url}")
 
             return {
-                'url': promo_url,
-                'text': f'美团优惠（搜"{name}"）',
+                'url': search_url,
+                'text': f'美团搜"{name}"',
                 'status': 'promo',
                 'platform': 'meituan',
-                'has_commission': True,
+                'has_commission': True,  # ⚠️ 需要测试
                 # 小程序跳转参数
                 'mp_appid': mp_appid,
                 'mp_path': mp_path,
@@ -148,21 +150,23 @@ class AffiliateManager:
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
         """生成门票链接（同时支持小程序跳转和H5链接）"""
-        # H5链接（聚推客固定推广链接）
-        promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/nqIBHs3z')
+        keyword = f"{city} {name} 门票" if city else f"{name} 门票"
+        
+        # 使用美团搜索链接（自动填入关键词）
+        search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
         
         # 小程序跳转参数
         mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-        mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
+        mp_path = f"/index/pages/h5/h5?weburl={quote(search_url)}"
         
-        logger.info(f"🎫 生成门票推广链接: {name} -> {promo_url}")
+        logger.info(f"🎫 生成门票搜索链接: {name} -> {search_url}")
 
         return {
-            'url': promo_url,
-            'text': f'美团优惠（搜"{name}门票"）',
+            'url': search_url,
+            'text': f'美团搜"{name}门票"',
             'status': 'promo',
             'platform': 'meituan',
-            'has_commission': True,
+            'has_commission': True,  # ⚠️ 需要测试
             # 小程序跳转参数
             'mp_appid': mp_appid,
             'mp_path': mp_path,
