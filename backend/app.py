@@ -106,7 +106,7 @@ def serve_public(filename):
 @app.route('/guides/<path:filename>')
 def serve_guides(filename):
     """攻略静态页面"""
-    web_dir = Path(__file__).parent.parent / 'web' / 'guides'
+    web_dir = Path('/root/clawd/wildtrip/web/guides')
     return send_from_directory(str(web_dir), filename)
 
 
