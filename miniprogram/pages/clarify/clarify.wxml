@@ -1,35 +1,60 @@
-<!--需求澄清页面-->
+<!--需求澄清页面 - 精致版-->
 <view class="clarify-page">
 
-  <!-- 用户原始需求 -->
-  <view class="user-input-card">
-    <view class="card-label">您的需求</view>
-    <view class="card-query">{{originalQuery}}</view>
+  <!-- 顶部需求卡片 -->
+  <view class="hero-card">
+    <view class="hero-decoration"></view>
+    <view class="hero-content">
+      <view class="hero-label">
+        <text class="hero-label-icon">📍</text>
+        <text class="hero-label-text">您的旅行需求</text>
+      </view>
+      <view class="hero-query">{{originalQuery}}</view>
+    </view>
   </view>
 
-  <!-- AI提示语 -->
-  <view class="ai-prompt">
-    <text class="ai-icon">🤖</text>
-    <text class="ai-text">为了生成更精准的攻略，请快速选择：</text>
+  <!-- 进度指示器 -->
+  <view class="progress-section">
+    <view class="progress-header">
+      <view class="progress-left">
+        <text class="progress-icon">✨</text>
+        <text class="progress-tip">快速选择，获得专属攻略</text>
+      </view>
+      <view class="progress-count">
+        <text class="progress-num">{{answeredCount}}</text>
+        <text class="progress-divider">/</text>
+        <text class="progress-total">{{totalCount}}</text>
+      </view>
+    </view>
+    <view class="progress-bar-bg">
+      <view class="progress-bar-fill" style="width: {{progressPercent}}%"></view>
+    </view>
   </view>
 
   <!-- 问题列表 -->
   <view class="questions-list">
     <view
-      class="question-card"
+      class="question-card {{selectedAnswers[item.id] ? 'answered' : ''}}"
       wx:for="{{questions}}"
       wx:key="id"
     >
+      <!-- 问题头部 -->
       <view class="question-header">
-        <text class="q-number">Q{{index + 1}}</text>
-        <text class="q-text">{{item.question}}</text>
-        <text class="q-required" wx:if="{{item.required}}">必选</text>
+        <view class="q-badge">
+          <text class="q-badge-num" wx:if="{{!selectedAnswers[item.id]}}">{{index + 1}}</text>
+          <text class="q-badge-check" wx:else>✓</text>
+        </view>
+        <view class="q-info">
+          <text class="q-text">{{item.question}}</text>
+          <text class="q-tag required" wx:if="{{item.required}}">必选</text>
+          <text class="q-tag optional" wx:else>可选</text>
+        </view>
       </view>
 
       <!-- 选项网格 -->
       <view class="options-grid">
         <view
-          class="option-card {{selectedAnswers[item.id] === option.value ? 'selected' : ''}}"
+          class="option-item {{selectedAnswers[item.id] === option.value ? 'selected' : ''}}"
           wx:for="{{item.options}}"
           wx:for-item="option"
           wx:key="value"
@@ -37,23 +62,33 @@
           data-question-id="{{item.id}}"
           data-value="{{option.value}}"
         >
-          <view class="option-icon">{{option.icon}}</view>
-          <view class="option-label">{{option.label}}</view>
-          <view class="option-desc">{{option.description}}</view>
+          <view class="option-check" wx:if="{{selectedAnswers[item.id] === option.value}}">
+            <text class="check-icon">✓</text>
+          </view>
+          <view class="option-emoji">{{option.icon}}</view>
+          <view class="option-text">
+            <text class="option-name">{{option.label}}</text>
+            <text class="option-sub">{{option.description}}</text>
+          </view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 操作按钮 -->
-  <view class="action-buttons">
-    <button class="btn-skip" bindtap="onSkip">跳过，直接生成</button>
-    <button
-      class="btn-primary {{allAnswered ? '' : 'btn-disabled'}}"
-      bindtap="onConfirm"
-    >
-      确认生成 ({{answeredCount}}/{{requiredCount}})
-    </button>
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="bottom-bar-inner">
+      <button class="btn-skip" bindtap="onSkip">
+        <text class="skip-text">跳过</text>
+      </button>
+      <button
+        class="btn-confirm {{allAnswered ? 'active' : 'disabled'}}"
+        bindtap="onConfirm"
+      >
+        <text class="btn-confirm-text">生成攻略</text>
+        <text class="btn-confirm-badge">{{answeredCount}}/{{totalCount}}</text>
+      </button>
+    </view>
   </view>
 
 </view>

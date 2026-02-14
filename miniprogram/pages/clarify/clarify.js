@@ -78,9 +78,11 @@ Page({
     questions: [],
     selectedAnswers: {},
     answeredCount: 0,
+    totalCount: 0,
     requiredCount: 0,
     allAnswered: false,
-    loading: true
+    loading: true,
+    progressPercent: 0
   },
 
   onLoad(options) {
@@ -101,6 +103,7 @@ Page({
         const requiredCount = result.questions.filter(q => q.required).length
         this.setData({
           questions: result.questions,
+          totalCount: result.questions.length,
           requiredCount: requiredCount,
           loading: false
         })
@@ -146,6 +149,7 @@ Page({
 
     this.setData({
       questions: questions,
+      totalCount: questions.length,
       requiredCount: requiredCount,
       loading: false
     })
@@ -166,11 +170,14 @@ Page({
     const answeredRequired = requiredQuestions.filter(q => selectedAnswers[q.id]).length
     const answeredCount = Object.keys(selectedAnswers).length
     const allAnswered = answeredRequired >= this.data.requiredCount
+    const totalCount = this.data.questions.length
+    const progressPercent = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0
 
     this.setData({
       selectedAnswers,
       answeredCount,
-      allAnswered
+      allAnswered,
+      progressPercent
     })
   },
 
