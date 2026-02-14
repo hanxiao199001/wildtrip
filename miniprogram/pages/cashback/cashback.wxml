@@ -1,0 +1,124 @@
+<!--返现说明页面-->
+<view class="page-container cashback-page">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="header-icon">💰</view>
+    <view class="header-title">预订立省50%</view>
+    <view class="header-desc">唯一给你省钱的旅游AI</view>
+  </view>
+
+  <!-- vs 传统平台 -->
+  <view class="compare-section card">
+    <view class="section-title">🆚 vs 传统平台</view>
+    <view class="compare-table">
+      <view class="compare-row header-row">
+        <view class="compare-cell">对比项</view>
+        <view class="compare-cell">传统平台</view>
+        <view class="compare-cell highlight">野游记</view>
+      </view>
+      <view class="compare-row">
+        <view class="compare-cell">用户省钱</view>
+        <view class="compare-cell">¥0</view>
+        <view class="compare-cell highlight">¥37</view>
+      </view>
+      <view class="compare-row">
+        <view class="compare-cell">平台收入</view>
+        <view class="compare-cell">¥74</view>
+        <view class="compare-cell highlight">¥37</view>
+      </view>
+      <view class="compare-row">
+        <view class="compare-cell">谁省钱？</view>
+        <view class="compare-cell">平台赚</view>
+        <view class="compare-cell highlight">双赢 🎉</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 返现案例 -->
+  <view class="example-section card">
+    <view class="section-title">💵 省钱案例</view>
+    <view class="example-card">
+      <view class="example-title">海口3天亲子游</view>
+      <view class="example-items">
+        <view class="example-item">
+          <view class="item-label">🏨 酒店2晚 ¥600</view>
+          <view class="item-value">省 ¥15</view>
+        </view>
+        <view class="example-item">
+          <view class="item-label">🍜 餐饮6顿 ¥300</view>
+          <view class="item-value">省 ¥12</view>
+        </view>
+        <view class="example-item">
+          <view class="item-label">🎫 门票2个 ¥200</view>
+          <view class="item-value">省 ¥10</view>
+        </view>
+        <view class="example-divider"></view>
+        <view class="example-total">
+          <view class="total-label">总消费 ¥1100</view>
+          <view class="total-value">立省 ¥37</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 返现规则 -->
+  <view class="rules-section card">
+    <view class="section-title">📋 优惠规则</view>
+    <view class="rule-list">
+      <view class="rule-item">
+        <view class="rule-number">1</view>
+        <view class="rule-content">
+          <view class="rule-title">优惠比例</view>
+          <view class="rule-desc">50%优惠给你，我们只赚一半</view>
+        </view>
+      </view>
+      <view class="rule-item">
+        <view class="rule-number">2</view>
+        <view class="rule-content">
+          <view class="rule-title">如何获得</view>
+          <view class="rule-desc">预订时自动享受优惠价</view>
+        </view>
+      </view>
+      <view class="rule-item">
+        <view class="rule-number">3</view>
+        <view class="rule-content">
+          <view class="rule-title">优惠方式</view>
+          <view class="rule-desc">直接减免，无需等待</view>
+        </view>
+      </view>
+      <view class="rule-item">
+        <view class="rule-number">4</view>
+        <view class="rule-content">
+          <view class="rule-title">适用范围</view>
+          <view class="rule-desc">酒店+餐饮+门票，都能省</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- FAQ -->
+  <view class="faq-section card">
+    <view class="section-title">❓ 常见问题</view>
+    <view class="faq-list">
+      <view class="faq-item">
+        <view class="faq-q">Q: 真的能省钱吗？</view>
+        <view class="faq-a">A: 是的！我们赚的返佣，分50%优惠给你</view>
+      </view>
+      <view class="faq-item">
+        <view class="faq-q">Q: 怎么享受优惠？</view>
+        <view class="faq-a">A: 通过我们推荐的链接预订，自动享优惠价</view>
+      </view>
+      <view class="faq-item">
+        <view class="faq-q">Q: 为什么能省这么多？</view>
+        <view class="faq-a">A: 我们不赚差价，只赚返佣，分一半给用户是我们的差异化策略</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- CTA按钮 -->
+  <view class="cta-section">
+    <button class="btn-primary cta-btn" bindtap="onStartUse">
+      立即体验 + 开始省钱
+    </button>
+  </view>
+</view>

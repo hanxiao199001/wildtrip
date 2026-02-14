@@ -1,0 +1,440 @@
+// 攻略结果页面
+const app = getApp()
+const api = require('../../utils/api')
+
+Page({
+  data: {
+    taskId: '',
+    slug: '',  // 🔥 攻略slug（用于收藏、分享等）
+    loading: true,
+    error: '',
+    content: '',
+    article: {},  // 🔥 towxml渲染后的数据
+    result: null,
+    stats: {
+      hotels_count: 0,
+      restaurants_count: 0,
+      tickets_count: 0
+    },
+    estimatedCashback: 0,
+    links: [],  // 🔥 所有可点击链接
+    hotelLinks: [],  // 酒店链接
+    restaurantLinks: [],  // 餐厅链接
+    ticketLinks: [],  // 门票链接
+    isFavorited: false,  // 🔥 是否已收藏
+    shareUrl: '',  // 🔥 分享链接
+    meituanMiniprogram: null,  // 🔥 美团小程序跳转参数（聚推客联盟）
+    relatedGuides: [],  // 相关推荐攻略
+    destination: ''  // 当前攻略目的地
+  },
+
+  onLoad(options) {
+    const taskId = options.taskId || ''
+    this.setData({ taskId })
+    
+    if (taskId) {
+      this.loadResult()
+    } else {
+      this.setData({
+        loading: false,
+        error: '任务ID不存在'
+      })
+    }
+  },
+
+  // 加载结果
+  async loadResult() {
+    const { taskId } = this.data
+
+    try {
+      const res = await this.callAPI(`/task/${taskId}`, {}, 'GET')
+
+      if (res.status === 'completed' && res.result) {
+        const result = res.result
+        
+        // 计算预估返现
+        const cashback = this.calculateCashback(result.stats || {})
+
+        // 🔥 处理链接数据，分类
+        const links = result.links || []
+        const hotelLinks = links.filter(link => link.type === 'hotel')
+        const restaurantLinks = links.filter(link => link.type === 'restaurant')
+        const ticketLinks = links.filter(link => link.type === 'ticket')
+
+        // 🔥 获取slug（从result中）
+        const slug = result.slug || ''
+        
+        // 🔥 使用towxml渲染Markdown（支持图片）
+        const towxml = app.globalData.towxml
+        const article = towxml.toJson(result.content || '', 'markdown')
+
+        // 🔥 获取美团小程序跳转信息（聚推客联盟）
+        const meituanMiniprogram = result.meituan_miniprogram || null
+
+        this.setData({
+          loading: false,
+          result,
+          slug,  // 🔥 保存slug
+          content: result.content || '',
+          article,  // 🔥 渲染后的数据
+          stats: result.stats || {},
+          estimatedCashback: cashback,
+          links,  // 🔥 所有链接
+          hotelLinks,  // 酒店链接
+          restaurantLinks,  // 餐厅链接
+          ticketLinks,  // 门票链接
+          meituanMiniprogram  // 🔥 美团小程序跳转参数
+        })
+
+        // 🔥 提取目的地（从content或result中）
+        const destination = result.destination || this.extractDestination(result.content || '')
+        this.setData({ destination })
+
+        // 🔥 如果有slug，加载收藏状态
+        if (slug) {
+          this.loadFavoriteStatus()
+        }
+
+        // 加载相关推荐
+        this.loadRelatedGuides(destination, slug)
+      } else if (res.status === 'failed') {
+        this.setData({
+          loading: false,
+          error: res.error || '生成失败'
+        })
+      } else {
+        // 还在生成中，继续等待
+        setTimeout(() => {
+          this.loadResult()
+        }, 2000)
+      }
+    } catch (error) {
+      console.error('加载结果失败:', error)
+      this.setData({
+        loading: false,
+        error: error.message || '加载失败'
+      })
+    }
+  },
+
+  // 计算预估返现（优化版）
+  calculateCashback(stats) {
+    // 更准确的计算：基于典型消费金额 × 返佣率 × 50%返现
+    
+    // 酒店：假设¥300/晚，返佣5%=¥15，返现50%=¥7.5
+    // 但推荐多家，按平均每家¥12计算（考虑用户可能选便宜的）
+    const hotelCashback = (stats.hotels_count || 0) * 12
+    
+    // 餐厅：假设¥80/顿，返佣8%=¥6.4，返现50%=¥3.2
+    // 按每家¥8计算（考虑可能多次消费）
+    const foodCashback = (stats.restaurants_count || 0) * 8
+    
+    // 景点：假设¥60/张，返佣10%=¥6，返现50%=¥3
+    // 按每个¥5计算
+    const ticketCashback = (stats.tickets_count || 0) * 5
+    
+    const total = hotelCashback + foodCashback + ticketCashback
+    
+    // 返回整数（向上取整，给用户更好的预期）
+    return Math.ceil(total)
+  },
+
+  // 🔥 加载收藏状态
+  async loadFavoriteStatus() {
+    const { slug } = this.data
+    if (!slug) return
+
+    try {
+      const detail = await api.getGuideDetail(slug)
+      this.setData({
+        isFavorited: detail.is_favorited || false
+      })
+    } catch (error) {
+      console.log('加载收藏状态失败:', error)
+    }
+  },
+
+  // 从内容中提取目的地城市
+  extractDestination(content) {
+    const cities = ['海口', '三亚', '成都', '重庆', '上海', '北京', '西安', '杭州',
+      '厦门', '大理', '丽江', '桂林', '青岛', '南京', '长沙', '武汉',
+      '广州', '深圳', '昆明', '拉萨']
+    for (const city of cities) {
+      if (content.includes(city)) {
+        return city
+      }
+    }
+    return ''
+  },
+
+  // 加载相关推荐
+  async loadRelatedGuides(destination, slug) {
+    try {
+      const guides = await api.getRelatedGuides(destination || '', slug || '', 3)
+      this.setData({ relatedGuides: guides || [] })
+      console.log('🔗 相关推荐加载成功:', (guides || []).length, '篇')
+    } catch (error) {
+      console.log('相关推荐加载失败:', error)
+      // 静默失败，不影响主流程
+    }
+  },
+
+  // 点击相关推荐卡片
+  onRelatedTap(e) {
+    const item = e.currentTarget.dataset.item
+
+    // 如果是预设攻略（有query字段），跳转到首页并填充
+    if (item.query) {
+      wx.switchTab({
+        url: '/pages/index/index'
+      })
+      // 通过全局变量传递查询
+      app.globalData._pendingQuery = item.query
+      return
+    }
+
+    // 如果是真实攻略，跳转到webview
+    if (item.slug && !item.slug.startsWith('_preset')) {
+      wx.navigateTo({
+        url: `/pages/webview/webview?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}`
+      })
+    }
+  },
+
+  // 🔥 切换收藏
+  async onToggleFavorite() {
+    const { slug, isFavorited } = this.data
+    if (!slug) {
+      wx.showToast({
+        title: '攻略未保存',
+        icon: 'none'
+      })
+      return
+    }
+
+    try {
+      if (isFavorited) {
+        await api.unfavoriteGuide(slug)
+        this.setData({ isFavorited: false })
+        wx.showToast({
+          title: '已取消收藏',
+          icon: 'success'
+        })
+      } else {
+        await api.favoriteGuide(slug)
+        this.setData({ isFavorited: true })
+        wx.showToast({
+          title: '收藏成功',
+          icon: 'success'
+        })
+      }
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '操作失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 🔥 生成分享链接
+  async onGenerateShareLink() {
+    const { slug, shareUrl } = this.data
+    
+    if (!slug) {
+      wx.showToast({
+        title: '攻略未保存',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 如果已生成，直接复制
+    if (shareUrl) {
+      wx.setClipboardData({
+        data: shareUrl,
+        success: () => {
+          wx.showToast({
+            title: '链接已复制',
+            icon: 'success'
+          })
+        }
+      })
+      return
+    }
+
+    try {
+      wx.showLoading({ title: '生成中...' })
+      const result = await api.shareGuide(slug)
+      const url = result.share_url
+      
+      this.setData({ shareUrl: url })
+      
+      wx.hideLoading()
+      wx.setClipboardData({
+        data: url,
+        success: () => {
+          wx.showToast({
+            title: '链接已复制',
+            icon: 'success'
+          })
+        }
+      })
+    } catch (error) {
+      wx.hideLoading()
+      wx.showToast({
+        title: error.message || '生成失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 🔥 删除攻略
+  onDelete() {
+    const { slug } = this.data
+    
+    if (!slug) {
+      wx.showToast({
+        title: '攻略未保存',
+        icon: 'none'
+      })
+      return
+    }
+
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后无法恢复，确定要删除这篇攻略吗？',
+      confirmText: '删除',
+      confirmColor: '#FF3B30',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '删除中...' })
+            await api.deleteGuide(slug)
+            wx.hideLoading()
+            wx.showToast({
+              title: '已删除',
+              icon: 'success',
+              duration: 1500
+            })
+            // 返回上一页
+            setTimeout(() => {
+              wx.navigateBack()
+            }, 1500)
+          } catch (error) {
+            wx.hideLoading()
+            wx.showToast({
+              title: error.message || '删除失败',
+              icon: 'none'
+            })
+          }
+        }
+      }
+    })
+  },
+
+  // 复制攻略
+  onCopy() {
+    const { content } = this.data
+    
+    wx.setClipboardData({
+      data: content,
+      success: () => {
+        wx.showToast({
+          title: '复制成功',
+          icon: 'success'
+        })
+      }
+    })
+  },
+
+  // 分享
+  onShare() {
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    })
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '我用野游记生成了旅游攻略，预订立省50%！',
+      path: '/pages/index/index'
+    }
+  },
+
+  onShareTimeline() {
+    return {
+      title: '野游记 - AI旅游助手，预订立省50%'
+    }
+  },
+
+  // 🔥 跳转美团小程序（聚推客联盟 CPS）
+  onJumpMeituan(e) {
+    const { meituanMiniprogram } = this.data
+    const linkName = e.currentTarget.dataset.name || '美团'
+
+    // 优先使用小程序跳转（带返佣追踪）
+    if (meituanMiniprogram && meituanMiniprogram.enabled && meituanMiniprogram.page_path) {
+      wx.navigateToMiniProgram({
+        appId: meituanMiniprogram.app_id,
+        path: meituanMiniprogram.page_path,
+        success: () => {
+          console.log('跳转美团小程序成功:', linkName)
+        },
+        fail: (err) => {
+          console.error('跳转美团小程序失败:', err)
+          // 失败时尝试 H5 备用链接
+          this.openH5Fallback(e)
+        }
+      })
+    } else {
+      // 聚推客未配置，用 H5 链接
+      this.openH5Fallback(e)
+    }
+  },
+
+  // H5 备用打开方式
+  openH5Fallback(e) {
+    const url = e.currentTarget.dataset.url || ''
+    const name = e.currentTarget.dataset.name || '美团'
+    if (url) {
+      wx.navigateTo({
+        url: `/pages/webview/webview?url=${encodeURIComponent(url)}&title=${encodeURIComponent(name)}`
+      })
+    } else {
+      wx.showToast({
+        title: '链接暂不可用',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 重试
+  onRetry() {
+    wx.navigateBack()
+  },
+
+  // 调用API
+  async callAPI(url, data = {}, method = 'POST') {
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: `${app.globalData.apiBaseUrl}${url}`,
+        method,
+        data,
+        header: {
+          'Content-Type': 'application/json'
+        },
+        success: (res) => {
+          if (res.statusCode === 200) {
+            resolve(res.data)
+          } else {
+            reject(new Error(res.data.error || '请求失败'))
+          }
+        },
+        fail: (err) => {
+          reject(new Error('网络请求失败'))
+        }
+      })
+    })
+  }
+})

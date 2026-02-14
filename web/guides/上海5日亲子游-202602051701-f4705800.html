@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>上海5日亲子游：不走寻常路，就走野路子 - 我的行程 - 野游记</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            padding-bottom: 80px;
+        }
+        
+        /* 顶部栏 */
+        .header {
+            background: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .action-btn {
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* 内容容器 */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 顶部标题卡片（橙粉渐变）*/
+        .header-card {
+            background: linear-gradient(135deg, #FB923C 0%, #EC4899 100%);
+            border-radius: 20px 20px 0 0;
+            padding: 24px;
+            color: white;
+            margin: -16px -16px 0 -16px;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .header-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+        
+        /* 返现提示框（黄色）*/
+        .cashback-notice {
+            background: #FEF3C7;
+            border: 2px solid #FCD34D;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        
+        .notice-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+        
+        .notice-content {
+            flex: 1;
+        }
+        
+        .notice-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #92400E;
+            margin-bottom: 4px;
+        }
+        
+        .notice-desc {
+            font-size: 14px;
+            color: #78350F;
+            line-height: 1.5;
+        }
+        
+        /* 返现金额卡片（绿色）*/
+        .cashback-card {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .cashback-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .cashback-icon {
+            font-size: 48px;
+        }
+        
+        .cashback-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .cashback-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+        
+        .cashback-amount {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .cashback-right {
+            text-align: right;
+        }
+        
+        .cashback-saved {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+        
+        .cashback-total {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        /* 价格显示 */
+        .price-section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .price-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+        }
+        
+        .price-label {
+            font-size: 15px;
+            color: #6b7280;
+        }
+        
+        .price-original {
+            font-size: 18px;
+            color: #9ca3af;
+            text-decoration: line-through;
+        }
+        
+        .price-discounted {
+            font-size: 24px;
+            font-weight: 700;
+            color: #DC2626;
+        }
+        
+        /* 导入日历按钮 */
+        .calendar-import {
+            background: white;
+            border: 2px dashed #10B981;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .calendar-import:active {
+            background: #f0fdf4;
+        }
+        
+        .calendar-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .calendar-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #10B981;
+        }
+        
+        /* Day标签 */
+        .day-tabs {
+            display: flex;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        
+        .day-tab {
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .day-tab.active {
+            background: #10B981;
+            color: white;
+        }
+        
+        .day-tab:not(.active) {
+            background: white;
+            color: #6b7280;
+        }
+        
+        /* 时间线 */
+        .timeline {
+            position: relative;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .timeline-time {
+            width: 70px;
+            flex-shrink: 0;
+            text-align: right;
+            padding-top: 8px;
+        }
+        
+        .time-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .timeline-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .icon-activity {
+            background: #E0F2FE;
+        }
+        
+        .icon-food {
+            background: #FEF3C7;
+        }
+        
+        .icon-hotel {
+            background: #FCE7F3;
+        }
+        
+        /* 连接线 */
+        .timeline-item:not(:last-child) .timeline-icon::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 100%;
+            width: 2px;
+            height: 60px;
+            background: #e5e7eb;
+            transform: translateX(-50%);
+        }
+        
+        .timeline-content {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .content-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .content-desc {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .content-tag {
+            display: inline-block;
+            background: #F0FDF4;
+            color: #10B981;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+        
+        /* 餐厅卡片 */
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 12px 0;
+        }
+        
+        .restaurant-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .restaurant-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #F59E0B;
+            font-size: 14px;
+        }
+        
+        .cashback-tag {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%);
+            color: #DC2626;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .booking-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #FB923C 0%, #F87171 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        
+        /* 底部添加到日历按钮 */
+        .fixed-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 20px;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .add-calendar-btn {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            display: block;
+            padding: 16px;
+            background: #10B981;
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        /* 主题切换 */
+        .day-content {
+            display: none;
+        }
+        
+        .day-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部栏 -->
+    <div class="header">
+        <div class="header-left">
+            📋 我的行程
+        </div>
+        <div class="header-actions">
+            <button class="action-btn" onclick="toggleFavorite()">
+                <span id="favorite-icon">🤍</span> 收藏
+            </button>
+            <button class="action-btn" onclick="share()">
+                🔗 分享
+            </button>
+        </div>
+    </div>
+    
+    <!-- 内容 -->
+    <div class="container">
+        <!-- 顶部标题卡片 -->
+        <div class="header-card">
+            <div class="header-title">✨ 你的专属野路子攻略</div>
+            <div class="header-meta">
+                <span>📝 8371字</span>
+                <span>• 🏨 2家酒店</span>
+                <span>• 🍔 26家餐厅</span>
+            </div>
+        </div>
+        
+        <!-- 返现提示框 -->
+        <div class="cashback-notice">
+            <div class="notice-icon">💰</div>
+            <div class="notice-content">
+                <div class="notice-title">攻略带返现！</div>
+                <div class="notice-desc">点击下方黄色按钮前往美团预订，购买后自动获得返现奖励 🤑</div>
+            </div>
+        </div>
+        
+        <!-- 行程标题 -->
+        <h2 style="font-size: 20px; margin: 20px 0 12px 0;">🌴 上海5日亲子游：不走寻常路，就走野路子</h2>
+        
+        <!-- 返现金额卡片 -->
+        <div class="cashback-card">
+            <div class="cashback-left">
+                <div class="cashback-icon">💰</div>
+                <div class="cashback-info">
+                    <div class="cashback-label">本攻略预估可返现</div>
+                    <div class="cashback-amount">¥150</div>
+                </div>
+            </div>
+            <div class="cashback-right">
+                <div class="cashback-saved">已为 99人</div>
+                <div class="cashback-total">省下¥14,850</div>
+            </div>
+        </div>
+        
+        <!-- 价格信息（可选，如果需要的话）-->
+        <div class="price-section" style="display: none;">
+            <div class="price-row">
+                <span class="price-label">原价：</span>
+                <span class="price-original">¥1000</span>
+            </div>
+            <div class="price-row">
+                <span class="price-label">折扣后：</span>
+                <span class="price-discounted">¥850</span>
+            </div>
+        </div>
+        
+        <!-- 导入日历 -->
+        <div class="calendar-import" onclick="importCalendar()">
+            <div class="calendar-icon">📆</div>
+            <div class="calendar-text">导入到手机日历</div>
+        </div>
+        
+        <!-- Day标签 -->
+        <div class="day-tabs">
+            <div class="day-tab active" data-day="1" onclick="switchDay(1)">Day 1</div>
+
+        </div>
+        
+        <!-- 时间线内容 -->
+        <div id="day-1" class="day-content active"></div>
+<div id="day-2" class="day-content "></div>
+<div id="day-3" class="day-content "></div>
+<div id="day-4" class="day-content "></div>
+<div id="day-5" class="day-content "></div>
+
+    </div>
+    
+    <!-- 底部按钮 -->
+    <div class="fixed-bottom">
+        <button class="add-calendar-btn" onclick="addToCalendar()">
+            📆 添加到日历
+        </button>
+    </div>
+    
+    <script>
+        // 切换Day
+        function switchDay(dayNum) {
+            // 更新标签
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-day="${dayNum}"]`).classList.add('active');
+            
+            // 更新内容
+            document.querySelectorAll('.day-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`day-${dayNum}`).classList.add('active');
+        }
+        
+        // 收藏
+        function toggleFavorite() {
+            const icon = document.getElementById('favorite-icon');
+            if (icon.textContent === '🤍') {
+                icon.textContent = '❤️';
+                alert('已收藏！');
+            } else {
+                icon.textContent = '🤍';
+                alert('已取消收藏');
+            }
+        }
+        
+        // 分享
+        function share() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.title,
+                    url: window.location.href
+                });
+            } else {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url);
+                alert('链接已复制！');
+            }
+        }
+        
+        // 生成iCalendar文件
+        function generateICS() {
+            const events = [];
+            
+            let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//野游记//NONSGML v1.0//EN\n';
+            
+            events.forEach(event => {
+                icsContent += 'BEGIN:VEVENT\n';
+                icsContent += `DTSTART:${event.start}\n`;
+                icsContent += `DTEND:${event.end}\n`;
+                icsContent += `SUMMARY:${event.title}\n`;
+                icsContent += `DESCRIPTION:${event.desc}\n`;
+                icsContent += `LOCATION:${event.location}\n`;
+                icsContent += 'END:VEVENT\n';
+            });
+            
+            icsContent += 'END:VCALENDAR';
+            
+            return icsContent;
+        }
+        
+        // 导入日历
+        function importCalendar() {
+            addToCalendar();
+        }
+        
+        // 添加到日历
+        function addToCalendar() {
+            const icsContent = generateICS();
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '上海5日亲子游：不走寻常路，就走野路子.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // 预订
+        function bookRestaurant(name, keyword) {
+            const url = `https://i.meituan.com/search?q=${encodeURIComponent(keyword)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

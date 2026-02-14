@@ -1,0 +1,88 @@
+<!--野游记首页-->
+<view class="page-container index-page">
+  <!-- 头部区域（渐变背景 - 紧凑版） -->
+  <view class="header-hero">
+    <view class="hero-bg"></view>
+    <view class="hero-content">
+      <image class="logo-img" src="/images/logo.png" mode="aspectFit" />
+      <view class="slogan">AI旅游助手，预订立省50%</view>
+    </view>
+
+    <!-- 搜索输入（嵌入Hero区域） -->
+    <view class="search-section">
+      <textarea
+        class="search-input"
+        placeholder="说一句话，30秒生成攻略\n例如：海口3天亲子游，预算5000"
+        placeholder-style="color: rgba(255,255,255,0.5)"
+        value="{{query}}"
+        bindinput="onQueryInput"
+        maxlength="200"
+        auto-height
+      />
+      <button
+        class="search-btn"
+        bindtap="onGenerate"
+        disabled="{{!query || isGenerating}}"
+      >
+        {{isGenerating ? '生成中...' : '🚀 生成攻略'}}
+      </button>
+    </view>
+
+    <!-- 核心卖点（精简一行） -->
+    <view class="features">
+      <view class="feature-tag">🚀 30秒生成</view>
+      <view class="feature-tag">😴 一句话搞定</view>
+      <view class="feature-tag">💰 立省50%</view>
+    </view>
+  </view>
+
+  <!-- 精选攻略（紧跟Hero下方，首屏可见） -->
+  <view class="featured-section" wx:if="{{featuredGuides.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">精选攻略</view>
+      <view class="section-subtitle">点击即可生成同款</view>
+    </view>
+    <scroll-view class="featured-scroll" scroll-x="true" enhanced="true" show-scrollbar="{{false}}">
+      <view class="featured-list">
+        <view
+          class="featured-card"
+          wx:for="{{featuredGuides}}"
+          wx:key="slug"
+          bindtap="onFeaturedTap"
+          data-item="{{item}}"
+        >
+          <view class="featured-cover">
+            <image
+              class="featured-img"
+              src="{{item.cover_image}}"
+              mode="aspectFill"
+              lazy-load="true"
+            />
+            <view class="featured-category">{{item.category}}</view>
+          </view>
+          <view class="featured-info">
+            <view class="featured-title">{{item.title}}</view>
+            <view class="featured-meta">
+              <text wx:if="{{item.days}}">{{item.days}}天</text>
+              <text wx:if="{{item.budget}}"> · ¥{{item.budget}}</text>
+            </view>
+            <view class="featured-stats">
+              <text class="stat-views">👀 {{item.views}}</text>
+              <text class="stat-likes">❤️ {{item.likes}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 返现说明 -->
+  <view class="cashback-banner card" bindtap="onCashbackInfo">
+    <view class="cashback-icon">💰</view>
+    <view class="cashback-content">
+      <view class="cashback-title">预订立省50%</view>
+      <view class="cashback-desc">酒店+餐饮+门票，即订即省</view>
+    </view>
+    <view class="cashback-arrow">→</view>
+  </view>
+</view>

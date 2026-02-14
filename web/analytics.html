@@ -1,0 +1,26 @@
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-你的GA4ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-你的GA4ID');
+</script>
+
+<!-- 百度统计 -->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?你的百度统计ID";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<!-- 使用说明：
+1. 注册Google Analytics: https://analytics.google.com/
+2. 注册百度统计: https://tongji.baidu.com/
+3. 获取ID后替换上面的"你的XX ID"
+4. 把这段代码加到所有HTML的<head>中
+-->

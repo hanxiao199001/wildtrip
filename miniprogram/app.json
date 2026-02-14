@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/generate/generate",
+    "pages/result/result",
+    "pages/cashback/cashback",
+    "pages/webview/webview"
+  ],
+  "window": {
+    "navigationBarTitleText": "野游记",
+    "navigationBarBackgroundColor": "#20B2AA",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F5F5F5",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#20B2AA",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/icons/home.png",
+        "selectedIconPath": "images/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/cashback/cashback",
+        "text": "返现说明",
+        "iconPath": "images/icons/money.png",
+        "selectedIconPath": "images/icons/money-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
