@@ -98,6 +98,20 @@ function getRelatedGuides(destination, slug, limit = 3) {
   return request(`/guides/related?${params}`, {}, 'GET')
 }
 
+/**
+ * 分析用户需求（需求澄清）
+ */
+function analyzeNeed(query) {
+  return request('/analyze-need', { query })
+}
+
+/**
+ * 根据用户回答增强查询
+ */
+function enhanceQuery(originalQuery, answers) {
+  return request('/enhance-query', { original_query: originalQuery, answers })
+}
+
 module.exports = {
   request,
   generateItinerary,
@@ -109,5 +123,7 @@ module.exports = {
   deleteGuide,
   shareGuide,
   getFeaturedGuides,
-  getRelatedGuides
+  getRelatedGuides,
+  analyzeNeed,
+  enhanceQuery
 }

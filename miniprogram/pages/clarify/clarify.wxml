@@ -1,0 +1,59 @@
+<!--需求澄清页面-->
+<view class="clarify-page">
+
+  <!-- 用户原始需求 -->
+  <view class="user-input-card">
+    <view class="card-label">您的需求</view>
+    <view class="card-query">{{originalQuery}}</view>
+  </view>
+
+  <!-- AI提示语 -->
+  <view class="ai-prompt">
+    <text class="ai-icon">🤖</text>
+    <text class="ai-text">为了生成更精准的攻略，请快速选择：</text>
+  </view>
+
+  <!-- 问题列表 -->
+  <view class="questions-list">
+    <view
+      class="question-card"
+      wx:for="{{questions}}"
+      wx:key="id"
+    >
+      <view class="question-header">
+        <text class="q-number">Q{{index + 1}}</text>
+        <text class="q-text">{{item.question}}</text>
+        <text class="q-required" wx:if="{{item.required}}">必选</text>
+      </view>
+
+      <!-- 选项网格 -->
+      <view class="options-grid">
+        <view
+          class="option-card {{selectedAnswers[item.id] === option.value ? 'selected' : ''}}"
+          wx:for="{{item.options}}"
+          wx:for-item="option"
+          wx:key="value"
+          bindtap="onSelectOption"
+          data-question-id="{{item.id}}"
+          data-value="{{option.value}}"
+        >
+          <view class="option-icon">{{option.icon}}</view>
+          <view class="option-label">{{option.label}}</view>
+          <view class="option-desc">{{option.description}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <button class="btn-skip" bindtap="onSkip">跳过，直接生成</button>
+    <button
+      class="btn-primary {{allAnswered ? '' : 'btn-disabled'}}"
+      bindtap="onConfirm"
+    >
+      确认生成 ({{answeredCount}}/{{requiredCount}})
+    </button>
+  </view>
+
+</view>

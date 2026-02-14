@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/clarify/clarify",
     "pages/generate/generate",
     "pages/result/result",
     "pages/cashback/cashback",

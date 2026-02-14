@@ -130,9 +130,9 @@ Page({
       return
     }
 
-    // 跳转到生成页
+    // 跳转到需求澄清页（澄清后自动跳转生成页）
     wx.navigateTo({
-      url: `/pages/generate/generate?query=${encodeURIComponent(query)}`
+      url: `/pages/clarify/clarify?query=${encodeURIComponent(query)}`
     })
   },
 
