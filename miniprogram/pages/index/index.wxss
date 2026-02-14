@@ -41,10 +41,34 @@
   padding: 0rpx 0 8rpx;
 }
 
-.logo-img {
-  width: 240rpx;
-  height: 240rpx;
+.logo {
+  font-size: 120rpx;
+  margin-bottom: 12rpx;
+  filter: drop-shadow(0 4rpx 12rpx rgba(255, 255, 255, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8rpx); }
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: 900;
+  color: white;
   margin-bottom: 4rpx;
+  letter-spacing: 4rpx;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.title-en {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  margin-bottom: 12rpx;
+  opacity: 0.9;
 }
 
 .slogan {
