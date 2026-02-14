@@ -822,7 +822,7 @@ class AIEngine:
 
 ### 1. {city}{city_data['breakfast_name']}（开了30年）¥12-20/人 ⭐4.8
 
-- **地址：** {city}XX路菜市场旁边（导航：XX菜市场）
+- **区域：** {city}老城区附近
 - **营业时间：** 06:00-10:00（卖完就关门，去晚了吃不到）
 - **招牌菜：**
   - 🍜 **{city_data['breakfast_dish1']}**（¥12）- {city_data['breakfast_desc1']}
@@ -845,7 +845,7 @@ class AIEngine:
 
 #### 1. {city}{city_data['high_end_restaurant']} ¥200-300/人 ⭐4.7
 
-- **地址：** {city}XX路18号（市中心）
+- **区域：** {city}市中心商圈
 - **营业时间：** 11:00-14:00, 17:00-22:00
 - **特色：** {city_data['high_end_feature']}
 - **招牌菜：**
@@ -866,7 +866,7 @@ class AIEngine:
 
 #### 1. {city}{city_data['mid_restaurant']} ¥50-80/人 ⭐4.9
 
-- **地址：** {city}XX路XX号（老城区）
+- **区域：** {city}老城区一带
 - **营业时间：** 10:30-14:00, 17:00-21:00
 - **特色：** {city_data['mid_feature']}
 - **招牌菜：**
@@ -887,7 +887,7 @@ class AIEngine:
 
 #### 1. {city}夜市小吃街 ¥20-40/人 ⭐4.6
 
-- **地址：** {city}XX路夜市（晚上9点后最热闹）
+- **区域：** {city}市区夜市一带（晚上9点后最热闹）
 - **营业时间：** 18:00-02:00
 - **特色：** 接地气，地道，便宜
 - **必吃清单：**
@@ -980,14 +980,14 @@ class AIEngine:
 #### 🍽️ Day 1 美食详解
 
 **午餐：{city}{city_data['breakfast_name']}**
-- **地址：** {city}XX路菜市场旁
+- **区域：** {city}老城区附近
 - **人均：** ¥15
 - **必点：** {city_data['breakfast_dish1']}（¥12）+ {city_data['dessert']}（¥8）
 - **野导游说：** {city_data['breakfast_comment']}。15块钱吃到撑。
 - **团购：** [美团团购](占位)
 
 **晚餐：{city}{city_data['high_end_restaurant']}**
-- **地址：** {city}XX路18号
+- **区域：** {city}市中心商圈
 - **人均：** ¥150-200
 - **必点：**
   - {city_data['high_end_dish1']}（¥{city_data['high_end_price1']}）
@@ -1047,7 +1047,7 @@ class AIEngine:
 - **团购：** [美团团购](占位)
 
 **晚餐：{city_data['dinner_restaurant']}**
-- **地址：** {city}XX路XX号
+- **区域：** {city}老城区一带
 - **人均：** ¥80
 - **特色：** {city_data['dinner_feature']}
 - **野导游说：** {city}特色吃法，{city_data['dinner_comment']}。适合老人小孩。
