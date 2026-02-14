@@ -227,6 +227,15 @@ class SEOService:
         # 生成HTML（使用清洗后的内容）
         html = self.generate_html(cleaned_query, cleaned_content, stats)
         
+        # 🔥 SEO优化增强
+        from services.seo_optimizer import get_seo_optimizer
+        from prompts.wildtrip_prompt import extract_city_name
+        
+        optimizer = get_seo_optimizer()
+        city = extract_city_name(cleaned_query)
+        html = optimizer.optimize_html(html, cleaned_query, city, slug)
+        logger.info(f"✅ SEO优化完成: CTA + 关键词 + 内部链接 + 统计")
+        
         # 保存文件
         file_path = self.static_dir / f"{slug}.html"
         file_path.write_text(html, encoding='utf-8')

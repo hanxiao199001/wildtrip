@@ -1,13 +1,28 @@
-# WildTrip - Robots.txt
-# 允许所有搜索引擎抓取
+# 野游记 WildTrip - Robots.txt
 
 User-agent: *
 Allow: /
-Allow: /guides/
+
+# 禁止爬取敏感路径（如果有）
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.json$
 
 # Sitemap位置
-Sitemap: https://wildtrip.example.com/sitemap.xml
+Sitemap: https://wildtrip.vip/sitemap.xml
+Sitemap: https://api.wildtrip.com.cn/sitemap.xml
 
-# 不允许抓取的路径
-Disallow: /api/
-Disallow: /admin/
+# 百度爬虫
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 1
+
+# Google爬虫
+User-agent: Googlebot
+Allow: /
+
+# 其他搜索引擎
+User-agent: Sogou web spider
+User-agent: 360Spider
+User-agent: Bytespider
+Allow: /
