@@ -1,0 +1,42 @@
+<!-- components/share-poster/share-poster.wxml -->
+<view class="poster-modal" wx:if="{{visible}}">
+  <!-- 遮罩层 -->
+  <view class="modal-mask" bindtap="close"></view>
+  
+  <!-- 内容区 -->
+  <view class="modal-content">
+    <!-- 生成中状态 -->
+    <view class="generating" wx:if="{{generating}}">
+      <view class="loading-icon">
+        <view class="spinner"></view>
+      </view>
+      <text class="loading-text">正在生成海报...</text>
+    </view>
+    
+    <!-- 海报预览 -->
+    <view class="poster-preview" wx:if="{{!generating && posterUrl}}">
+      <image class="poster-image" src="{{posterUrl}}" mode="widthFix"></image>
+      
+      <!-- 操作按钮 -->
+      <view class="action-buttons">
+        <button class="btn btn-save" bindtap="saveToAlbum">
+          💾 保存到相册
+        </button>
+        <button class="btn btn-close" bindtap="close">
+          关闭
+        </button>
+      </view>
+      
+      <view class="tip">
+        长按图片也可以保存哦 ✨
+      </view>
+    </view>
+    
+    <!-- 隐藏的 Canvas（用于绘制） -->
+    <canvas 
+      type="2d" 
+      id="posterCanvas" 
+      class="hidden-canvas"
+    ></canvas>
+  </view>
+</view>
