@@ -4,7 +4,14 @@ const app = getApp()
 Page({
   data: {
     query: '',
+    mode: 'full',
     isGenerating: false,
+    modes: [
+      { id: 'full', name: '完整攻略', icon: '🎯' },
+      { id: 'history', name: '人文历史', icon: '🏛️' },
+      { id: 'food', name: '美食探店', icon: '🍜' },
+      { id: 'hotel', name: '酒店推荐', icon: '🏨' }
+    ],
     examples: [
       { query: '海口3天亲子游，预算5000', tag: '亲子游' },
       { query: '成都2天美食游，预算2000', tag: '美食游' },
@@ -15,6 +22,12 @@ Page({
 
   onLoad() {
     console.log('🏠 首页加载')
+  },
+
+  // 切换模式
+  onModeChange(e) {
+    const mode = e.currentTarget.dataset.mode
+    this.setData({ mode })
   },
 
   // 输入变化
@@ -32,7 +45,7 @@ Page({
 
   // 生成攻略
   onGenerate() {
-    const { query } = this.data
+    const { query, mode } = this.data
     
     if (!query.trim()) {
       wx.showToast({
@@ -44,7 +57,7 @@ Page({
 
     // 跳转到生成页
     wx.navigateTo({
-      url: `/pages/generate/generate?query=${encodeURIComponent(query)}`
+      url: `/pages/generate/generate?query=${encodeURIComponent(query)}&mode=${mode}`
     })
   },
 

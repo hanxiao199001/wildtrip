@@ -34,8 +34,8 @@
     </view>
   </view>
 
-  <!-- 速度对比 -->
-  <view class="speed-compare card">
+  <!-- 速度对比（非历史模式） -->
+  <view class="speed-compare card" wx:if="{{mode !== 'history'}}">
     <view class="compare-title">⚡️ 速度对比</view>
     <view class="compare-items">
       <view class="compare-item">
@@ -48,6 +48,29 @@
         <view class="compare-label">野游记</view>
         <view class="compare-time">30秒</view>
         <view class="compare-desc">一次搞定</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 深度对比（历史模式） -->
+  <view class="depth-compare card" wx:if="{{mode === 'history'}}">
+    <view class="compare-title">🏛️ 深度对比</view>
+    <view class="depth-items">
+      <view class="depth-item">
+        <view class="item-label">传统攻略</view>
+        <view class="item-points">
+          <view class="point">• 碎片信息</view>
+          <view class="point">• 需要自己串联</view>
+          <view class="point">• 缺少文化背景</view>
+        </view>
+      </view>
+      <view class="depth-item highlight">
+        <view class="item-label">野游记</view>
+        <view class="item-points">
+          <view class="point">• 完整故事线</view>
+          <view class="point">• AI深度解读</view>
+          <view class="point">• 历史文化融合</view>
+        </view>
       </view>
     </view>
   </view>

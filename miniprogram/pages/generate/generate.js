@@ -4,6 +4,7 @@ const app = getApp()
 Page({
   data: {
     query: '',
+    mode: 'full',  // full, hotel, food, history
     taskId: '',
     progress: 0,
     statusText: '正在生成攻略...',
@@ -16,7 +17,8 @@ Page({
 
   onLoad(options) {
     const query = decodeURIComponent(options.query || '')
-    this.setData({ query })
+    const mode = options.mode || 'full'
+    this.setData({ query, mode })
     
     if (query) {
       this.startGenerate()
@@ -31,7 +33,7 @@ Page({
 
   // 开始生成
   async startGenerate() {
-    const { query } = this.data
+    const { query, mode } = this.data
 
     this.addMessage('🔥 野游记开始工作...')
     
@@ -39,7 +41,7 @@ Page({
       // 调用后端API
       const res = await this.callAPI('/generate', {
         query,
-        mode: 'full'
+        mode
       })
 
       if (res.task_id) {

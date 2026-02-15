@@ -26,6 +26,23 @@
     </view>
   </view>
 
+  <!-- 模式选择 -->
+  <view class="mode-selector card">
+    <view class="mode-title">选择攻略类型</view>
+    <view class="mode-list">
+      <view 
+        class="mode-item {{mode === item.id ? 'active' : ''}}"
+        wx:for="{{modes}}"
+        wx:key="id"
+        bindtap="onModeChange"
+        data-mode="{{item.id}}"
+      >
+        <view class="mode-icon">{{item.icon}}</view>
+        <view class="mode-name">{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 搜索输入 -->
   <view class="search-section card">
     <view class="search-label">告诉我你想去哪玩？</view>

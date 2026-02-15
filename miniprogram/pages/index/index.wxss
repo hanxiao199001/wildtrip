@@ -190,3 +190,58 @@
   color: var(--primary-color);
   font-weight: 600;
 }
+
+/* 模式选择 */
+.mode-selector {
+  margin-bottom: 32rpx;
+}
+
+.mode-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 20rpx;
+}
+
+.mode-list {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.mode-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 12rpx;
+  background: #F8F8F8;
+  border-radius: var(--radius-normal);
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.mode-item:active {
+  transform: scale(0.95);
+}
+
+.mode-item.active {
+  background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(95, 204, 196, 0.1) 100%);
+  border-color: var(--primary-color);
+}
+
+.mode-icon {
+  font-size: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.mode-name {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.mode-item.active .mode-name {
+  color: var(--primary-color);
+  font-weight: 600;
+}
