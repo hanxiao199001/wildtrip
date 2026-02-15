@@ -1,6 +1,6 @@
 """
 野游记攻略生成API
-支持3种模式：full（完整攻略）、hotel（只推酒店）、food（只推美食）
+支持4种模式：full（完整攻略）、hotel（只推酒店）、food（只推美食）、history（人文历史）
 """
 
 from flask import Blueprint, request, jsonify
@@ -70,9 +70,9 @@ def create_generate_task():
                 'code': 'EMPTY_QUERY'
             }), 400
         
-        if mode not in ['full', 'hotel', 'food']:
+        if mode not in ['full', 'hotel', 'food', 'history']:
             return jsonify({
-                'error': '无效的mode参数（支持：full/hotel/food）',
+                'error': '无效的mode参数（支持：full/hotel/food/history）',
                 'code': 'INVALID_MODE'
             }), 400
         
@@ -83,7 +83,8 @@ def create_generate_task():
         estimated_time = {
             'full': '30-60秒',
             'hotel': '20-30秒',
-            'food': '20-30秒'
+            'food': '20-30秒',
+            'history': '40-70秒'
         }.get(mode, '30-60秒')
         
         # 记录任务

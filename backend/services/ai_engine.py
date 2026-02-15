@@ -125,6 +125,8 @@ class AIEngine:
                 guide_type = 'hotel'
             elif mode == 'food':
                 guide_type = 'food'
+            elif mode == 'history':
+                guide_type = 'history'
             # full模式不限制类型
             
             # 检索
