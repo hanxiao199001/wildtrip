@@ -73,10 +73,10 @@ def create_generate_task():
                 'error': '无效的mode参数（支持：full/hotel/food/history）',
                 'code': 'INVALID_MODE'
             }), 400
-        
+
         # 生成任务ID
         task_id = str(uuid.uuid4())
-        
+
         # 预估时间
         estimated_time = {
             'full': '30-60秒',
@@ -191,25 +191,26 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
     try:
         # 更新状态
         active_tasks[task_id]['status'] = 'running'
-        emit_progress(socketio, task_id, 'start', '🔥 野游记开始工作...', 0)
-        
+        is_history = mode == 'history'
+        emit_progress(socketio, task_id, 'start', '📜 历史人文导游上线...' if is_history else '🔥 野游记开始工作...', 0)
+
         # 提取城市信息
         city = extract_city_name(query)
         emit_progress(socketio, task_id, 'parsing', f'📍 识别目的地: {city}', 5)
         time.sleep(0.3)
-        
+
         # 构建prompt
-        emit_progress(socketio, task_id, 'building_prompt', '🧠 正在理解你的需求...', 10)
+        emit_progress(socketio, task_id, 'building_prompt', '📚 正在查阅历史典籍...' if is_history else '🧠 正在理解你的需求...', 10)
         time.sleep(0.5)
-        
+
         full_prompt = build_wildtrip_prompt(query, mode)
-        
+
         # 检索RAG数据
-        emit_progress(socketio, task_id, 'rag_search', '🔍 正在搜索本地攻略数据库...', 15)
+        emit_progress(socketio, task_id, 'rag_search', '🏛️ 正在搜索历史文献...' if is_history else '🔍 正在搜索本地攻略数据库...', 15)
         time.sleep(0.8)
-        
+
         # 调用AI生成（使用流式引擎，实时更新进度）
-        emit_progress(socketio, task_id, 'generating', f'✍️ AI正在生成{city}攻略...', 25)
+        emit_progress(socketio, task_id, 'generating', f'✍️ AI正在生成{city}历史人文攻略...' if is_history else f'✍️ AI正在生成{city}攻略...', 25)
         
         # 🔥 定义进度回调函数（供流式引擎调用）
         def on_ai_progress(progress, message, chunk):
@@ -231,6 +232,9 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
             budget_value = budget_match.group(1)
             content = content.replace('[预算]', budget_value)
             logger.info(f"✅ 已替换[预算] → {budget_value}")
+
+        # 🔥 后处理：清除AI编造的虚假地址（XX路、XX号等）
+        content = clean_fake_addresses(content)
         
         # AI生成完成
         emit_progress(socketio, task_id, 'ai_done', '✅ 攻略生成完成！', 65)
@@ -636,6 +640,71 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
     logger.info(f"🔗 链接替换完成 | 酒店:{len(recommendations['hotels'])} 餐厅:{len(recommendations['restaurants'])} 门票:{len(recommendations['tickets'])}")
     
     return content, recommendations
+
+
+def clean_fake_addresses(content: str) -> str:
+    """
+    清除AI编造的虚假地址（后处理）
+
+    AI经常无视prompt指令，生成类似：
+    - "目的地XX路菜市场旁"
+    - "目的地XX路18号"
+    - "位于XX路XX号"
+    - "地址：某某XX路123号"
+
+    此函数将这些虚假地址替换为安全的区域描述。
+    """
+    import re
+    original_len = len(content)
+    cleaned = content
+
+    # 模式1：**地址：** 目的地XX路菜市场旁 → 删除整行
+    # 模式2：* 地址：目的地XX路18号 → 删除整行
+    # 匹配包含虚假地址的"地址"行
+    fake_addr_line_patterns = [
+        # "* **地址：** 目的地XX路..." 或 "- **地址：** ..."
+        r'[*\-]\s*\*{0,2}地址[：:]\*{0,2}\s*[^\n]*?(?:XX|xx|ＸＸ|某某)[^\n]*\n',
+        # "* 地址：目的地XX路..."
+        r'[*\-]\s*地址[：:]\s*[^\n]*?(?:XX|xx|ＸＸ|某某)[^\n]*\n',
+    ]
+
+    for pattern in fake_addr_line_patterns:
+        cleaned = re.sub(pattern, '', cleaned)
+
+    # 模式3：内联地址文本 "目的地XX路菜市场旁" → 替换为区域描述
+    # 例如 "地址：目的地XX路18号" 在非行首位置
+    inline_fake_patterns = [
+        # "目的地XX路XXX" → "当地老城区一带"
+        (r'目的地XX[路街巷道][^\n,，。、）\)]*', '当地老城区一带'),
+        # "XX路XX号" / "XX街XX号"
+        (r'(?:[\u4e00-\u9fa5]{0,5})XX[路街巷道][\u4e00-\u9fa5\d]*号?[^\n,，。、）\)]*', '当地核心区域'),
+        # "某某路XX号"
+        (r'某某[路街巷道][\u4e00-\u9fa5\d]*号?', '当地核心区域'),
+    ]
+
+    for pattern, replacement in inline_fake_patterns:
+        cleaned = re.sub(pattern, replacement, cleaned)
+
+    # 模式4：清除残留的"地址：当地核心区域"这种无意义行
+    # 如果整行只剩下"地址：当地核心区域"这种空洞内容，直接删掉
+    cleaned = re.sub(r'[*\-]\s*\*{0,2}地址[：:]\*{0,2}\s*当地(?:核心区域|老城区一带)\s*\n', '', cleaned)
+
+    # 模式5：清除通用的"目的地特色XXX店"这种AI编造的店名
+    generic_fake_names = [
+        (r'目的地特色早餐店', '当地评分最高的早餐店（大众点评搜索）'),
+        (r'目的地本地特色餐厅', '当地口碑餐厅（大众点评搜索）'),
+        (r'目的地特色餐厅', '当地口碑餐厅（大众点评搜索）'),
+        (r'目的地特色小吃', '当地特色小吃（大众点评搜索）'),
+    ]
+
+    for pattern, replacement in generic_fake_names:
+        cleaned = re.sub(pattern, replacement, cleaned)
+
+    diff = original_len - len(cleaned)
+    if diff > 0:
+        logger.info(f"🧹 清除虚假地址完成，清理了 {diff} 个字符")
+
+    return cleaned
 
 
 def emit_progress(socketio, task_id: str, event_type: str, message: str, progress: int):

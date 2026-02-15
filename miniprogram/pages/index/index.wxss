@@ -77,6 +77,49 @@
   font-weight: 600;
 }
 
+/* ========== 🔥 模式选择器 ========== */
+.mode-selector {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+.mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 14rpx 32rpx;
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.mode-tab.active {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+}
+
+.mode-icon {
+  font-size: 28rpx;
+}
+
+.mode-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mode-tab.active .mode-name {
+  color: #0D9488;
+}
+
 /* ========== 搜索区域（嵌入Hero） ========== */
 .search-section {
   position: relative;
@@ -116,9 +159,21 @@
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
 }
 
+/* 📜 历史人文模式按钮样式 */
+.search-btn.history-btn {
+  background: linear-gradient(135deg, #8B6914 0%, #D4A843 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4rpx 16rpx rgba(139, 105, 20, 0.3);
+}
+
 .search-btn[disabled] {
   opacity: 0.5;
   background: rgba(255, 255, 255, 0.6);
+}
+
+.search-btn.history-btn[disabled] {
+  opacity: 0.5;
+  background: rgba(139, 105, 20, 0.4);
 }
 
 /* ========== 特性标签（一行紧凑） ========== */
@@ -139,6 +194,70 @@
   padding: 16rpx 24rpx;
   border-radius: 20rpx;
   backdrop-filter: blur(10px);
+}
+
+/* ========== 📜 历史人文推荐主题 ========== */
+.history-themes-section {
+  margin-bottom: 32rpx;
+}
+
+.history-themes-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 32rpx;
+  gap: 16rpx;
+}
+
+.history-theme-card {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  width: calc(50% - 8rpx);
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+}
+
+.history-theme-card:active {
+  transform: scale(0.97);
+  border-color: #D4A843;
+  box-shadow: 0 4rpx 16rpx rgba(212, 168, 67, 0.2);
+}
+
+.history-theme-icon {
+  font-size: 40rpx;
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.history-theme-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.history-theme-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-theme-desc {
+  font-size: 20rpx;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ========== 精选攻略 ========== */
@@ -199,21 +318,47 @@
   overflow: hidden;
 }
 
+/* 🔥 6种城市封面渐变色（轮换使用） */
+.cover-gradient-0 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.cover-gradient-1 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.cover-gradient-2 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.cover-gradient-3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.cover-gradient-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.cover-gradient-5 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+
 .featured-img {
   width: 100%;
   height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.featured-city-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 44rpx;
+  font-weight: 800;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  letter-spacing: 4rpx;
 }
 
 .featured-category {
   position: absolute;
   top: 12rpx;
   left: 12rpx;
-  background: rgba(32, 178, 170, 0.9);
+  background: rgba(0, 0, 0, 0.4);
   color: #FFFFFF;
   font-size: 20rpx;
   font-weight: 500;
   padding: 4rpx 14rpx;
   border-radius: 16rpx;
+  z-index: 2;
 }
 
 .featured-info {

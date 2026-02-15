@@ -110,11 +110,48 @@ def _generate_stable_stats(slug):
 
 
 def _build_guide_card(slug, title=None):
-    """构建攻略卡片数据"""
+    """构建攻略卡片数据（优先使用元数据）"""
+    # 🔥 先尝试从元数据获取完整信息
+    try:
+        from services.seo_service import get_seo_service
+        seo = get_seo_service()
+        metadata = seo.load_metadata(slug)
+        if metadata and metadata.get('title'):
+            stats = _generate_stable_stats(slug)
+            return {
+                'slug': slug,
+                'title': metadata.get('title', slug),
+                'destination': metadata.get('destination', '旅游'),
+                'days': metadata.get('days'),
+                'category': metadata.get('category', '自由行'),
+                'budget': metadata.get('budget'),
+                'cover_image': metadata.get('cover_image', ''),
+                'views': metadata.get('views', 0) or stats['views'],
+                'likes': metadata.get('likes', 0) or stats['likes'],
+                'url': f"/guides/{slug}.html"
+            }
+    except Exception:
+        pass
+
+    # 回退：从slug中提取信息
     info = _extract_info_from_slug(slug)
+
+    # 🔥 更好的标题提取：去掉末尾的时间戳和hash
     if not title:
-        slug_parts = slug.rsplit('-', 2)
-        title = slug_parts[0] if slug_parts else slug
+        # slug格式：中文内容-时间戳-hash（如"深圳3天美食游-202602151234-abc12345"）
+        # 去掉最后两段（时间戳和hash）
+        parts = slug.rsplit('-', 2)
+        if len(parts) >= 3:
+            title = parts[0]
+        elif len(parts) == 2:
+            # 可能时间戳和hash连在一起
+            title = parts[0]
+        else:
+            title = slug
+        # 清理标题中的特殊字符
+        title = re.sub(r'[_\-]+', ' ', title).strip()
+        if not title:
+            title = slug[:30]
 
     city = info['destination'] or '旅游'
     stats = _generate_stable_stats(slug)
@@ -210,6 +247,83 @@ PRESET_FEATURED = [
 ]
 
 
+def _extract_text_from_html(html_content):
+    """
+    从HTML攻略内容中提取可读的Markdown文本
+    用于旧攻略（没有单独保存Markdown文件的情况）
+    """
+    import re
+
+    # 移除 script 和 style 标签
+    text = re.sub(r'<script[^>]*>[\s\S]*?</script>', '', html_content, flags=re.IGNORECASE)
+    text = re.sub(r'<style[^>]*>[\s\S]*?</style>', '', html_content, flags=re.IGNORECASE)
+
+    # 移除 head 标签
+    text = re.sub(r'<head[^>]*>[\s\S]*?</head>', '', text, flags=re.IGNORECASE)
+
+    # 提取 timeline-content 区域（主要内容区）
+    timeline_blocks = re.findall(
+        r'<div class="timeline-content">([\s\S]*?)</div>\s*</div>',
+        text, flags=re.IGNORECASE
+    )
+
+    # 提取 day-title 标题
+    day_titles = re.findall(
+        r'<(?:h2|div)[^>]*class="[^"]*day-title[^"]*"[^>]*>([\s\S]*?)</(?:h2|div)>',
+        text, flags=re.IGNORECASE
+    )
+
+    # 如果有 timeline 内容，组装为 Markdown
+    if timeline_blocks or day_titles:
+        md_parts = []
+        # 提取标题
+        title_match = re.search(r'<h1[^>]*>(.*?)</h1>', text, flags=re.IGNORECASE)
+        if title_match:
+            title_text = re.sub(r'<[^>]+>', '', title_match.group(1)).strip()
+            md_parts.append(f"# {title_text}\n")
+
+        # 提取所有day区块
+        day_pattern = re.compile(
+            r'<div[^>]*class="[^"]*day-section[^"]*"[^>]*>([\s\S]*?)(?=<div[^>]*class="[^"]*day-section|$)',
+            re.IGNORECASE
+        )
+        for day_match in day_pattern.finditer(text):
+            block = day_match.group(1)
+            # 提取day标题
+            dt = re.search(r'Day\s*(\d+)', block)
+            subtitle = re.search(r'day-subtitle[^>]*>(.*?)</', block)
+            if dt:
+                day_num = dt.group(1)
+                sub_text = ''
+                if subtitle:
+                    sub_text = re.sub(r'<[^>]+>', '', subtitle.group(1)).strip()
+                md_parts.append(f"\n## Day {day_num} {sub_text}\n")
+
+            # 提取时间点和活动
+            time_points = re.findall(r'time-point[^>]*>(.*?)</', block)
+            activity_titles = re.findall(r'activity-title[^>]*>(.*?)</', block)
+            activity_descs = re.findall(r'activity-desc[^>]*>(.*?)</', block)
+
+            for i in range(max(len(time_points), len(activity_titles))):
+                tp = time_points[i].strip() if i < len(time_points) else ''
+                at = re.sub(r'<[^>]+>', '', activity_titles[i]).strip() if i < len(activity_titles) else ''
+                ad = re.sub(r'<[^>]+>', '', activity_descs[i]).strip() if i < len(activity_descs) else ''
+                if tp or at:
+                    line = f"**{tp}** {at}" if tp else f"**{at}**"
+                    md_parts.append(line)
+                    if ad:
+                        md_parts.append(f"  {ad}\n")
+
+        if md_parts:
+            return '\n'.join(md_parts)
+
+    # 最后的回退：简单去除所有HTML标签
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    # 截取前5000字符
+    return text[:5000] if len(text) > 5000 else text
+
+
 # ==========================================
 # API 路由（注意：featured/related 必须在 <slug> 之前）
 # ==========================================
@@ -237,24 +351,56 @@ def list_guides():
 
 @guides_bp.route('/guides/featured', methods=['GET'])
 def get_featured_guides():
-    """获取精选攻略（首页展示）"""
+    """获取精选攻略（首页展示）- 优先使用元数据"""
     try:
         limit = request.args.get('limit', 6, type=int)
         limit = min(limit, 12)
 
         featured = []
 
-        if GUIDES_DIR.exists():
+        # 🔥 优先从元数据加载（包含封面图、目的地等完整信息）
+        try:
+            from services.seo_service import get_seo_service
+            seo = get_seo_service()
+            all_metadata = seo.get_all_metadata()
+
+            for meta in all_metadata[:limit]:
+                # 生成稳定的统计数据（如果元数据没有）
+                stats = _generate_stable_stats(meta.get('slug', ''))
+                featured.append({
+                    'slug': meta.get('slug', ''),
+                    'title': meta.get('title', '旅行攻略'),
+                    'destination': meta.get('destination', '旅游'),
+                    'days': meta.get('days'),
+                    'category': meta.get('category', '自由行'),
+                    'budget': meta.get('budget'),
+                    'cover_image': meta.get('cover_image', ''),
+                    'views': meta.get('views', 0) or stats['views'],
+                    'likes': meta.get('likes', 0) or stats['likes'],
+                    'url': meta.get('url', f"/guides/{meta.get('slug', '')}.html")
+                })
+            logger.info(f"🌟 从元数据加载精选攻略: {len(featured)}篇")
+        except Exception as e:
+            logger.warning(f"⚠️ 元数据加载失败，回退到文件扫描: {e}")
+
+        # 如果元数据不够，从文件系统补充
+        if len(featured) < limit and GUIDES_DIR.exists():
+            existing_slugs = {g['slug'] for g in featured}
             html_files = sorted(
                 GUIDES_DIR.glob('*.html'),
                 key=lambda f: f.stat().st_mtime,
                 reverse=True
             )
-            for html_file in html_files[:limit]:
+            for html_file in html_files:
+                if len(featured) >= limit:
+                    break
                 slug = html_file.stem
-                card = _build_guide_card(slug)
-                featured.append(card)
+                if slug not in existing_slugs:
+                    card = _build_guide_card(slug)
+                    featured.append(card)
+                    existing_slugs.add(slug)
 
+        # 如果还不够，使用预设数据补充
         if len(featured) < limit:
             remaining = limit - len(featured)
             existing_destinations = {g.get('destination') for g in featured}
@@ -327,7 +473,7 @@ def get_related_guides():
 
 @guides_bp.route('/guides/<slug>', methods=['GET'])
 def get_guide_detail(slug):
-    """获取攻略详情"""
+    """获取攻略详情（包含元数据）"""
     try:
         html_path = GUIDES_DIR / f"{slug}.html"
         if not html_path.exists():
@@ -341,15 +487,47 @@ def get_guide_detail(slug):
         title = slug_parts[0] if slug_parts else slug
         word_count = len(content)
 
+        # 🔥 尝试加载元数据以获取更丰富的信息
+        metadata = {}
+        try:
+            from services.seo_service import get_seo_service
+            seo = get_seo_service()
+            metadata = seo.load_metadata(slug)
+        except Exception as e:
+            logger.warning(f"⚠️ 加载元数据失败: {e}")
+
+        # 🔥 尝试加载原始Markdown内容（供小程序原生渲染）
+        markdown_content = ''
+        md_path = GUIDES_DIR / '_markdown' / f"{slug}.md"
+        if md_path.exists():
+            try:
+                markdown_content = md_path.read_text(encoding='utf-8')
+                logger.info(f"📝 加载Markdown内容: {slug}")
+            except Exception as e:
+                logger.warning(f"⚠️ 加载Markdown失败: {e}")
+
+        # 🔥 如果没有Markdown文件，从HTML中提取纯文本内容
+        if not markdown_content:
+            markdown_content = _extract_text_from_html(content)
+
         logger.info(f"📖 返回攻略详情: {slug}")
 
         return jsonify({
             'slug': slug,
-            'title': title,
+            'title': metadata.get('title', title),
             'content': content,
-            'word_count': word_count,
+            'markdown_content': markdown_content,
+            'destination': metadata.get('destination', ''),
+            'days': metadata.get('days'),
+            'budget': metadata.get('budget'),
+            'category': metadata.get('category', '自由行'),
+            'cover_image': metadata.get('cover_image', ''),
+            'word_count': metadata.get('word_count', word_count),
+            'hotels_count': metadata.get('hotels_count', 0),
+            'restaurants_count': metadata.get('restaurants_count', 0),
+            'tickets_count': metadata.get('tickets_count', 0),
             'is_favorited': slug in user_favorites,
-            'created_at': html_path.stat().st_mtime,
+            'created_at': metadata.get('created_at', html_path.stat().st_mtime),
             'url': f"/guides/{slug}.html"
         }), 200
 
@@ -420,4 +598,84 @@ def share_guide(slug):
 
     except Exception as e:
         logger.error(f"生成分享链接失败: {e}")
+        return jsonify({'error': str(e), 'code': 'INTERNAL_ERROR'}), 500
+
+
+@guides_bp.route('/guides/migrate-metadata', methods=['POST'])
+def migrate_metadata():
+    """
+    🔥 一次性迁移工具：为已有HTML攻略生成元数据JSON
+    对没有元数据的旧攻略，从slug/文件中提取信息并保存
+    """
+    try:
+        from services.seo_service import get_seo_service
+        seo = get_seo_service()
+
+        if not GUIDES_DIR.exists():
+            return jsonify({'error': '攻略目录不存在', 'migrated': 0}), 404
+
+        migrated = 0
+        skipped = 0
+
+        for html_file in GUIDES_DIR.glob('*.html'):
+            slug = html_file.stem
+            # 跳过已有元数据的
+            existing = seo.load_metadata(slug)
+            if existing:
+                skipped += 1
+                continue
+
+            # 从slug提取信息
+            info = _extract_info_from_slug(slug)
+
+            # 从slug提取标题（去掉时间戳和hash）
+            parts = slug.rsplit('-', 2)
+            title = parts[0] if len(parts) >= 3 else slug
+            title = re.sub(r'[_\-]+', ' ', title).strip() or slug[:30]
+
+            city = info['destination'] or '旅游'
+
+            # 构建元数据
+            metadata = {
+                'slug': slug,
+                'title': title,
+                'destination': city,
+                'days': info['days'],
+                'budget': info['budget'],
+                'category': info['category'] or '自由行',
+                'cover_image': _get_city_image(city),
+                'url': f'/guides/{slug}.html',
+                'word_count': 0,
+                'hotels_count': 0,
+                'restaurants_count': 0,
+                'tickets_count': 0,
+                'created_at': html_file.stat().st_mtime,
+                'views': 0,
+                'likes': 0
+            }
+
+            # 尝试从HTML内容统计字数
+            try:
+                content = html_file.read_text(encoding='utf-8')
+                metadata['word_count'] = len(content)
+                # 尝试提取封面图
+                cover = seo.extract_cover_image(content, city)
+                if cover:
+                    metadata['cover_image'] = cover
+            except Exception:
+                pass
+
+            seo.save_to_metadata(slug, metadata)
+            migrated += 1
+            logger.info(f"📋 迁移元数据: {slug} | {city} | {title[:20]}")
+
+        logger.info(f"✅ 元数据迁移完成: {migrated}篇新增, {skipped}篇已存在")
+        return jsonify({
+            'success': True,
+            'migrated': migrated,
+            'skipped': skipped
+        }), 200
+
+    except Exception as e:
+        logger.error(f"元数据迁移失败: {e}")
         return jsonify({'error': str(e), 'code': 'INTERNAL_ERROR'}), 500

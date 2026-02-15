@@ -5,7 +5,8 @@
     "pages/generate/generate",
     "pages/result/result",
     "pages/cashback/cashback",
-    "pages/webview/webview"
+    "pages/webview/webview",
+    "pages/guide-detail/guide-detail"
   ],
   "window": {
     "navigationBarTitleText": "野游记",

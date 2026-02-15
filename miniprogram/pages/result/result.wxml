@@ -152,15 +152,22 @@
         <button class="btn-secondary" bindtap="onToggleFavorite">
           {{isFavorited ? '★ 已收藏' : '☆ 收藏'}}
         </button>
-        <button class="btn-primary" bindtap="onShare">✈️ 分享</button>
+        <button class="btn-primary" bindtap="showSharePoster">✈️ 分享</button>
       </view>
-      
+
       <!-- 第二行：高级操作 -->
       <view class="action-row action-row-secondary">
         <button class="btn-link" bindtap="onGenerateShareLink">🔗 复制链接</button>
         <button class="btn-danger" bindtap="onDelete">🗑️ 删除</button>
       </view>
     </view>
+
+    <!-- 分享海报组件 -->
+    <share-poster
+      visible="{{showPoster}}"
+      guideData="{{posterData}}"
+      bind:close="onClosePoster"
+    />
   </view>
 
   <!-- 错误状态 -->

@@ -4,6 +4,7 @@ const app = getApp()
 Page({
   data: {
     query: '',
+    mode: 'full',
     taskId: '',
     progress: 0,
     statusText: '正在生成攻略...',
@@ -15,9 +16,17 @@ Page({
   timer: null,
 
   onLoad(options) {
-    const query = decodeURIComponent(options.query || '')
-    this.setData({ query })
-    
+    var query = decodeURIComponent(options.query || '')
+    var mode = options.mode || app.globalData._generateMode || 'full'
+    app.globalData._generateMode = null  // 清除，避免污染
+
+    var isHistory = mode === 'history'
+    this.setData({
+      query: query,
+      mode: mode,
+      statusText: isHistory ? '📜 正在生成历史人文攻略...' : '正在生成攻略...'
+    })
+
     if (query) {
       this.startGenerate()
     }
@@ -31,15 +40,17 @@ Page({
 
   // 开始生成
   async startGenerate() {
-    const { query } = this.data
+    var query = this.data.query
+    var mode = this.data.mode
+    var isHistory = mode === 'history'
 
-    this.addMessage('🔥 野游记开始工作...')
-    
+    this.addMessage(isHistory ? '📜 历史人文导游上线...' : '🔥 野游记开始工作...')
+
     try {
       // 调用后端API
-      const res = await this.callAPI('/generate', {
-        query,
-        mode: 'full'
+      var res = await this.callAPI('/generate', {
+        query: query,
+        mode: mode
       })
 
       if (res.task_id) {

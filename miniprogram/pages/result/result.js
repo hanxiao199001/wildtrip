@@ -25,7 +25,9 @@ Page({
     shareUrl: '',  // 🔥 分享链接
     meituanMiniprogram: null,  // 🔥 美团小程序跳转参数（聚推客联盟）
     relatedGuides: [],  // 相关推荐攻略
-    destination: ''  // 当前攻略目的地
+    destination: '',  // 当前攻略目的地
+    showPoster: false,  // 分享海报弹窗
+    posterData: {}  // 海报数据
   },
 
   onLoad(options) {
@@ -193,10 +195,11 @@ Page({
       return
     }
 
-    // 如果是真实攻略，跳转到webview
+    // 如果是真实攻略，跳转到攻略详情页
     if (item.slug && !item.slug.startsWith('_preset')) {
+      app.globalData._guideItem = item
       wx.navigateTo({
-        url: `/pages/webview/webview?url=${encodeURIComponent(item.url)}&title=${encodeURIComponent(item.title)}`
+        url: '/pages/guide-detail/guide-detail'
       })
     }
   },
@@ -347,7 +350,96 @@ Page({
     })
   },
 
-  // 分享
+  // 显示分享海报
+  showSharePoster() {
+    const { content, destination, taskId } = this.data
+
+    // 🔥 优化：从多个来源提取信息
+
+    // 1. 提取标题（优先从HTML <h1>，其次从Markdown标题）
+    let title = '我的旅行攻略'
+    const h1Match = content.match(/<h1[^>]*>([^<]+)<\/h1>/)
+    if (h1Match) {
+      title = h1Match[1].replace(/【.*?】|#/g, '').trim().substring(0, 30)
+    } else {
+      const titleMatch = content.match(/^#+\s*(.+)/m)
+      if (titleMatch) {
+        title = titleMatch[1].replace(/[🔥🌴✈️🏨🍜💰📋🗓️⚠️💡🎒]/g, '').trim().substring(0, 30)
+      }
+    }
+
+    // 2. 提取天数（多种模式匹配 + 过滤异常值）
+    let days = 0
+    const daysPatterns = [
+      /(\d+)天\d*晚/,           // "3天2晚" 最精确
+      /(\d+)\s*天深度/,          // "3天深度游"
+      /行程[：:]\s*(\d+)天/,     // "行程：3天"
+      /天数[：:]\s*(\d+)/,       // "天数：3"
+      /(\d+)\s*天/               // 通用但可能误匹配
+    ]
+    for (const pattern of daysPatterns) {
+      const match = content.match(pattern)
+      if (match) {
+        const d = parseInt(match[1])
+        if (d > 0 && d <= 30) {  // 过滤异常值（超过30天不合理）
+          days = d
+          break
+        }
+      }
+    }
+
+    // 3. 提取目的地（如果页面没有从API获取到）
+    let dest = destination || ''
+    if (!dest) {
+      const destPatterns = [
+        /目的地[：:]\s*([^\n<]+)/,
+        /📍\s*([^\n<]+)/,
+        /(北京|上海|广州|深圳|成都|重庆|杭州|西安|三亚|海口|厦门|苏州|南京|武汉|长沙|青岛|大连|昆明|桂林|丽江|大理|哈尔滨|拉萨|太原|沈阳)/
+      ]
+      for (const pattern of destPatterns) {
+        const match = content.match(pattern)
+        if (match) {
+          dest = match[1].trim()
+          break
+        }
+      }
+    }
+
+    // 4. 提取预算（多种格式）
+    let budget = ''
+    const budgetPatterns = [
+      /预算[：:]\s*[¥￥]?(\d+[-~～]?\d*)/,
+      /人均[：:]\s*[¥￥]?(\d+[-~～]?\d*)/,
+      /[¥￥](\d{3,5})[-~～/]?/
+    ]
+    for (const pattern of budgetPatterns) {
+      const match = content.match(pattern)
+      if (match) {
+        budget = match[1]
+        break
+      }
+    }
+
+    this.setData({
+      showPoster: true,
+      posterData: {
+        id: taskId || 'demo',
+        title: title,
+        destination: dest,
+        days: days || 3,
+        budget: budget,
+        userName: wx.getStorageSync('userInfo')?.nickName || '野游记用户',
+        createdAt: new Date().toLocaleDateString('zh-CN')
+      }
+    })
+  },
+
+  // 关闭海报
+  onClosePoster() {
+    this.setData({ showPoster: false })
+  },
+
+  // 分享（微信转发）
   onShare() {
     wx.showShareMenu({
       withShareTicket: true,

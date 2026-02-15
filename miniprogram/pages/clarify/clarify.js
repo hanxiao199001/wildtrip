@@ -87,7 +87,9 @@ Page({
 
   onLoad(options) {
     const query = decodeURIComponent(options.query || '')
+    const mode = options.mode || app.globalData._generateMode || 'full'
     this.setData({ originalQuery: query })
+    this._mode = mode  // 🔥 保存模式参数
 
     if (query) {
       this.analyzeNeed(query)
@@ -222,8 +224,9 @@ Page({
 
   // 跳转到生成页
   goGenerate(query) {
+    var mode = this._mode || 'full'
     wx.redirectTo({
-      url: `/pages/generate/generate?query=${encodeURIComponent(query)}`
+      url: '/pages/generate/generate?query=' + encodeURIComponent(query) + '&mode=' + mode
     })
   }
 })
