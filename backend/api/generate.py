@@ -68,9 +68,9 @@ def create_generate_task():
                 'code': 'EMPTY_QUERY'
             }), 400
         
-        if mode not in ['full', 'hotel', 'food']:
+        if mode not in ['full', 'hotel', 'food', 'history']:
             return jsonify({
-                'error': '无效的mode参数（支持：full/hotel/food）',
+                'error': '无效的mode参数（支持：full/hotel/food/history）',
                 'code': 'INVALID_MODE'
             }), 400
         
@@ -81,7 +81,8 @@ def create_generate_task():
         estimated_time = {
             'full': '30-60秒',
             'hotel': '20-30秒',
-            'food': '20-30秒'
+            'food': '20-30秒',
+            'history': '40-80秒'  # 🔥 历史人文模式需要更多时间（内容更丰富）
         }.get(mode, '30-60秒')
         
         # 记录任务

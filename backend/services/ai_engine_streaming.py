@@ -108,7 +108,7 @@ class StreamingAIEngine:
                 model=self.model,
                 messages=messages,
                 temperature=0.7,  # 降回0.7，减少幻觉，提高真实性
-                max_tokens=4000,
+                max_tokens=8000,  # 🔥 提高到8000，支持更长的攻略（15天+详细内容）
                 timeout=180,
                 stream=True,  # 🔥 启用流式输出
             )
