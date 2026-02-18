@@ -74,25 +74,34 @@ class AffiliateManager:
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
-        """生成美团链接（餐饮）- 使用聚推客固定推广链接"""
-        # 使用聚推客固定推广链接
-        promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/nqIBHs3z')
-        
-        # 小程序跳转参数
-        mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-        mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
-        
-        logger.info(f"📱 生成美团推广链接: {name} -> {promo_url}")
-        
+        """生成美团链接（餐饮团购）- 通过聚推客API动态获取"""
+        from services.jutuike_api import get_jutuike_api
+        api = get_jutuike_api()
+        link = api.get_food_link(sid=f'food_{name[:10]}')
+
+        if link and link.get('h5'):
+            promo_url = link['h5']
+            mp_appid = link.get('mp_appid', 'wxde8ac0a21135c07d')
+            mp_path = link.get('mp_path', '')
+            mp_username = link.get('mp_username', 'gh_870576f3c6f9')
+        else:
+            # 降级到备用链接
+            promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/8bOw5ETz')
+            mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
+            mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
+            mp_username = 'gh_870576f3c6f9'
+
+        logger.info(f"📱 美食团购链接: {name} -> {promo_url}")
+
         return {
             'url': promo_url,
-            'text': f'领券搜"{name}"',
+            'text': f'去美团看团购 "{name}"',
             'status': 'promo',
             'platform': 'meituan',
             'has_commission': True,
             'mp_appid': mp_appid,
             'mp_path': mp_path,
-            'mp_username': 'gh_870576f3c6f9'
+            'mp_username': mp_username,
         }
 
     def _generate_hotel_link(
@@ -111,25 +120,32 @@ class AffiliateManager:
                 'has_commission': False
             }
         else:
-            # 使用聚推客固定推广链接
-            promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/nqIBHs3z')
-            
-            # 小程序跳转参数
-            mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-            mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
-            
-            logger.info(f"🏨 生成酒店推广链接: {name} -> {promo_url}")
+            from services.jutuike_api import get_jutuike_api
+            api = get_jutuike_api()
+            link = api.get_hotel_link(sid=f'hotel_{name[:10]}')
+
+            if link and link.get('h5'):
+                promo_url = link['h5']
+                mp_appid = link.get('mp_appid', 'wxde8ac0a21135c07d')
+                mp_path = link.get('mp_path', '')
+                mp_username = link.get('mp_username', 'gh_870576f3c6f9')
+            else:
+                promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/8bOw5ETz')
+                mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
+                mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
+                mp_username = 'gh_870576f3c6f9'
+
+            logger.info(f"🏨 酒店推广链接: {name} -> {promo_url}")
 
             return {
                 'url': promo_url,
-                'text': f'领券搜"{name}"',
+                'text': f'去美团预订"{name}"',
                 'status': 'promo',
                 'platform': 'meituan',
                 'has_commission': True,
-                # 小程序跳转参数
                 'mp_appid': mp_appid,
                 'mp_path': mp_path,
-                'mp_username': 'gh_870576f3c6f9'
+                'mp_username': mp_username,
             }
 
     def _generate_ticket_link(
@@ -138,26 +154,34 @@ class AffiliateManager:
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
-        """生成门票链接（同时支持小程序跳转和H5链接）"""
-        # 使用聚推客固定推广链接
-        promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/nqIBHs3z')
-        
-        # 小程序跳转参数
-        mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-        mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
-        
-        logger.info(f"🎫 生成门票推广链接: {name} -> {promo_url}")
+        """生成门票链接（美食团购活动入口，含景区门票）"""
+        from services.jutuike_api import get_jutuike_api
+        api = get_jutuike_api()
+        # 门票用团购活动入口（act_id=27）
+        link = api.get_food_link(sid=f'ticket_{name[:10]}')
+
+        if link and link.get('h5'):
+            promo_url = link['h5']
+            mp_appid = link.get('mp_appid', 'wxde8ac0a21135c07d')
+            mp_path = link.get('mp_path', '')
+            mp_username = link.get('mp_username', 'gh_870576f3c6f9')
+        else:
+            promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/8bOw5ETz')
+            mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
+            mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
+            mp_username = 'gh_870576f3c6f9'
+
+        logger.info(f"🎫 门票推广链接: {name} -> {promo_url}")
 
         return {
             'url': promo_url,
-            'text': f'领券搜"{name}门票"',
+            'text': f'去美团搜"{name}门票"',
             'status': 'promo',
             'platform': 'meituan',
             'has_commission': True,
-            # 小程序跳转参数
             'mp_appid': mp_appid,
             'mp_path': mp_path,
-            'mp_username': 'gh_870576f3c6f9'
+            'mp_username': mp_username,
         }
 
     def _generate_search_link(self, name: str, city: str = '') -> Dict[str, str]:
