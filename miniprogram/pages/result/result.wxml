@@ -45,18 +45,27 @@
     <view class="quick-booking card" wx:if="{{links && links.length > 0}}">
       <view class="section-title">🔥 快速预订（返现50%）</view>
       
-      <!-- 酒店按钮 -->
+      <!-- 酒店按钮（每家酒店：美团 + 飞猪比价） -->
       <view class="link-group" wx:if="{{hotelLinks.length > 0}}">
-        <view class="group-label">🏨 酒店预订</view>
-        <view class="link-buttons">
-          <navigator 
-            wx:for="{{hotelLinks}}" 
-            wx:key="name"
-            url="/pages/webview/webview?url={{item.url}}&title={{item.name}}"
-            class="link-btn hotel-btn"
-          >
-            {{item.name}}
-          </navigator>
+        <view class="group-label">🏨 酒店预订 · 两平台比价</view>
+        <view class="hotel-pair-list">
+          <block wx:for="{{hotelLinks}}" wx:key="index">
+            <view class="hotel-pair-item" wx:if="{{item.platform === 'meituan'}}">
+              <view class="hotel-name-row">{{item.name}}</view>
+              <view class="hotel-btn-row">
+                <navigator
+                  url="/pages/webview/webview?url={{item.url}}&title={{item.name}}-美团"
+                  class="link-btn hotel-btn meituan-btn"
+                >🟡 美团订</navigator>
+                <!-- 飞猪按钮紧跟在下一个元素（platform=feizhu）-->
+                <navigator
+                  wx:if="{{hotelLinks[index+1] && hotelLinks[index+1].platform === 'feizhu'}}"
+                  url="/pages/webview/webview?url={{hotelLinks[index+1].url}}&title={{item.name}}-飞猪"
+                  class="link-btn hotel-btn feizhu-btn"
+                >🟠 飞猪比价</navigator>
+              </view>
+            </view>
+          </block>
         </view>
       </view>
 

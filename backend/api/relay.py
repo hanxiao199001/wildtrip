@@ -15,11 +15,12 @@ from urllib.parse import quote
 relay_bp = Blueprint('relay', __name__)
 
 
-# 美团搜索URL模板
+# 搜索URL模板
 MEITUAN_SEARCH_URLS = {
     'food':   'https://i.meituan.com/search?keyword={keyword}&type=deal&mt_app_version=9999',
     'hotel':  'https://i.meituan.com/hotel/search?keyword={keyword}',
     'ticket': 'https://i.meituan.com/search?keyword={keyword}%20门票&type=deal',
+    'feizhu': 'https://h5.fliggy.com/hotel/search?q={keyword}',
 }
 
 
@@ -72,7 +73,9 @@ def _get_cps_url(poi_type: str) -> str:
         from services.jutuike_api import get_jutuike_api
         api = get_jutuike_api()
 
-        if poi_type == 'hotel':
+        if poi_type == 'feizhu':
+            link = api.get_feizhu_link()
+        elif poi_type == 'hotel':
             link = api.get_hotel_link()
         else:
             link = api.get_food_link()
@@ -82,7 +85,7 @@ def _get_cps_url(poi_type: str) -> str:
     except Exception:
         pass
 
-    # 备用链接（聚推客美食团购活动）
+    # 备用链接
     return 'http://dpurl.cn/8bOw5ETz'
 
 

@@ -15,6 +15,7 @@ from loguru import logger
 ACT_IDS = {
     'food':   27,   # 【美食团购】全城必吃 错过馋一年！
     'hotel':  10,   # 美团酒店个性化分发页面
+    'feizhu': 29,   # 【渠道专享红包】飞猪酒店活动
     'minsu':   6,   # 【民宿】民宿大促销
     'movie':  17,   # 电影票在线预定活动
     'flight': 24,   # 美团机票特惠活动
@@ -112,6 +113,10 @@ class JutuikeAPI:
     def get_hotel_link(self, sid: str = 'hotel') -> Optional[Dict]:
         """获取美团酒店推广链接"""
         return self.get_act_link(ACT_IDS['hotel'], sid)
+
+    def get_feizhu_link(self, sid: str = 'feizhu') -> Optional[Dict]:
+        """获取飞猪酒店推广链接"""
+        return self.get_act_link(ACT_IDS['feizhu'], sid)
 
     def get_minsu_link(self, sid: str = 'minsu') -> Optional[Dict]:
         """获取民宿推广链接"""

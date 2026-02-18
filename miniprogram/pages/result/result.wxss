@@ -213,8 +213,46 @@
   display: inline-block;
 }
 
+.hotel-pair-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.hotel-pair-item {
+  background: #f9f9f9;
+  border-radius: 12rpx;
+  padding: 16rpx;
+}
+
+.hotel-name-row {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.hotel-btn-row {
+  display: flex;
+  gap: 16rpx;
+}
+
 .link-btn.hotel-btn {
   background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+  flex: 1;
+  text-align: center;
+}
+
+.link-btn.meituan-btn {
+  background: linear-gradient(135deg, #FFB900 0%, #FF9500 100%);
+  flex: 1;
+  text-align: center;
+}
+
+.link-btn.feizhu-btn {
+  background: linear-gradient(135deg, #FF6A00 0%, #ee0979 100%);
+  flex: 1;
+  text-align: center;
 }
 
 .link-btn.food-btn {

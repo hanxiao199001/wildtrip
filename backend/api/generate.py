@@ -280,12 +280,29 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         
         # 🔥 提取所有链接，供前端渲染按钮
         all_links = []
+        server_base = os.getenv('SERVER_BASE_URL', 'http://47.82.159.93:5000')
         for hotel in recommendations.get('hotels', []):
+            hotel_name = hotel['name']
+            # 美团酒店
+            from urllib.parse import urlencode as _urlencode
+            meituan_relay = f"{server_base}/api/relay/meituan?{_urlencode({'keyword': hotel_name, 'type': 'hotel', 'city': city})}"
             all_links.append({
                 'type': 'hotel',
-                'name': hotel['name'],
-                'url': hotel['link'],
-                'button_text': f"预订 {hotel['name']}"
+                'name': f"{hotel_name}",
+                'url': meituan_relay,
+                'button_text': f"美团订 {hotel_name}",
+                'platform': 'meituan',
+                'icon': '🟡'
+            })
+            # 飞猪酒店（比价）
+            feizhu_relay = f"{server_base}/api/relay/meituan?{_urlencode({'keyword': hotel_name, 'type': 'feizhu', 'city': city})}"
+            all_links.append({
+                'type': 'hotel',
+                'name': f"{hotel_name}",
+                'url': feizhu_relay,
+                'button_text': f"飞猪比价 {hotel_name}",
+                'platform': 'feizhu',
+                'icon': '🟠'
             })
         for restaurant in recommendations.get('restaurants', []):
             all_links.append({
