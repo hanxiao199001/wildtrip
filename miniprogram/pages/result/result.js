@@ -548,49 +548,51 @@ Page({
     const relayUrl = e.currentTarget.dataset.url || ''
     const poiType = e.currentTarget.dataset.type || 'food'
 
-    // 从 relay URL 提取 keyword 和 city，构建精准搜索路径
-    let searchPath = ''
-    if (relayUrl) {
-      const qs = relayUrl.split('?')[1] || ''
-      const params = {}
-      qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) params[k] = decodeURIComponent(v||'') })
-      const keyword = params.keyword || linkName
-      const city = params.city || ''
-      const ci = this._getCityId(city)
-      const searchUrl = poiType === 'hotel'
-        ? `https://i.meituan.com/hotel/search?keyword=${encodeURIComponent(keyword)}${ci?'&ci='+ci:''}`
-        : `https://i.meituan.com/search?keyword=${encodeURIComponent(keyword)}&type=deal${ci?'&ci='+ci:''}&mt_app_version=9999`
-      searchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`
-    }
+    // 解析 relay URL 参数
+    const qs = relayUrl.split('?')[1] || ''
+    const params = {}
+    qs.split('&').forEach(p => { const [k, v] = p.split('='); if (k) params[k] = decodeURIComponent(v || '') })
+    const keyword = params.keyword || linkName
+    const city = params.city || ''
+    const ci = this._getCityId(city)
+    const searchText = city ? `${city} ${keyword}` : keyword
 
-    // 跳转前复制搜索词到剪贴板
-    if (relayUrl) {
-      const qs = relayUrl.split('?')[1] || ''
-      const params = {}
-      qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) params[k] = decodeURIComponent(v||'') })
-      const keyword = params.keyword || linkName
-      const city = params.city || ''
-      const searchText = city ? `${city} ${keyword}` : keyword
-      wx.setClipboardData({
-        data: searchText,
-        success: () => {
-          wx.showToast({ title: `已复制"${searchText}"，到美团搜索框粘贴`, icon: 'none', duration: 3000 })
-        }
-      })
-    }
+    // 构建美团搜索路径
+    const searchUrl = poiType === 'hotel'
+      ? `https://i.meituan.com/hotel/search?keyword=${encodeURIComponent(keyword)}${ci ? '&ci=' + ci : ''}`
+      : `https://i.meituan.com/search?keyword=${encodeURIComponent(keyword)}&type=deal${ci ? '&ci=' + ci : ''}&mt_app_version=9999`
+    const searchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`
 
-    wx.navigateToMiniProgram({
-      appId: 'wxde8ac0a21135c07d',
-      path: searchPath,
+    // 复制搜索词 → 弹框确认 → 跳转
+    wx.setClipboardData({
+      data: searchText,
       success: () => {
-        console.log('跳转美团小程序成功:', linkName)
+        wx.showModal({
+          title: '即将跳转美团',
+          content: `已复制搜索词：\n"${searchText}"\n\n跳转后在美团搜索框长按粘贴即可`,
+          confirmText: '去美团搜索',
+          cancelText: '取消',
+          success: (res) => {
+            if (!res.confirm) return
+            wx.navigateToMiniProgram({
+              appId: 'wxde8ac0a21135c07d',
+              path: searchPath,
+              fail: () => {
+                this.openH5Fallback(e)
+              }
+            })
+          }
+        })
       },
-      fail: (err) => {
-          console.error('跳转美团小程序失败:', err)
-          // 失败时尝试 H5 备用链接
-          this.openH5Fallback(e)
-        }
-      })
+      fail: () => {
+        // 剪贴板失败时直接跳转
+        wx.navigateToMiniProgram({
+          appId: 'wxde8ac0a21135c07d',
+          path: searchPath,
+          fail: () => { this.openH5Fallback(e) }
+        })
+      }
+    })
   },
 
   // H5 备用打开方式
