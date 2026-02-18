@@ -221,7 +221,52 @@ Page({
 
       if (markdownContent && towxml) {
         try {
-          article = towxml.toJson(markdownContent, 'markdown')
+          // 🔥 towxml 链接点击处理（通过 option.events 传入，toJson 内部会注册到 global._events）
+          article = towxml.toJson(markdownContent, 'markdown', {
+            events: {
+              tap: (e) => {
+                const nodeData = e.currentTarget.dataset.data
+                const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
+                wx.showToast({ title: href ? '链接:' + href.substring(0, 20) : '无href', icon: 'none', duration: 3000 })
+                console.log('towxml tap, href:', href, 'nodeData:', JSON.stringify(nodeData && nodeData.attr))
+                if (!href) return
+                const isMeituanLink = href.includes('meituan') || href.includes('/api/relay/') || href.includes('dpurl') || href.includes('navi.sankuai')
+                if (isMeituanLink) {
+                  const mpAppId = 'wxde8ac0a21135c07d'
+                  const mpPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(href)}`
+                  // 自动复制城市名到剪贴板，省去用户手动粘贴
+                  const city = this.data.guide && this.data.guide.destination
+                  const doNavigate = () => {
+                    wx.navigateToMiniProgram({
+                      appId: mpAppId,
+                      path: mpPath,
+                      fail: () => {
+                        wx.navigateTo({
+                          url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购`
+                        })
+                      }
+                    })
+                  }
+                  if (city) {
+                    wx.setClipboardData({
+                      data: city,
+                      success: () => {
+                        wx.showToast({ title: `"${city}" 已复制，粘贴到美团搜索即可`, icon: 'none', duration: 2000 })
+                        setTimeout(doNavigate, 300)
+                      },
+                      fail: doNavigate
+                    })
+                  } else {
+                    doNavigate()
+                  }
+                } else if (href.startsWith('http')) {
+                  wx.navigateTo({
+                    url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=${encodeURIComponent('链接')}`
+                  })
+                }
+              }
+            }
+          })
           console.log('📖 内容渲染成功')
         } catch (e) {
           console.error('towxml渲染失败:', e)
