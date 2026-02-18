@@ -563,6 +563,22 @@ Page({
       searchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`
     }
 
+    // 跳转前复制搜索词到剪贴板
+    if (relayUrl) {
+      const qs = relayUrl.split('?')[1] || ''
+      const params = {}
+      qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) params[k] = decodeURIComponent(v||'') })
+      const keyword = params.keyword || linkName
+      const city = params.city || ''
+      const searchText = city ? `${city} ${keyword}` : keyword
+      wx.setClipboardData({
+        data: searchText,
+        success: () => {
+          wx.showToast({ title: `已复制"${searchText}"，到美团搜索框粘贴`, icon: 'none', duration: 3000 })
+        }
+      })
+    }
+
     wx.navigateToMiniProgram({
       appId: 'wxde8ac0a21135c07d',
       path: searchPath,
