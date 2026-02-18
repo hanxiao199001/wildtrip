@@ -4,9 +4,7 @@
   <view class="header-hero">
     <view class="hero-bg"></view>
     <view class="hero-content">
-      <view class="logo">🏕️</view>
-      <view class="title">野游记</view>
-      <view class="title-en">WildTrip</view>
+      <image class="logo-img" src="/images/logo.png" mode="aspectFit" />
       <view class="slogan">AI旅游助手，预订立省50%</view>
     </view>
 
