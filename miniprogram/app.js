@@ -4,12 +4,8 @@ const towxmlFn = require('./towxml/index')  // 🔥 引入towxml
 App({
   globalData: {
     // API配置
-<<<<<<< HEAD
-    apiBaseUrl: 'http://47.82.159.93:5000/api',
-=======
     apiBaseUrl: 'https://api.wildtrip.com.cn/api',  // 线上环境
     // apiBaseUrl: 'http://192.168.1.76:5000/api',  // 本地开发（局域网IP，真机调试用）
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 
     // 用户信息
     userInfo: null,

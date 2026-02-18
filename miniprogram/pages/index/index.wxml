@@ -1,89 +1,5 @@
 <!--野游记首页-->
 <view class="page-container index-page">
-<<<<<<< HEAD
-  <!-- 头部标题 -->
-  <view class="header">
-    <view class="logo">🔥</view>
-    <view class="title">野游记</view>
-    <view class="slogan">懒人旅游AI，预订返现50%</view>
-  </view>
-
-  <!-- 核心卖点 -->
-  <view class="features">
-    <view class="feature-item">
-      <view class="feature-icon">🚀</view>
-      <view class="feature-title">30秒生成</view>
-      <view class="feature-desc">传统平台需5分钟</view>
-    </view>
-    <view class="feature-item">
-      <view class="feature-icon">😴</view>
-      <view class="feature-title">一句话搞定</view>
-      <view class="feature-desc">不用多轮对话</view>
-    </view>
-    <view class="feature-item">
-      <view class="feature-icon">💰</view>
-      <view class="feature-title">返现50%</view>
-      <view class="feature-desc">真的省钱</view>
-    </view>
-  </view>
-
-  <!-- 模式选择 -->
-  <view class="mode-selector card">
-    <view class="mode-title">选择攻略类型</view>
-    <view class="mode-list">
-      <view 
-        class="mode-item {{mode === item.id ? 'active' : ''}}"
-        wx:for="{{modes}}"
-        wx:key="id"
-        bindtap="onModeChange"
-        data-mode="{{item.id}}"
-      >
-        <view class="mode-icon">{{item.icon}}</view>
-        <view class="mode-name">{{item.name}}</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 搜索输入 -->
-  <view class="search-section card">
-    <view class="search-label">告诉我你想去哪玩？</view>
-    <textarea 
-      class="search-input"
-      placeholder="例如：海口3天亲子游，预算5000"
-      placeholder-style="color: #999999"
-      value="{{query}}"
-      bindinput="onQueryInput"
-      maxlength="200"
-      auto-height
-    />
-    <view class="search-tips">
-      <view class="tip-item">💡 说明天数、人数、预算</view>
-      <view class="tip-item">💡 说明偏好（亲子/美食/穷游）</view>
-    </view>
-    
-    <button 
-      class="btn-primary search-btn"
-      bindtap="onGenerate"
-      disabled="{{!query || isGenerating}}"
-    >
-      {{isGenerating ? '生成中...' : '30秒生成攻略 + 返现'}}
-    </button>
-  </view>
-
-  <!-- 案例展示 -->
-  <view class="examples">
-    <view class="examples-title">热门案例</view>
-    <view class="example-list">
-      <view 
-        class="example-item" 
-        wx:for="{{examples}}" 
-        wx:key="index"
-        bindtap="onExampleTap"
-        data-query="{{item.query}}"
-      >
-        <view class="example-text">{{item.query}}</view>
-        <view class="example-tag tag tag-primary">{{item.tag}}</view>
-=======
   <!-- 头部区域（渐变背景 - 紧凑版） -->
   <view class="header-hero">
     <view class="hero-bg"></view>
@@ -166,13 +82,10 @@
           <view class="history-theme-title">{{item.title}}</view>
           <view class="history-theme-desc">{{item.desc}}</view>
         </view>
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
       </view>
     </view>
   </view>
 
-<<<<<<< HEAD
-=======
   <!-- 精选攻略（紧跟Hero下方，首屏可见） -->
   <view class="featured-section" wx:if="{{featuredGuides.length > 0 && currentMode !== 'history'}}">
     <view class="section-header">
@@ -220,18 +133,12 @@
     </scroll-view>
   </view>
 
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
   <!-- 返现说明 -->
   <view class="cashback-banner card" bindtap="onCashbackInfo">
     <view class="cashback-icon">💰</view>
     <view class="cashback-content">
-<<<<<<< HEAD
-      <view class="cashback-title">预订返现50%</view>
-      <view class="cashback-desc">酒店+餐饮+门票，都返现</view>
-=======
       <view class="cashback-title">预订立省50%</view>
       <view class="cashback-desc">酒店+餐饮+门票，即订即省</view>
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
     </view>
     <view class="cashback-arrow">→</view>
   </view>
