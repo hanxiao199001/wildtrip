@@ -281,7 +281,7 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         
         # 🔥 提取所有链接，供前端渲染按钮
         all_links = []
-        server_base = os.getenv('SERVER_BASE_URL', 'http://47.82.159.93:5000')
+        server_base = os.getenv('SERVER_BASE_URL', 'https://api.wildtrip.com.cn')
         for hotel in recommendations.get('hotels', []):
             hotel_name = hotel['name']
             # 美团酒店

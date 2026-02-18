@@ -52,7 +52,7 @@ class AffiliateManager:
     def _build_relay_url(self, name: str, city: str, poi_type: str) -> str:
         """生成野游记中转页URL（负责CPS追踪 + 精准搜索落地）"""
         from urllib.parse import urlencode
-        server = os.getenv('SERVER_BASE_URL', 'http://47.82.159.93:5000')
+        server = os.getenv('SERVER_BASE_URL', 'https://api.wildtrip.com.cn')
         params = {'keyword': name, 'type': poi_type}
         if city:
             params['city'] = city
