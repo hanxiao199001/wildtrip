@@ -575,10 +575,6 @@ Page({
           this.openH5Fallback(e)
         }
       })
-    } else {
-      // 聚推客未配置，用 H5 链接
-      this.openH5Fallback(e)
-    }
   },
 
   // H5 备用打开方式
