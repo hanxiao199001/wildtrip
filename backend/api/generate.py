@@ -8,6 +8,7 @@ from flask_socketio import emit, join_room, leave_room
 import uuid
 import threading
 import time
+import os
 from loguru import logger
 import sys
 from pathlib import Path
