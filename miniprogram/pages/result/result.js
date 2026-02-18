@@ -68,7 +68,32 @@ Page({
         
         // 🔥 使用towxml渲染Markdown（支持图片）
         const towxml = app.globalData.towxml
-        const article = towxml.toJson(result.content || '', 'markdown')
+        const article = towxml.toJson(result.content || '', 'markdown', {
+          events: {
+            tap: (e) => {
+              const nodeData = e.currentTarget.dataset.data
+              const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
+              if (!href) return
+              wx.showToast({ title: '跳转中...', icon: 'loading', duration: 1500 })
+              const isMeituanLink = href.includes('meituan') || href.includes('/api/relay/') || href.includes('dpurl')
+              if (isMeituanLink) {
+                wx.navigateToMiniProgram({
+                  appId: 'wxde8ac0a21135c07d',
+                  path: `/index/pages/h5/h5?weburl=${encodeURIComponent(href)}`,
+                  fail: () => {
+                    wx.navigateTo({
+                      url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购`
+                    })
+                  }
+                })
+              } else if (href.startsWith('http')) {
+                wx.navigateTo({
+                  url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=链接`
+                })
+              }
+            }
+          }
+        })
 
         // 🔥 获取美团小程序跳转信息（聚推客联盟）
         const meituanMiniprogram = result.meituan_miniprogram || null

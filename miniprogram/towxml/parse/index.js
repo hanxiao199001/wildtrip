@@ -5,7 +5,7 @@ const parse2 = require('./parse2/index'),
     // html与wxml转换关系
     correspondTag = (()=>{
         let result = {
-                a:'navigator',
+                a:'view',
                 todogroup:'checkbox-group',
                 audio:'audio-player'
             };
