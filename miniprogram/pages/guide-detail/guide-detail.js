@@ -244,8 +244,11 @@ Page({
                     success: (res) => {
                       if (!res.confirm) return
                       if (searchText) wx.setClipboardData({ data: searchText, fail: ()=>{} })
+                      // 直接把美团搜索URL作为weburl传入，尝试直达搜索结果
+                      const mpSearchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(href)}`
                       wx.navigateToMiniProgram({
                         appId: 'wxde8ac0a21135c07d',
+                        path: mpSearchPath,
                         fail: () => {
                           wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
                         }
