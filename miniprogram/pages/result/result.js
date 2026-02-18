@@ -79,7 +79,8 @@ Page({
               if (isMeituanLink) {
                 wx.navigateToMiniProgram({
                   appId: 'wxde8ac0a21135c07d',
-                  path: `/index/pages/h5/h5?weburl=${encodeURIComponent(href)}`,
+                  // 把 relay URL 改成直跳参数，让服务端直接 302 到美团搜索
+                  path: `/index/pages/h5/h5?weburl=${encodeURIComponent(href.includes('?') ? href + '&direct=1' : href + '?direct=1')}`,
                   fail: () => {
                     wx.navigateTo({
                       url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购`

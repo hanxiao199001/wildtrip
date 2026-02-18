@@ -81,6 +81,11 @@ def relay_meituan():
         fallback_keyword = f"{city} {keyword}".strip() if city else keyword
         search_url = search_url_tpl.format(keyword=quote(fallback_keyword), ci=0).replace('&ci=0', '')
 
+    # 直跳模式：直接 302 重定向到搜索页（给小程序 webview 用）
+    if request.args.get('direct') == '1':
+        from flask import redirect
+        return redirect(search_url, 302)
+
     # 获取CPS追踪链接（从聚推客API动态获取）
     cps_url = _get_cps_url(poi_type)
 
