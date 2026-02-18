@@ -563,29 +563,16 @@ Page({
       : `https://i.meituan.com/search?keyword=${encodeURIComponent(keyword)}&type=deal${ci ? '&ci=' + ci : ''}&mt_app_version=9999`
     const searchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`
 
-    // 复制搜索词 → 弹框确认 → 跳转
-    wx.setClipboardData({
-      data: searchText,
-      success: () => {
-        wx.showModal({
-          title: '即将跳转美团',
-          content: `已复制搜索词：\n"${searchText}"\n\n跳转后在美团搜索框长按粘贴即可`,
-          confirmText: '去美团搜索',
-          cancelText: '取消',
-          success: (res) => {
-            if (!res.confirm) return
-            wx.navigateToMiniProgram({
-              appId: 'wxde8ac0a21135c07d',
-              path: searchPath,
-              fail: () => {
-                this.openH5Fallback(e)
-              }
-            })
-          }
-        })
-      },
-      fail: () => {
-        // 剪贴板失败时直接跳转
+    // 先弹框确认，点确认后复制+跳转
+    wx.showModal({
+      title: '去美团搜索',
+      content: `搜索词：${searchText}\n\n点击确认后自动复制，跳转美团后在搜索框粘贴`,
+      confirmText: '确认跳转',
+      cancelText: '取消',
+      success: (res) => {
+        if (!res.confirm) return
+        // 复制搜索词（不管成功失败都跳转）
+        wx.setClipboardData({ data: searchText, fail: () => {} })
         wx.navigateToMiniProgram({
           appId: 'wxde8ac0a21135c07d',
           path: searchPath,
