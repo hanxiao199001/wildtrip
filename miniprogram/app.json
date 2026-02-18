@@ -1,19 +1,12 @@
 {
   "pages": [
     "pages/index/index",
-<<<<<<< HEAD
-    "pages/generate/generate",
-    "pages/result/result",
-    "pages/cashback/cashback",
-    "pages/webview/webview"
-=======
     "pages/clarify/clarify",
     "pages/generate/generate",
     "pages/result/result",
     "pages/cashback/cashback",
     "pages/webview/webview",
     "pages/guide-detail/guide-detail"
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
   ],
   "window": {
     "navigationBarTitleText": "野游记",
@@ -42,6 +35,9 @@
       }
     ]
   },
+  "navigateToMiniProgramAppIdList": [
+    "wxde8ac0a21135c07d"
+  ],
   "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

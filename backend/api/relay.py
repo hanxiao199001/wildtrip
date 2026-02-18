@@ -15,11 +15,39 @@ from urllib.parse import quote
 relay_bp = Blueprint('relay', __name__)
 
 
-# 搜索URL模板
+# 美团城市ID映射（ci参数，直接定位城市，不依赖GPS）
+MEITUAN_CITY_IDS = {
+    '北京': 1, '上海': 2, '广州': 3, '深圳': 4, '天津': 5,
+    '杭州': 6, '南京': 7, '武汉': 8, '西安': 9, '沈阳': 10,
+    '青岛': 11, '大连': 12, '苏州': 13, '重庆': 14, '成都': 15,
+    '长沙': 16, '郑州': 17, '厦门': 18, '福州': 20, '济南': 21,
+    '哈尔滨': 22, '昆明': 23, '合肥': 26, '南昌': 28, '南宁': 29,
+    '贵阳': 30, '太原': 35, '兰州': 37, '长春': 38, '乌鲁木齐': 40,
+    '宁波': 54, '无锡': 55, '温州': 57, '东莞': 58, '佛山': 59,
+    '石家庄': 70, '呼和浩特': 80, '银川': 93, '西宁': 108,
+    '海口': 196, '三亚': 252,
+}
+
+def get_city_id(city: str) -> int:
+    """获取美团城市ID，支持模糊匹配"""
+    if not city:
+        return 0
+    # 精确匹配
+    if city in MEITUAN_CITY_IDS:
+        return MEITUAN_CITY_IDS[city]
+    # 模糊匹配（去掉"市"字）
+    city_short = city.replace('市', '').replace('区', '')
+    for name, cid in MEITUAN_CITY_IDS.items():
+        if city_short in name or name in city_short:
+            return cid
+    return 0
+
+
+# 搜索URL模板（{ci}为城市ID占位，为0时不加城市参数）
 MEITUAN_SEARCH_URLS = {
-    'food':   'https://i.meituan.com/search?keyword={keyword}&type=deal&mt_app_version=9999',
-    'hotel':  'https://i.meituan.com/hotel/search?keyword={keyword}',
-    'ticket': 'https://i.meituan.com/search?keyword={keyword}%20门票&type=deal',
+    'food':   'https://i.meituan.com/search?keyword={keyword}&type=deal&ci={ci}&mt_app_version=9999',
+    'hotel':  'https://i.meituan.com/hotel/search?keyword={keyword}&ci={ci}',
+    'ticket': 'https://i.meituan.com/search?keyword={keyword}%20门票&type=deal&ci={ci}',
     'feizhu': 'https://h5.fliggy.com/hotel/search?q={keyword}',
 }
 
@@ -38,14 +66,25 @@ def relay_meituan():
     poi_type = request.args.get('type', 'food')
     city = request.args.get('city', '').strip()
 
-    # 组合关键词：城市 + 名称
-    search_keyword = f"{city} {keyword}".strip() if city else keyword
-    if not search_keyword:
-        search_keyword = '团购'
+    # 获取城市ID（直接定位城市，不依赖GPS）
+    city_id = get_city_id(city)
+
+    # 关键词只用店名（城市已通过ci参数指定，搜索更精准）
+    search_keyword = keyword if keyword else '团购'
 
     # 获取目标搜索URL
     search_url_tpl = MEITUAN_SEARCH_URLS.get(poi_type, MEITUAN_SEARCH_URLS['food'])
-    search_url = search_url_tpl.format(keyword=quote(search_keyword))
+    if city_id:
+        search_url = search_url_tpl.format(keyword=quote(search_keyword), ci=city_id)
+    else:
+        # 没有城市ID时退回到城市+店名拼接搜索
+        fallback_keyword = f"{city} {keyword}".strip() if city else keyword
+        search_url = search_url_tpl.format(keyword=quote(fallback_keyword), ci=0).replace('&ci=0', '')
+
+    # 直跳模式：直接 302 重定向到搜索页（给小程序 webview 用）
+    if request.args.get('direct') == '1':
+        from flask import redirect
+        return redirect(search_url, 302)
 
     # 获取CPS追踪链接（从聚推客API动态获取）
     cps_url = _get_cps_url(poi_type)

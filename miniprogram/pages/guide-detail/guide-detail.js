@@ -227,42 +227,49 @@ Page({
               tap: (e) => {
                 const nodeData = e.currentTarget.dataset.data
                 const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
-                wx.showToast({ title: href ? '链接:' + href.substring(0, 20) : '无href', icon: 'none', duration: 3000 })
-                console.log('towxml tap, href:', href, 'nodeData:', JSON.stringify(nodeData && nodeData.attr))
                 if (!href) return
-                const isMeituanLink = href.includes('meituan') || href.includes('/api/relay/') || href.includes('dpurl') || href.includes('navi.sankuai')
+                const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('meituan') || href.includes('navi.sankuai')
                 if (isMeituanLink) {
-                  const mpAppId = 'wxde8ac0a21135c07d'
-                  const mpPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(href)}`
-                  // 自动复制城市名到剪贴板，省去用户手动粘贴
-                  const city = this.data.guide && this.data.guide.destination
+                  // 从URL参数提取关键词和城市
+                  const qs = href.split('?')[1] || ''
+                  const qparams = {}
+                  qs.split('&').forEach(p => { const [k, v] = p.split('='); if (k) qparams[k] = decodeURIComponent(v || '') })
+                  const keyword = qparams.keyword || ''
+                  const urlCity = qparams.city || ''
+                  // 支持 q= 格式（直接美团搜索URL）和 keyword+city 格式（relay URL），兜底用攻略目的地
+                  const guideCity = (this.data.guide && this.data.guide.destination) || ''
+                  const searchText = qparams.q || (urlCity ? `${urlCity} ${keyword}` : keyword) || guideCity
+
                   const doNavigate = () => {
+                    const mpSearchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(href)}`
                     wx.navigateToMiniProgram({
-                      appId: mpAppId,
-                      path: mpPath,
+                      appId: 'wxde8ac0a21135c07d',
+                      path: mpSearchPath,
                       fail: () => {
-                        wx.navigateTo({
-                          url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购`
-                        })
+                        wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
                       }
                     })
                   }
-                  if (city) {
-                    wx.setClipboardData({
-                      data: city,
-                      success: () => {
-                        wx.showToast({ title: `"${city}" 已复制，粘贴到美团搜索即可`, icon: 'none', duration: 2000 })
-                        setTimeout(doNavigate, 300)
-                      },
-                      fail: doNavigate
-                    })
-                  } else {
-                    doNavigate()
-                  }
-                } else if (href.startsWith('http')) {
-                  wx.navigateTo({
-                    url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=${encodeURIComponent('链接')}`
+
+                  wx.showModal({
+                    title: '跳转美团搜索',
+                    content: searchText
+                      ? `搜索词已复制：\n"${searchText}"\n\n跳转后在美团搜索框长按粘贴`
+                      : '即将跳转美团小程序',
+                    confirmText: '去美团',
+                    cancelText: '取消',
+                    success: (res) => {
+                      if (!res.confirm) return
+                      if (searchText) {
+                        // 先设剪贴板，成功后再跳转（避免竞态）
+                        wx.setClipboardData({ data: searchText, success: doNavigate, fail: doNavigate })
+                      } else {
+                        doNavigate()
+                      }
+                    }
                   })
+                } else if (href.startsWith('http')) {
+                  wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=链接` })
                 }
               }
             }

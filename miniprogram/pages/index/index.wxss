@@ -48,6 +48,14 @@
   animation: float 3s ease-in-out infinite;
 }
 
+.logo-img {
+  width: 220rpx;
+  height: 220rpx;
+  margin-bottom: 12rpx;
+  filter: drop-shadow(0 4rpx 12rpx rgba(255, 255, 255, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8rpx); }
