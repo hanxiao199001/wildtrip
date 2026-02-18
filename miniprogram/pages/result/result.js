@@ -113,6 +113,13 @@ Page({
                 } else {
                   searchUrl = `https://i.meituan.com/search?keyword=${encodeURIComponent(keyword)}&type=deal${ci ? '&ci=' + ci : ''}&mt_app_version=9999`
                 }
+                // 调试：显示构建的 URL
+                wx.showModal({
+                  title: '调试信息',
+                  content: `keyword:${keyword}\ncity:${city}\nci:${ci}\nURL:${searchUrl.substring(0, 80)}`,
+                  showCancel: false
+                })
+                return // 临时 return，先确认 URL 正确后再打开
                 wx.navigateToMiniProgram({
                   appId: 'wxde8ac0a21135c07d',
                   path: `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`,
