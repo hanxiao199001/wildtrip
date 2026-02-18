@@ -59,6 +59,38 @@ def list_guides():
         }), 500
 
 
+@guides_bp.route('/guides/featured', methods=['GET'])
+def get_featured_guides():
+    """
+    获取精选攻略（取最近生成的N篇）
+
+    参数：
+      limit: 返回数量（默认6）
+    """
+    try:
+        from services.seo_service import get_seo_service
+        limit = int(request.args.get('limit', 6))
+        seo = get_seo_service()
+        all_guides = seo.get_all_guides()
+
+        if not all_guides:
+            return jsonify([]), 200
+
+        # 按时间倒序，取前N篇
+        featured = sorted(all_guides, key=lambda g: g.get('created_at', ''), reverse=True)[:limit]
+
+        for guide in featured:
+            slug_parts = guide['slug'].rsplit('-', 2)
+            guide['title'] = slug_parts[0] if slug_parts else guide['slug']
+
+        logger.info(f"⭐ 返回精选攻略: {len(featured)}篇")
+        return jsonify(featured), 200
+
+    except Exception as e:
+        logger.error(f"获取精选攻略失败: {e}")
+        return jsonify({'error': str(e), 'code': 'INTERNAL_ERROR'}), 500
+
+
 @guides_bp.route('/guides/<slug>', methods=['GET'])
 def get_guide_detail(slug):
     """
