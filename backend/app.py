@@ -53,10 +53,12 @@ logger.add(
 from api.generate import generate_bp, register_socketio_events
 from api.guides import guides_bp
 from api.user import user_bp
+from api.relay import relay_bp
 
 app.register_blueprint(generate_bp, url_prefix='/api')
 app.register_blueprint(guides_bp, url_prefix='/api')
 app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(relay_bp, url_prefix='/api')
 register_socketio_events(socketio)
 
 logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统）")

@@ -49,6 +49,15 @@ class AffiliateManager:
         
         logger.info(f"✅ 联盟配置完成 | 美团+淘宝双链接模式")
 
+    def _build_relay_url(self, name: str, city: str, poi_type: str) -> str:
+        """生成野游记中转页URL（负责CPS追踪 + 精准搜索落地）"""
+        from urllib.parse import urlencode
+        server = os.getenv('SERVER_BASE_URL', 'http://47.82.159.93:5000')
+        params = {'keyword': name, 'type': poi_type}
+        if city:
+            params['city'] = city
+        return f"{server}/api/relay/meituan?{urlencode(params)}"
+
     def generate_booking_link(
         self,
         poi_type: str,
@@ -74,28 +83,25 @@ class AffiliateManager:
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
-        """生成美团链接（餐饮团购）- 通过聚推客API动态获取"""
+        """生成美团链接（餐饮团购）- 中转页模式：CPS追踪 + 精准搜索落地"""
+        relay_url = self._build_relay_url(name, city, 'food')
+
+        # 小程序端：用聚推客API返回的page_path（含CPS token）
         from services.jutuike_api import get_jutuike_api
         api = get_jutuike_api()
-        link = api.get_food_link(sid=f'food_{name[:10]}')
-
-        if link and link.get('h5'):
-            promo_url = link['h5']
-            mp_appid = link.get('mp_appid', 'wxde8ac0a21135c07d')
-            mp_path = link.get('mp_path', '')
-            mp_username = link.get('mp_username', 'gh_870576f3c6f9')
+        link = api.get_food_link()
+        mp_appid = 'wxde8ac0a21135c07d'
+        mp_username = 'gh_870576f3c6f9'
+        if link and link.get('mp_path'):
+            mp_path = link['mp_path']
         else:
-            # 降级到备用链接
-            promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/8bOw5ETz')
-            mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-            mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
-            mp_username = 'gh_870576f3c6f9'
+            mp_path = f"/index/pages/h5/h5?weburl={quote(relay_url)}"
 
-        logger.info(f"📱 美食团购链接: {name} -> {promo_url}")
+        logger.info(f"📱 美食团购中转: {name} -> {relay_url}")
 
         return {
-            'url': promo_url,
-            'text': f'去美团看团购 "{name}"',
+            'url': relay_url,
+            'text': f'去美团搜"{name}"团购',
             'status': 'promo',
             'platform': 'meituan',
             'has_commission': True,
@@ -120,25 +126,22 @@ class AffiliateManager:
                 'has_commission': False
             }
         else:
+            relay_url = self._build_relay_url(name, city, 'hotel')
+
             from services.jutuike_api import get_jutuike_api
             api = get_jutuike_api()
-            link = api.get_hotel_link(sid=f'hotel_{name[:10]}')
-
-            if link and link.get('h5'):
-                promo_url = link['h5']
-                mp_appid = link.get('mp_appid', 'wxde8ac0a21135c07d')
-                mp_path = link.get('mp_path', '')
-                mp_username = link.get('mp_username', 'gh_870576f3c6f9')
+            link = api.get_hotel_link()
+            mp_appid = 'wxde8ac0a21135c07d'
+            mp_username = 'gh_870576f3c6f9'
+            if link and link.get('mp_path'):
+                mp_path = link['mp_path']
             else:
-                promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/8bOw5ETz')
-                mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-                mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
-                mp_username = 'gh_870576f3c6f9'
+                mp_path = f"/index/pages/h5/h5?weburl={quote(relay_url)}"
 
-            logger.info(f"🏨 酒店推广链接: {name} -> {promo_url}")
+            logger.info(f"🏨 酒店中转链接: {name} -> {relay_url}")
 
             return {
-                'url': promo_url,
+                'url': relay_url,
                 'text': f'去美团预订"{name}"',
                 'status': 'promo',
                 'platform': 'meituan',
@@ -155,26 +158,22 @@ class AffiliateManager:
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
         """生成门票链接（美食团购活动入口，含景区门票）"""
+        relay_url = self._build_relay_url(name, city, 'ticket')
+
         from services.jutuike_api import get_jutuike_api
         api = get_jutuike_api()
-        # 门票用团购活动入口（act_id=27）
-        link = api.get_food_link(sid=f'ticket_{name[:10]}')
-
-        if link and link.get('h5'):
-            promo_url = link['h5']
-            mp_appid = link.get('mp_appid', 'wxde8ac0a21135c07d')
-            mp_path = link.get('mp_path', '')
-            mp_username = link.get('mp_username', 'gh_870576f3c6f9')
+        link = api.get_food_link()
+        mp_appid = 'wxde8ac0a21135c07d'
+        mp_username = 'gh_870576f3c6f9'
+        if link and link.get('mp_path'):
+            mp_path = link['mp_path']
         else:
-            promo_url = os.getenv('MEITUAN_PROMO_URL', 'http://dpurl.cn/8bOw5ETz')
-            mp_appid = os.getenv('MEITUAN_MP_APPID', 'wxde8ac0a21135c07d')
-            mp_path = f"/index/pages/h5/h5?weburl={quote(promo_url)}"
-            mp_username = 'gh_870576f3c6f9'
+            mp_path = f"/index/pages/h5/h5?weburl={quote(relay_url)}"
 
-        logger.info(f"🎫 门票推广链接: {name} -> {promo_url}")
+        logger.info(f"🎫 门票中转链接: {name} -> {relay_url}")
 
         return {
-            'url': promo_url,
+            'url': relay_url,
             'text': f'去美团搜"{name}门票"',
             'status': 'promo',
             'platform': 'meituan',
