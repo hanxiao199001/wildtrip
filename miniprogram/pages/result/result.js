@@ -113,13 +113,6 @@ Page({
                 } else {
                   searchUrl = `https://i.meituan.com/search?keyword=${encodeURIComponent(keyword)}&type=deal${ci ? '&ci=' + ci : ''}&mt_app_version=9999`
                 }
-                // 调试：显示构建的 URL
-                wx.showModal({
-                  title: '调试信息',
-                  content: `keyword:${keyword}\ncity:${city}\nci:${ci}\nURL:${searchUrl.substring(0, 80)}`,
-                  showCancel: false
-                })
-                return // 临时 return，先确认 URL 正确后再打开
                 wx.navigateToMiniProgram({
                   appId: 'wxde8ac0a21135c07d',
                   path: `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`,
@@ -528,20 +521,55 @@ Page({
     }
   },
 
+  // 城市ID映射（复用）
+  _getCityId(city) {
+    const CITY_IDS = {
+      '北京':1,'上海':2,'广州':3,'深圳':4,'天津':5,
+      '杭州':6,'南京':7,'武汉':8,'西安':9,'成都':15,
+      '长沙':16,'郑州':17,'厦门':18,'福州':20,'济南':21,
+      '昆明':23,'合肥':26,'南昌':28,'南宁':29,'重庆':14,
+      '苏州':13,'宁波':54,'无锡':55,'青岛':11,'大连':12,
+      '沈阳':10,'哈尔滨':22,'长春':38,'贵阳':30,'太原':35,
+      '石家庄':70,'东莞':58,'佛山':59,'温州':57,
+      '海口':196,'三亚':252,
+    }
+    const short = (city || '').replace('市','').replace('区','')
+    if (CITY_IDS[city]) return CITY_IDS[city]
+    if (CITY_IDS[short]) return CITY_IDS[short]
+    for (const [name, id] of Object.entries(CITY_IDS)) {
+      if (short.includes(name) || name.includes(short)) return id
+    }
+    return 0
+  },
+
   // 🔥 跳转美团小程序（聚推客联盟 CPS）
   onJumpMeituan(e) {
-    const { meituanMiniprogram } = this.data
     const linkName = e.currentTarget.dataset.name || '美团'
+    const relayUrl = e.currentTarget.dataset.url || ''
+    const poiType = e.currentTarget.dataset.type || 'food'
 
-    // 优先使用小程序跳转（带返佣追踪）
-    if (meituanMiniprogram && meituanMiniprogram.enabled && meituanMiniprogram.page_path) {
-      wx.navigateToMiniProgram({
-        appId: meituanMiniprogram.app_id,
-        path: meituanMiniprogram.page_path,
-        success: () => {
-          console.log('跳转美团小程序成功:', linkName)
-        },
-        fail: (err) => {
+    // 从 relay URL 提取 keyword 和 city，构建精准搜索路径
+    let searchPath = ''
+    if (relayUrl) {
+      const qs = relayUrl.split('?')[1] || ''
+      const params = {}
+      qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) params[k] = decodeURIComponent(v||'') })
+      const keyword = params.keyword || linkName
+      const city = params.city || ''
+      const ci = this._getCityId(city)
+      const searchUrl = poiType === 'hotel'
+        ? `https://i.meituan.com/hotel/search?keyword=${encodeURIComponent(keyword)}${ci?'&ci='+ci:''}`
+        : `https://i.meituan.com/search?keyword=${encodeURIComponent(keyword)}&type=deal${ci?'&ci='+ci:''}&mt_app_version=9999`
+      searchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`
+    }
+
+    wx.navigateToMiniProgram({
+      appId: 'wxde8ac0a21135c07d',
+      path: searchPath,
+      success: () => {
+        console.log('跳转美团小程序成功:', linkName)
+      },
+      fail: (err) => {
           console.error('跳转美团小程序失败:', err)
           // 失败时尝试 H5 备用链接
           this.openH5Fallback(e)
