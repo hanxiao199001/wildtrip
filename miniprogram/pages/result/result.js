@@ -83,11 +83,11 @@ Page({
                 qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) qparams[k] = decodeURIComponent(v||'') })
                 const keyword = qparams.keyword || ''
                 const city = qparams.city || ''
-                const searchText = city ? `${city} ${keyword}` : keyword
+                const searchText = qparams.q || (city ? `${city} ${keyword}` : keyword)
                 // 弹框确认，复制搜索词后跳转
                 wx.showModal({
                   title: '跳转美团搜索',
-                  content: `搜索词已复制：\n${searchText || '请手动搜索'}\n\nhref:${href.substring(0,60)}\nkw:${keyword} city:${city}`,
+                  content: `搜索词已复制：\n"${searchText || '未找到搜索词'}"\n\n跳转后在美团搜索框长按粘贴`,
                   confirmText: '去美团',
                   cancelText: '取消',
                   success: (res) => {
