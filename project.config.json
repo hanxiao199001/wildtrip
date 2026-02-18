@@ -1,6 +1,7 @@
 {
   "miniprogramRoot": "miniprogram/",
   "setting": {
+    "urlCheck": false,
     "es6": true,
     "postcss": true,
     "minified": true,
@@ -30,6 +31,9 @@
     "ignore": [],
     "include": []
   },
-  "appid": "wx468e5f299ea8ec9b",
-  "editorSetting": {}
+  "appid": "wxb5430a06dd7fa579",
+  "projectname": "wildtrip",
+  "description": "野游记 WildTrip - 懒人旅游AI，预订返现50%",
+  "editorSetting": {},
+  "libVersion": "3.14.2"
 }

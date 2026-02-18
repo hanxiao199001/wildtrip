@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "攻略详情",
   "usingComponents": {
-    "towxml": "/towxml/towxml"
+    "towxml": "/towxml/towxml",
+    "share-poster": "/components/share-poster/share-poster"
   }
 }

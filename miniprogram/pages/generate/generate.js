@@ -4,7 +4,11 @@ const app = getApp()
 Page({
   data: {
     query: '',
+<<<<<<< HEAD
     mode: 'full',  // full, hotel, food, history
+=======
+    mode: 'full',
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
     taskId: '',
     progress: 0,
     statusText: '正在生成攻略...',
@@ -16,10 +20,24 @@ Page({
   timer: null,
 
   onLoad(options) {
+<<<<<<< HEAD
     const query = decodeURIComponent(options.query || '')
     const mode = options.mode || 'full'
     this.setData({ query, mode })
     
+=======
+    var query = decodeURIComponent(options.query || '')
+    var mode = options.mode || app.globalData._generateMode || 'full'
+    app.globalData._generateMode = null  // 清除，避免污染
+
+    var isHistory = mode === 'history'
+    this.setData({
+      query: query,
+      mode: mode,
+      statusText: isHistory ? '📜 正在生成历史人文攻略...' : '正在生成攻略...'
+    })
+
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
     if (query) {
       this.startGenerate()
     }
@@ -33,6 +51,7 @@ Page({
 
   // 开始生成
   async startGenerate() {
+<<<<<<< HEAD
     const { query, mode } = this.data
 
     this.addMessage('🔥 野游记开始工作...')
@@ -42,6 +61,19 @@ Page({
       const res = await this.callAPI('/generate', {
         query,
         mode
+=======
+    var query = this.data.query
+    var mode = this.data.mode
+    var isHistory = mode === 'history'
+
+    this.addMessage(isHistory ? '📜 历史人文导游上线...' : '🔥 野游记开始工作...')
+
+    try {
+      // 调用后端API
+      var res = await this.callAPI('/generate', {
+        query: query,
+        mode: mode
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
       })
 
       if (res.task_id) {

@@ -1,159 +1,410 @@
 /* 野游记首页样式 */
 
 .index-page {
-  padding: 32rpx;
+  padding: 0;
+  padding-bottom: 32rpx;
 }
 
-/* 头部 */
-.header {
+/* ========== 头部Hero区域 ========== */
+.header-hero {
+  position: relative;
+  padding: 8rpx 40rpx 36rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0D9488 0%, #20B2AA 30%, #5FCCC4 60%, #A7F3D0 100%);
+  z-index: 0;
+}
+
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -2rpx;
+  left: -4rpx;
+  right: -4rpx;
+  height: 50rpx;
+  background: #F5F5F5;
+  border-radius: 50rpx 50rpx 0 0;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
   text-align: center;
-  padding: 48rpx 0 64rpx;
+  padding: 0rpx 0 8rpx;
 }
 
 .logo {
   font-size: 120rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
+  filter: drop-shadow(0 4rpx 12rpx rgba(255, 255, 255, 0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8rpx); }
 }
 
 .title {
   font-size: 56rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 16rpx;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 4rpx;
+  letter-spacing: 4rpx;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.title-en {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  margin-bottom: 12rpx;
+  opacity: 0.9;
 }
 
 .slogan {
-  font-size: 28rpx;
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-/* 特性展示 */
-.features {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 48rpx;
-}
-
-.feature-item {
-  flex: 1;
-  text-align: center;
-  padding: 24rpx;
-  background: var(--bg-card);
-  border-radius: var(--radius-normal);
-  margin: 0 8rpx;
-  box-shadow: var(--shadow-light);
-}
-
-.feature-icon {
-  font-size: 64rpx;
-  margin-bottom: 12rpx;
-}
-
-.feature-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
-  color: var(--text-primary);
+}
+
+/* ========== 🔥 模式选择器 ========== */
+.mode-selector {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
   margin-bottom: 8rpx;
 }
 
-.feature-desc {
-  font-size: 24rpx;
-  color: var(--text-hint);
+.mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 14rpx 32rpx;
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
-/* 搜索区域 */
-.search-section {
-  margin-bottom: 48rpx;
+.mode-tab.active {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
 }
 
-.search-label {
-  font-size: 32rpx;
+.mode-icon {
+  font-size: 28rpx;
+}
+
+.mode-name {
+  font-size: 26rpx;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mode-tab.active .mode-name {
+  color: #0D9488;
+}
+
+/* ========== 搜索区域（嵌入Hero） ========== */
+.search-section {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 20rpx;
 }
 
 .search-input {
   width: 100%;
-  min-height: 160rpx;
-  background: #F8F8F8;
-  border-radius: var(--radius-normal);
-  padding: 24rpx;
-  font-size: 28rpx;
-  color: var(--text-primary);
+  min-height: 200rpx;
+  max-height: 280rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+  border-radius: 16rpx;
+  padding: 24rpx 28rpx;
+  font-size: 30rpx;
+  color: #FFFFFF;
   box-sizing: border-box;
-  margin-bottom: 16rpx;
-}
-
-.search-tips {
-  margin-bottom: 32rpx;
-}
-
-.tip-item {
-  font-size: 24rpx;
-  color: var(--text-secondary);
-  line-height: 2;
-  padding-left: 8rpx;
+  backdrop-filter: blur(10px);
 }
 
 .search-btn {
-  width: 100%;
+  width: 60%;
+  margin: 0 auto;
+  height: 80rpx;
+  line-height: 80rpx;
+  background: #FFFFFF;
+  color: #0D9488;
+  font-size: 28rpx;
+  font-weight: 700;
+  border-radius: 40rpx;
+  padding: 0;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 📜 历史人文模式按钮样式 */
+.search-btn.history-btn {
+  background: linear-gradient(135deg, #8B6914 0%, #D4A843 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4rpx 16rpx rgba(139, 105, 20, 0.3);
 }
 
 .search-btn[disabled] {
-  opacity: 0.6;
+  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.6);
 }
 
-/* 案例展示 */
-.examples {
-  margin-bottom: 48rpx;
+.search-btn.history-btn[disabled] {
+  opacity: 0.5;
+  background: rgba(139, 105, 20, 0.4);
 }
 
-.examples-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 24rpx;
+/* ========== 特性标签（一行紧凑） ========== */
+.features {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+  margin-bottom: 40rpx;
 }
 
-.example-list {
+.feature-tag {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.15);
+  padding: 16rpx 24rpx;
+  border-radius: 20rpx;
+  backdrop-filter: blur(10px);
+}
+
+/* ========== 📜 历史人文推荐主题 ========== */
+.history-themes-section {
+  margin-bottom: 32rpx;
+}
+
+.history-themes-grid {
   display: flex;
   flex-wrap: wrap;
+  padding: 0 32rpx;
+  gap: 16rpx;
 }
 
-.example-item {
-  background: var(--bg-card);
-  border-radius: var(--radius-normal);
-  padding: 20rpx 24rpx;
-  margin-right: 16rpx;
-  margin-bottom: 16rpx;
-  box-shadow: var(--shadow-light);
+.history-theme-card {
   display: flex;
   align-items: center;
+  gap: 16rpx;
+  width: calc(50% - 8rpx);
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
 }
 
-.example-item:active {
-  transform: scale(0.98);
-  box-shadow: var(--shadow-card);
+.history-theme-card:active {
+  transform: scale(0.97);
+  border-color: #D4A843;
+  box-shadow: 0 4rpx 16rpx rgba(212, 168, 67, 0.2);
 }
 
-.example-text {
-  font-size: 26rpx;
-  color: var(--text-primary);
-  margin-right: 12rpx;
-}
-
-.example-tag {
+.history-theme-icon {
+  font-size: 40rpx;
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
   flex-shrink: 0;
 }
 
-/* 返现横幅 */
+.history-theme-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.history-theme-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-theme-desc {
+  font-size: 20rpx;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ========== 精选攻略 ========== */
+.featured-section {
+  margin-bottom: 32rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 40rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.section-subtitle {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.featured-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.featured-list {
+  display: inline-flex;
+  padding: 0 40rpx 8rpx;
+  gap: 20rpx;
+}
+
+.featured-card {
+  display: inline-block;
+  width: 280rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.featured-card:active {
+  transform: scale(0.97);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.featured-cover {
+  position: relative;
+  width: 100%;
+  height: 180rpx;
+  overflow: hidden;
+}
+
+/* 🔥 6种城市封面渐变色（轮换使用） */
+.cover-gradient-0 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.cover-gradient-1 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.cover-gradient-2 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.cover-gradient-3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.cover-gradient-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.cover-gradient-5 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+
+.featured-img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.featured-city-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 44rpx;
+  font-weight: 800;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  letter-spacing: 4rpx;
+}
+
+.featured-category {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  background: rgba(0, 0, 0, 0.4);
+  color: #FFFFFF;
+  font-size: 20rpx;
+  font-weight: 500;
+  padding: 4rpx 14rpx;
+  border-radius: 16rpx;
+  z-index: 2;
+}
+
+.featured-info {
+  padding: 16rpx;
+  white-space: normal;
+}
+
+.featured-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.featured-meta {
+  font-size: 22rpx;
+  color: #20B2AA;
+  font-weight: 500;
+  margin-bottom: 4rpx;
+}
+
+.featured-stats {
+  font-size: 20rpx;
+  color: #999;
+  display: flex;
+  gap: 12rpx;
+}
+
+.stat-views,
+.stat-likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+/* ========== 返现横幅 ========== */
 .cashback-banner {
   display: flex;
   align-items: center;
-  padding: 32rpx;
+  margin: 0 40rpx;
+  padding: 24rpx 32rpx;
   background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(95, 204, 196, 0.1) 100%);
   border: 2rpx solid var(--primary-color);
   transition: all 0.3s ease;
@@ -165,8 +416,8 @@
 }
 
 .cashback-icon {
-  font-size: 64rpx;
-  margin-right: 24rpx;
+  font-size: 48rpx;
+  margin-right: 20rpx;
 }
 
 .cashback-content {
@@ -174,74 +425,19 @@
 }
 
 .cashback-title {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: var(--primary-color);
-  margin-bottom: 8rpx;
+  margin-bottom: 4rpx;
 }
 
 .cashback-desc {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: var(--text-secondary);
 }
 
 .cashback-arrow {
-  font-size: 48rpx;
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* 模式选择 */
-.mode-selector {
-  margin-bottom: 32rpx;
-}
-
-.mode-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 20rpx;
-}
-
-.mode-list {
-  display: flex;
-  justify-content: space-between;
-  gap: 12rpx;
-}
-
-.mode-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20rpx 12rpx;
-  background: #F8F8F8;
-  border-radius: var(--radius-normal);
-  border: 2rpx solid transparent;
-  transition: all 0.3s ease;
-}
-
-.mode-item:active {
-  transform: scale(0.95);
-}
-
-.mode-item.active {
-  background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(95, 204, 196, 0.1) 100%);
-  border-color: var(--primary-color);
-}
-
-.mode-icon {
-  font-size: 48rpx;
-  margin-bottom: 8rpx;
-}
-
-.mode-name {
-  font-size: 24rpx;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.mode-item.active .mode-name {
+  font-size: 40rpx;
   color: var(--primary-color);
   font-weight: 600;
 }

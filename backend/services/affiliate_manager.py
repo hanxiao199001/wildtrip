@@ -1,10 +1,15 @@
 """
 联盟链接管理器
+<<<<<<< HEAD
 支持美团联盟（餐饮）+ 淘宝联盟（酒店/门票/美食券）
+=======
+支持美团联盟（餐饮）+ 飞猪联盟（酒店/门票）
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 """
 
 import re
 import random
+<<<<<<< HEAD
 import os
 from typing import Dict, Optional, List
 from loguru import logger
@@ -17,12 +22,18 @@ try:
 except ImportError:
     TAOBAO_AVAILABLE = False
     logger.warning("⚠️ 淘宝联盟模块未找到")
+=======
+from typing import Dict, Optional
+from loguru import logger
+from urllib.parse import quote
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 
 
 class AffiliateManager:
     """联盟链接管理器"""
 
     def __init__(self):
+<<<<<<< HEAD
         # 实际变现情况（2026-02-09更新）
         # 优先使用淘宝联盟（聚推客）
         self.hotel_status = 'approved'
@@ -57,6 +68,24 @@ class AffiliateManager:
         if city:
             params['city'] = city
         return f"{server}/api/relay/meituan?{urlencode(params)}"
+=======
+        # 实际变现情况（2026-02-05更新）
+        # 酒店：美团联盟有活动，可返佣
+        self.hotel_status = 'approved'
+        self.hotel_has_commission = True
+
+        # 餐饮：暂无返佣，但保留搜索链接（提升用户体验）
+        self.restaurant_status = 'search_only'
+        self.restaurant_has_commission = False
+
+        # 门票：走美团搜索链接
+        self.ticket_status = 'search_only'
+        self.ticket_has_commission = False
+
+        # 联盟链接模板（一键取链生成）
+        self.meituan_hotel_template = None
+        self.fliggy_template = None
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 
     def generate_booking_link(
         self,
@@ -83,6 +112,7 @@ class AffiliateManager:
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
+<<<<<<< HEAD
         """生成美团链接（餐饮团购）- 中转页模式：CPS追踪 + 精准搜索落地"""
         relay_url = self._build_relay_url(name, city, 'food')
 
@@ -108,6 +138,18 @@ class AffiliateManager:
             'mp_appid': mp_appid,
             'mp_path': mp_path,
             'mp_username': mp_username,
+=======
+        """生成美团链接（餐饮）"""
+        keyword = f"{city} {name}" if city else name
+        search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
+
+        return {
+            'url': search_url,
+            'text': f'美团团购',
+            'status': 'search_only',
+            'platform': 'meituan',
+            'has_commission': False
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         }
 
     def _generate_hotel_link(
@@ -116,11 +158,16 @@ class AffiliateManager:
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
+<<<<<<< HEAD
         """生成酒店链接（同时支持小程序跳转和H5链接）"""
+=======
+        """生成酒店链接（美团联盟，有返佣）"""
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         if affiliate_link:
             return {
                 'url': affiliate_link,
                 'text': f'美团预订',
+<<<<<<< HEAD
                 'status': 'direct',
                 'platform': 'meituan',
                 'has_commission': False
@@ -149,6 +196,22 @@ class AffiliateManager:
                 'mp_appid': mp_appid,
                 'mp_path': mp_path,
                 'mp_username': mp_username,
+=======
+                'status': 'approved',
+                'platform': 'meituan',
+                'has_commission': True
+            }
+        else:
+            keyword = f"{city} {name}" if city else name
+            search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
+
+            return {
+                'url': search_url,
+                'text': f'美团预订',
+                'status': 'approved',
+                'platform': 'meituan',
+                'has_commission': True
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
             }
 
     def _generate_ticket_link(
@@ -157,6 +220,7 @@ class AffiliateManager:
         city: str = '',
         affiliate_link: Optional[str] = None
     ) -> Dict[str, str]:
+<<<<<<< HEAD
         """生成门票链接（美食团购活动入口，含景区门票）"""
         relay_url = self._build_relay_url(name, city, 'ticket')
 
@@ -181,11 +245,24 @@ class AffiliateManager:
             'mp_appid': mp_appid,
             'mp_path': mp_path,
             'mp_username': mp_username,
+=======
+        """生成门票链接（美团搜索）"""
+        keyword = f"{city} {name} 门票" if city else f"{name} 门票"
+        search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
+
+        return {
+            'url': search_url,
+            'text': f'查看门票',
+            'status': 'search_only',
+            'platform': 'meituan',
+            'has_commission': False
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         }
 
     def _generate_search_link(self, name: str, city: str = '') -> Dict[str, str]:
         """生成通用搜索链接"""
         keyword = f"{city} {name}" if city else name
+<<<<<<< HEAD
         
         # 🔥 添加联盟参数（带返佣）
         params = {
@@ -195,13 +272,22 @@ class AffiliateManager:
             'pid': self.meituan_pid
         }
         search_url = f"https://i.meituan.com/search?{urlencode(params)}"
+=======
+        search_url = f"https://i.meituan.com/search?q={quote(keyword)}"
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 
         return {
             'url': search_url,
             'text': f'去美团查看',
+<<<<<<< HEAD
             'status': 'approved',
             'platform': 'meituan',
             'has_commission': True
+=======
+            'status': 'search_only',
+            'platform': 'meituan',
+            'has_commission': False
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         }
 
     def render_booking_button(
@@ -228,6 +314,7 @@ class AffiliateManager:
         else:
             return self._render_ticket_button(link_info, name)
 
+<<<<<<< HEAD
     def render_meituan_promo_banner(self, city: str) -> str:
         """
         渲染美团推广横幅（放在攻略底部）
@@ -300,6 +387,8 @@ class AffiliateManager:
 </div>
 '''
     
+=======
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
     def _render_restaurant_card(self, link_info: dict, name: str, price: Optional[int] = None, cashback: Optional[int] = None, rating: Optional[str] = None, features: Optional[list] = None, reason: Optional[str] = None) -> str:
         """渲染餐厅完整卡片组件（含店名、评分、特色菜、推荐理由、价格区、CTA、信任背书）"""
         url = link_info['url']
@@ -360,7 +449,11 @@ class AffiliateManager:
     {reason_html}
     {price_html}
     <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
+<<<<<<< HEAD
     <a href="{url}" target="_blank" rel="noopener"{mp_attrs} style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
+=======
+    <a href="{url}" target="_blank" rel="noopener" style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         美团团购{f"，返现¥{cashback_amount}" if price else ""}
     </a>
     <div style="display: flex; justify-content: space-around; padding-top: 10px; margin-top: 10px; border-top: 1px dashed #e0e0e0;">

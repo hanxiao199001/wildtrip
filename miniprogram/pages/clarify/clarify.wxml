@@ -1,0 +1,94 @@
+<!--需求澄清页面 - 精致版-->
+<view class="clarify-page">
+
+  <!-- 顶部需求卡片 -->
+  <view class="hero-card">
+    <view class="hero-decoration"></view>
+    <view class="hero-content">
+      <view class="hero-label">
+        <text class="hero-label-icon">📍</text>
+        <text class="hero-label-text">您的旅行需求</text>
+      </view>
+      <view class="hero-query">{{originalQuery}}</view>
+    </view>
+  </view>
+
+  <!-- 进度指示器 -->
+  <view class="progress-section">
+    <view class="progress-header">
+      <view class="progress-left">
+        <text class="progress-icon">✨</text>
+        <text class="progress-tip">快速选择，获得专属攻略</text>
+      </view>
+      <view class="progress-count">
+        <text class="progress-num">{{answeredCount}}</text>
+        <text class="progress-divider">/</text>
+        <text class="progress-total">{{totalCount}}</text>
+      </view>
+    </view>
+    <view class="progress-bar-bg">
+      <view class="progress-bar-fill" style="width: {{progressPercent}}%"></view>
+    </view>
+  </view>
+
+  <!-- 问题列表 -->
+  <view class="questions-list">
+    <view
+      class="question-card {{selectedAnswers[item.id] ? 'answered' : ''}}"
+      wx:for="{{questions}}"
+      wx:key="id"
+    >
+      <!-- 问题头部 -->
+      <view class="question-header">
+        <view class="q-badge">
+          <text class="q-badge-num" wx:if="{{!selectedAnswers[item.id]}}">{{index + 1}}</text>
+          <text class="q-badge-check" wx:else>✓</text>
+        </view>
+        <view class="q-info">
+          <text class="q-text">{{item.question}}</text>
+          <text class="q-tag required" wx:if="{{item.required}}">必选</text>
+          <text class="q-tag optional" wx:else>可选</text>
+        </view>
+      </view>
+
+      <!-- 选项网格 -->
+      <view class="options-grid">
+        <view
+          class="option-item {{selectedAnswers[item.id] === option.value ? 'selected' : ''}}"
+          wx:for="{{item.options}}"
+          wx:for-item="option"
+          wx:key="value"
+          bindtap="onSelectOption"
+          data-question-id="{{item.id}}"
+          data-value="{{option.value}}"
+        >
+          <view class="option-check" wx:if="{{selectedAnswers[item.id] === option.value}}">
+            <text class="check-icon">✓</text>
+          </view>
+          <view class="option-emoji">{{option.icon}}</view>
+          <view class="option-text">
+            <text class="option-name">{{option.label}}</text>
+            <text class="option-sub">{{option.description}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="bottom-bar-inner">
+      <button class="btn-skip" bindtap="onSkip">
+        <text class="skip-text">跳过</text>
+      </button>
+      <button
+        class="btn-confirm {{allAnswered ? 'active' : 'disabled'}}"
+        bindtap="onConfirm"
+      >
+        <text class="btn-confirm-text">生成攻略</text>
+        <text class="btn-confirm-badge">{{answeredCount}}/{{totalCount}}</text>
+      </button>
+    </view>
+  </view>
+
+</view>

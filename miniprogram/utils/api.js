@@ -83,6 +83,35 @@ function shareGuide(slug) {
   return request(`/guides/${encodeURIComponent(slug)}/share`, {}, 'POST')
 }
 
+/**
+ * 获取精选攻略（首页展示）
+ */
+function getFeaturedGuides(limit = 6) {
+  return request(`/guides/featured?limit=${limit}`, {}, 'GET')
+}
+
+/**
+ * 获取相关推荐攻略（结果页展示）
+ */
+function getRelatedGuides(destination, slug, limit = 3) {
+  const params = `destination=${encodeURIComponent(destination)}&slug=${encodeURIComponent(slug)}&limit=${limit}`
+  return request(`/guides/related?${params}`, {}, 'GET')
+}
+
+/**
+ * 分析用户需求（需求澄清）
+ */
+function analyzeNeed(query) {
+  return request('/analyze-need', { query })
+}
+
+/**
+ * 根据用户回答增强查询
+ */
+function enhanceQuery(originalQuery, answers) {
+  return request('/enhance-query', { original_query: originalQuery, answers })
+}
+
 module.exports = {
   request,
   generateItinerary,
@@ -92,5 +121,9 @@ module.exports = {
   favoriteGuide,
   unfavoriteGuide,
   deleteGuide,
-  shareGuide
+  shareGuide,
+  getFeaturedGuides,
+  getRelatedGuides,
+  analyzeNeed,
+  enhanceQuery
 }

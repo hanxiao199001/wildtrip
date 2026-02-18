@@ -1,6 +1,10 @@
 """
 野游记攻略生成API
+<<<<<<< HEAD
 支持4种模式：full（完整攻略）、hotel（只推酒店）、food（只推美食）、history（人文历史）
+=======
+支持3种模式：full（完整攻略）、hotel（只推酒店）、food（只推美食）
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 """
 
 from flask import Blueprint, request, jsonify
@@ -18,7 +22,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from services.ai_engine import AIEngine
 from services.ai_engine_streaming import get_streaming_ai_engine  # 🔥 新增：流式引擎
 from services.affiliate import get_meituan_affiliate
+<<<<<<< HEAD
 from services.affiliate_manager import get_affiliate_manager
+=======
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 from prompts.wildtrip_prompt import build_wildtrip_prompt
 
 # 创建Blueprint
@@ -31,7 +38,10 @@ active_tasks = {}
 ai_engine = AIEngine()  # 保留旧引擎作为fallback
 streaming_ai_engine = get_streaming_ai_engine()  # 🔥 新增：流式引擎
 affiliate = get_meituan_affiliate()  # 🔥 修复：使用函数读取环境变量
+<<<<<<< HEAD
 affiliate_manager = get_affiliate_manager()  # 🔥 联盟链接管理器（支持淘宝）
+=======
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 
 
 @generate_bp.route('/generate', methods=['POST'])
@@ -75,16 +85,27 @@ def create_generate_task():
                 'error': '无效的mode参数（支持：full/hotel/food/history）',
                 'code': 'INVALID_MODE'
             }), 400
+<<<<<<< HEAD
         
         # 生成任务ID
         task_id = str(uuid.uuid4())
         
+=======
+
+        # 生成任务ID
+        task_id = str(uuid.uuid4())
+
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         # 预估时间
         estimated_time = {
             'full': '30-60秒',
             'hotel': '20-30秒',
             'food': '20-30秒',
+<<<<<<< HEAD
             'history': '40-70秒'
+=======
+            'history': '40-80秒'  # 🔥 历史人文模式需要更多时间（内容更丰富）
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         }.get(mode, '30-60秒')
         
         # 记录任务
@@ -193,12 +214,19 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
     try:
         # 更新状态
         active_tasks[task_id]['status'] = 'running'
+<<<<<<< HEAD
         emit_progress(socketio, task_id, 'start', '🔥 野游记开始工作...', 0)
         
+=======
+        is_history = mode == 'history'
+        emit_progress(socketio, task_id, 'start', '📜 历史人文导游上线...' if is_history else '🔥 野游记开始工作...', 0)
+
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         # 提取城市信息
         city = extract_city_name(query)
         emit_progress(socketio, task_id, 'parsing', f'📍 识别目的地: {city}', 5)
         time.sleep(0.3)
+<<<<<<< HEAD
         
         # 构建prompt
         emit_progress(socketio, task_id, 'building_prompt', '🧠 正在理解你的需求...', 10)
@@ -212,6 +240,21 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         
         # 调用AI生成（使用流式引擎，实时更新进度）
         emit_progress(socketio, task_id, 'generating', f'✍️ AI正在生成{city}攻略...', 25)
+=======
+
+        # 构建prompt
+        emit_progress(socketio, task_id, 'building_prompt', '📚 正在查阅历史典籍...' if is_history else '🧠 正在理解你的需求...', 10)
+        time.sleep(0.5)
+
+        full_prompt = build_wildtrip_prompt(query, mode)
+
+        # 检索RAG数据
+        emit_progress(socketio, task_id, 'rag_search', '🏛️ 正在搜索历史文献...' if is_history else '🔍 正在搜索本地攻略数据库...', 15)
+        time.sleep(0.8)
+
+        # 调用AI生成（使用流式引擎，实时更新进度）
+        emit_progress(socketio, task_id, 'generating', f'✍️ AI正在生成{city}历史人文攻略...' if is_history else f'✍️ AI正在生成{city}攻略...', 25)
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         
         # 🔥 定义进度回调函数（供流式引擎调用）
         def on_ai_progress(progress, message, chunk):
@@ -233,6 +276,12 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
             budget_value = budget_match.group(1)
             content = content.replace('[预算]', budget_value)
             logger.info(f"✅ 已替换[预算] → {budget_value}")
+<<<<<<< HEAD
+=======
+
+        # 🔥 后处理：清除AI编造的虚假地址（XX路、XX号等）
+        content = clean_fake_addresses(content)
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         
         # AI生成完成
         emit_progress(socketio, task_id, 'ai_done', '✅ 攻略生成完成！', 65)
@@ -280,6 +329,7 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         
         # 🔥 提取所有链接，供前端渲染按钮
         all_links = []
+<<<<<<< HEAD
         server_base = os.getenv('SERVER_BASE_URL', 'http://47.82.159.93:5000')
         for hotel in recommendations.get('hotels', []):
             hotel_name = hotel['name']
@@ -303,6 +353,14 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
                 'button_text': f"飞猪比价 {hotel_name}",
                 'platform': 'feizhu',
                 'icon': '🟠'
+=======
+        for hotel in recommendations.get('hotels', []):
+            all_links.append({
+                'type': 'hotel',
+                'name': hotel['name'],
+                'url': hotel['link'],
+                'button_text': f"预订 {hotel['name']}"
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
             })
         for restaurant in recommendations.get('restaurants', []):
             all_links.append({
@@ -348,17 +406,32 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
             except Exception as e:
                 logger.warning(f"⚠️ 保存用户历史失败: {e}")
         
+<<<<<<< HEAD
+=======
+        # 🔥 获取美团小程序跳转信息（聚推客联盟）
+        meituan_miniprogram = affiliate.get_miniprogram_jump_info()
+
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         # 完成
         active_tasks[task_id]['status'] = 'completed'
         active_tasks[task_id]['progress'] = 100
         active_tasks[task_id]['result'] = {
             'content': enhanced_content,
             'recommendations': recommendations,
+<<<<<<< HEAD
             'links': all_links,  # 🔥 新增：所有可点击链接
             'stats': stats,
             'seo': seo_result,  # 🔥 新增：SEO页面信息
             'slug': seo_result.get('slug') if seo_result else None,  # 🔥 新增：攻略slug（用于收藏、分享等）
             'guide_id': guide_id  # 🔥 新增：用户攻略ID（如果已登录）
+=======
+            'links': all_links,  # 🔥 所有可点击链接
+            'stats': stats,
+            'seo': seo_result,  # 🔥 SEO页面信息
+            'slug': seo_result.get('slug') if seo_result else None,
+            'guide_id': guide_id,
+            'meituan_miniprogram': meituan_miniprogram  # 🔥 美团小程序跳转参数（聚推客）
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         }
         
         emit_progress(socketio, task_id, 'done', '🎉 攻略生成完成！', 100)
@@ -650,12 +723,83 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
     
     logger.info(f"🔗 链接替换完成 | 酒店:{len(recommendations['hotels'])} 餐厅:{len(recommendations['restaurants'])} 门票:{len(recommendations['tickets'])}")
     
+<<<<<<< HEAD
     # === 🔥 不在Markdown中添加横幅（会被转义）===
     # 横幅应该在HTML模板中添加
     
     return content, recommendations
 
 
+=======
+    return content, recommendations
+
+
+def clean_fake_addresses(content: str) -> str:
+    """
+    清除AI编造的虚假地址（后处理）
+
+    AI经常无视prompt指令，生成类似：
+    - "目的地XX路菜市场旁"
+    - "目的地XX路18号"
+    - "位于XX路XX号"
+    - "地址：某某XX路123号"
+
+    此函数将这些虚假地址替换为安全的区域描述。
+    """
+    import re
+    original_len = len(content)
+    cleaned = content
+
+    # 模式1：**地址：** 目的地XX路菜市场旁 → 删除整行
+    # 模式2：* 地址：目的地XX路18号 → 删除整行
+    # 匹配包含虚假地址的"地址"行
+    fake_addr_line_patterns = [
+        # "* **地址：** 目的地XX路..." 或 "- **地址：** ..."
+        r'[*\-]\s*\*{0,2}地址[：:]\*{0,2}\s*[^\n]*?(?:XX|xx|ＸＸ|某某)[^\n]*\n',
+        # "* 地址：目的地XX路..."
+        r'[*\-]\s*地址[：:]\s*[^\n]*?(?:XX|xx|ＸＸ|某某)[^\n]*\n',
+    ]
+
+    for pattern in fake_addr_line_patterns:
+        cleaned = re.sub(pattern, '', cleaned)
+
+    # 模式3：内联地址文本 "目的地XX路菜市场旁" → 替换为区域描述
+    # 例如 "地址：目的地XX路18号" 在非行首位置
+    inline_fake_patterns = [
+        # "目的地XX路XXX" → "当地老城区一带"
+        (r'目的地XX[路街巷道][^\n,，。、）\)]*', '当地老城区一带'),
+        # "XX路XX号" / "XX街XX号"
+        (r'(?:[\u4e00-\u9fa5]{0,5})XX[路街巷道][\u4e00-\u9fa5\d]*号?[^\n,，。、）\)]*', '当地核心区域'),
+        # "某某路XX号"
+        (r'某某[路街巷道][\u4e00-\u9fa5\d]*号?', '当地核心区域'),
+    ]
+
+    for pattern, replacement in inline_fake_patterns:
+        cleaned = re.sub(pattern, replacement, cleaned)
+
+    # 模式4：清除残留的"地址：当地核心区域"这种无意义行
+    # 如果整行只剩下"地址：当地核心区域"这种空洞内容，直接删掉
+    cleaned = re.sub(r'[*\-]\s*\*{0,2}地址[：:]\*{0,2}\s*当地(?:核心区域|老城区一带)\s*\n', '', cleaned)
+
+    # 模式5：清除通用的"目的地特色XXX店"这种AI编造的店名
+    generic_fake_names = [
+        (r'目的地特色早餐店', '当地评分最高的早餐店（大众点评搜索）'),
+        (r'目的地本地特色餐厅', '当地口碑餐厅（大众点评搜索）'),
+        (r'目的地特色餐厅', '当地口碑餐厅（大众点评搜索）'),
+        (r'目的地特色小吃', '当地特色小吃（大众点评搜索）'),
+    ]
+
+    for pattern, replacement in generic_fake_names:
+        cleaned = re.sub(pattern, replacement, cleaned)
+
+    diff = original_len - len(cleaned)
+    if diff > 0:
+        logger.info(f"🧹 清除虚假地址完成，清理了 {diff} 个字符")
+
+    return cleaned
+
+
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 def emit_progress(socketio, task_id: str, event_type: str, message: str, progress: int):
     """发送进度更新"""
     try:

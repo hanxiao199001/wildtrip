@@ -34,8 +34,13 @@
     </view>
   </view>
 
+<<<<<<< HEAD
   <!-- 速度对比（非历史模式） -->
   <view class="speed-compare card" wx:if="{{mode !== 'history'}}">
+=======
+  <!-- 速度对比 -->
+  <view class="speed-compare card">
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
     <view class="compare-title">⚡️ 速度对比</view>
     <view class="compare-items">
       <view class="compare-item">
@@ -52,6 +57,7 @@
     </view>
   </view>
 
+<<<<<<< HEAD
   <!-- 深度对比（历史模式） -->
   <view class="depth-compare card" wx:if="{{mode === 'history'}}">
     <view class="compare-title">🏛️ 深度对比</view>
@@ -79,5 +85,11 @@
   <view class="cashback-hint card">
     <view class="hint-icon">💰</view>
     <view class="hint-text">预订返现50%，真省钱！</view>
+=======
+  <!-- 返现提示 -->
+  <view class="cashback-hint card">
+    <view class="hint-icon">💰</view>
+    <view class="hint-text">预订立省50%，真省钱！</view>
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
   </view>
 </view>

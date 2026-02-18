@@ -1,0 +1,59 @@
+{
+  "images": [
+    {
+      "keyword": "lake sunrise china",
+      "filename": "hangzhou-sudike.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "pagoda sunset",
+      "filename": "hangzhou-leifeng.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "river cliff sunrise",
+      "filename": "huangzhou-chibi.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "old cottage nature",
+      "filename": "huangzhou-xuetang.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "lake bridge china",
+      "filename": "huizhou-xihu.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "lychee fruit",
+      "filename": "huizhou-lizhi.jpg",
+      "orientation": "portrait"
+    },
+    {
+      "keyword": "stone well old",
+      "filename": "huizhou-dongjing.jpg",
+      "orientation": "portrait"
+    },
+    {
+      "keyword": "temple courtyard tree",
+      "filename": "danzhou-shuyuan.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "bamboo hut tropical",
+      "filename": "danzhou-maowu.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "ocean sunrise",
+      "filename": "danzhou-richu.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "mountain path mist",
+      "filename": "ending-path.jpg",
+      "orientation": "landscape"
+    }
+  ]
+}

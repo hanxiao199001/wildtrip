@@ -12,8 +12,8 @@
     <view class="cashback-banner">
       <view class="cashback-icon">💰</view>
       <view class="cashback-content">
-        <view class="cashback-title">预计返现 ¥{{estimatedCashback}}</view>
-        <view class="cashback-desc">预订后7-30天到账</view>
+        <view class="cashback-title">预计立省 ¥{{estimatedCashback}}</view>
+        <view class="cashback-desc">预订即享优惠价</view>
       </view>
     </view>
 
@@ -41,31 +41,31 @@
       <towxml nodes="{{article}}" />
     </view>
 
-    <!-- 🔥 快速预订区域 -->
+    <!-- 🔥 快速预订区域（聚推客联盟 - 跳转美团小程序） -->
     <view class="quick-booking card" wx:if="{{links && links.length > 0}}">
-      <view class="section-title">🔥 快速预订（返现50%）</view>
-      
-      <!-- 酒店按钮（每家酒店：美团 + 飞猪比价） -->
+      <view class="section-title">🔥 快速预订（立省50%）</view>
+
+      <!-- 美团小程序跳转状态提示 -->
+      <view class="miniprogram-tip" wx:if="{{meituanMiniprogram && meituanMiniprogram.enabled}}">
+        <text class="tip-icon">✅</text>
+        <text class="tip-text">点击直达美团小程序，下单立省</text>
+      </view>
+
+      <!-- 酒店按钮 -->
       <view class="link-group" wx:if="{{hotelLinks.length > 0}}">
-        <view class="group-label">🏨 酒店预订 · 两平台比价</view>
-        <view class="hotel-pair-list">
-          <block wx:for="{{hotelLinks}}" wx:key="index">
-            <view class="hotel-pair-item" wx:if="{{item.platform === 'meituan'}}">
-              <view class="hotel-name-row">{{item.name}}</view>
-              <view class="hotel-btn-row">
-                <navigator
-                  url="/pages/webview/webview?url={{item.url}}&title={{item.name}}-美团"
-                  class="link-btn hotel-btn meituan-btn"
-                >🟡 美团订</navigator>
-                <!-- 飞猪按钮紧跟在下一个元素（platform=feizhu）-->
-                <navigator
-                  wx:if="{{hotelLinks[index+1] && hotelLinks[index+1].platform === 'feizhu'}}"
-                  url="/pages/webview/webview?url={{hotelLinks[index+1].url}}&title={{item.name}}-飞猪"
-                  class="link-btn hotel-btn feizhu-btn"
-                >🟠 飞猪比价</navigator>
-              </view>
-            </view>
-          </block>
+        <view class="group-label">🏨 酒店预订</view>
+        <view class="link-buttons">
+          <view
+            wx:for="{{hotelLinks}}"
+            wx:key="name"
+            class="link-btn hotel-btn"
+            bindtap="onJumpMeituan"
+            data-name="{{item.name}}"
+            data-url="{{item.url}}"
+            data-type="hotel"
+          >
+            {{item.name}}
+          </view>
         </view>
       </view>
 
@@ -73,14 +73,17 @@
       <view class="link-group" wx:if="{{restaurantLinks.length > 0}}">
         <view class="group-label">🍜 美食团购</view>
         <view class="link-buttons">
-          <navigator 
-            wx:for="{{restaurantLinks}}" 
+          <view
+            wx:for="{{restaurantLinks}}"
             wx:key="name"
-            url="/pages/webview/webview?url={{item.url}}&title={{item.name}}"
             class="link-btn food-btn"
+            bindtap="onJumpMeituan"
+            data-name="{{item.name}}"
+            data-url="{{item.url}}"
+            data-type="restaurant"
           >
             {{item.name}}
-          </navigator>
+          </view>
         </view>
       </view>
 
@@ -88,18 +91,57 @@
       <view class="link-group" wx:if="{{ticketLinks.length > 0}}">
         <view class="group-label">🎫 门票购买</view>
         <view class="link-buttons">
-          <navigator 
-            wx:for="{{ticketLinks}}" 
+          <view
+            wx:for="{{ticketLinks}}"
             wx:key="name"
-            url="/pages/webview/webview?url={{item.url}}&title={{item.name}}"
             class="link-btn ticket-btn"
+            bindtap="onJumpMeituan"
+            data-name="{{item.name}}"
+            data-url="{{item.url}}"
+            data-type="ticket"
           >
             {{item.name}}
-          </navigator>
+          </view>
         </view>
       </view>
 
-      <view class="cashback-tip">💡 通过上方链接预订，返现50%给你！</view>
+      <view class="cashback-tip">💡 通过上方链接预订，立省50%！</view>
+    </view>
+
+    <!-- 相关推荐 -->
+    <view class="related-section" wx:if="{{relatedGuides.length > 0}}">
+      <view class="related-header">
+        <view class="related-title">相关推荐</view>
+        <view class="related-subtitle">你可能还感兴趣</view>
+      </view>
+      <view class="related-list">
+        <view
+          class="related-card"
+          wx:for="{{relatedGuides}}"
+          wx:key="slug"
+          bindtap="onRelatedTap"
+          data-item="{{item}}"
+        >
+          <image
+            class="related-cover"
+            src="{{item.cover_image}}"
+            mode="aspectFill"
+            lazy-load="true"
+          />
+          <view class="related-info">
+            <view class="related-name">{{item.title}}</view>
+            <view class="related-meta">
+              <text wx:if="{{item.days}}">{{item.days}}天</text>
+              <text wx:if="{{item.budget}}"> · ¥{{item.budget}}</text>
+              <text wx:if="{{item.category}}"> · {{item.category}}</text>
+            </view>
+            <view class="related-stats-row">
+              <text>👀 {{item.views}}</text>
+              <text>❤️ {{item.likes}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 操作按钮 -->
@@ -110,15 +152,22 @@
         <button class="btn-secondary" bindtap="onToggleFavorite">
           {{isFavorited ? '★ 已收藏' : '☆ 收藏'}}
         </button>
-        <button class="btn-primary" bindtap="onShare">✈️ 分享</button>
+        <button class="btn-primary" bindtap="showSharePoster">✈️ 分享</button>
       </view>
-      
+
       <!-- 第二行：高级操作 -->
       <view class="action-row action-row-secondary">
         <button class="btn-link" bindtap="onGenerateShareLink">🔗 复制链接</button>
         <button class="btn-danger" bindtap="onDelete">🗑️ 删除</button>
       </view>
     </view>
+
+    <!-- 分享海报组件 -->
+    <share-poster
+      visible="{{showPoster}}"
+      guideData="{{posterData}}"
+      bind:close="onClosePoster"
+    />
   </view>
 
   <!-- 错误状态 -->

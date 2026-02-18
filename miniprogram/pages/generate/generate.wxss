@@ -188,6 +188,7 @@
   color: var(--primary-color);
   font-weight: 600;
 }
+<<<<<<< HEAD
 
 /* 深度对比（历史模式） */
 .depth-compare {
@@ -237,3 +238,5 @@
 .depth-item.highlight .point {
   color: var(--text-primary);
 }
+=======
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3

@@ -1,5 +1,6 @@
 <!--野游记首页-->
 <view class="page-container index-page">
+<<<<<<< HEAD
   <!-- 头部标题 -->
   <view class="header">
     <view class="logo">🔥</view>
@@ -82,16 +83,155 @@
       >
         <view class="example-text">{{item.query}}</view>
         <view class="example-tag tag tag-primary">{{item.tag}}</view>
+=======
+  <!-- 头部区域（渐变背景 - 紧凑版） -->
+  <view class="header-hero">
+    <view class="hero-bg"></view>
+    <view class="hero-content">
+      <view class="logo">🏕️</view>
+      <view class="title">野游记</view>
+      <view class="title-en">WildTrip</view>
+      <view class="slogan">AI旅游助手，预订立省50%</view>
+    </view>
+
+    <!-- 🔥 模式选择器 -->
+    <view class="mode-selector">
+      <view
+        class="mode-tab {{currentMode === 'full' ? 'active' : ''}}"
+        bindtap="onModeChange"
+        data-mode="full"
+      >
+        <text class="mode-icon">🗺️</text>
+        <text class="mode-name">旅行攻略</text>
+      </view>
+      <view
+        class="mode-tab {{currentMode === 'history' ? 'active' : ''}}"
+        bindtap="onModeChange"
+        data-mode="history"
+      >
+        <text class="mode-icon">📜</text>
+        <text class="mode-name">历史人文</text>
+      </view>
+    </view>
+
+    <!-- 搜索输入（嵌入Hero区域） -->
+    <view class="search-section">
+      <textarea
+        class="search-input"
+        placeholder="{{placeholderText}}"
+        placeholder-style="color: rgba(255,255,255,0.5)"
+        value="{{query}}"
+        bindinput="onQueryInput"
+        maxlength="200"
+        auto-height
+      />
+      <button
+        class="search-btn {{currentMode === 'history' ? 'history-btn' : ''}}"
+        bindtap="onGenerate"
+        disabled="{{!query || isGenerating}}"
+      >
+        {{isGenerating ? '生成中...' : btnText}}
+      </button>
+    </view>
+
+    <!-- 核心卖点（精简一行） -->
+    <view class="features" wx:if="{{currentMode !== 'history'}}">
+      <view class="feature-tag">🚀 30秒生成</view>
+      <view class="feature-tag">😴 一句话搞定</view>
+      <view class="feature-tag">💰 立省50%</view>
+    </view>
+    <view class="features" wx:else>
+      <view class="feature-tag">📚 诗词典故</view>
+      <view class="feature-tag">🏛️ 历史故事</view>
+      <view class="feature-tag">🍜 人文美食</view>
+    </view>
+  </view>
+
+  <!-- 📜 历史人文推荐主题（历史模式下显示） -->
+  <view class="history-themes-section" wx:if="{{currentMode === 'history'}}">
+    <view class="section-header">
+      <view class="section-title">📜 推荐主题</view>
+      <view class="section-subtitle">点击即可填充</view>
+    </view>
+    <view class="history-themes-grid">
+      <view
+        class="history-theme-card"
+        wx:for="{{historyThemes}}"
+        wx:key="query"
+        bindtap="onHistoryThemeTap"
+        data-query="{{item.query}}"
+      >
+        <view class="history-theme-icon">{{item.icon}}</view>
+        <view class="history-theme-info">
+          <view class="history-theme-title">{{item.title}}</view>
+          <view class="history-theme-desc">{{item.desc}}</view>
+        </view>
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
       </view>
     </view>
   </view>
 
+<<<<<<< HEAD
+=======
+  <!-- 精选攻略（紧跟Hero下方，首屏可见） -->
+  <view class="featured-section" wx:if="{{featuredGuides.length > 0 && currentMode !== 'history'}}">
+    <view class="section-header">
+      <view class="section-title">精选攻略</view>
+      <view class="section-subtitle">点击即可生成同款</view>
+    </view>
+    <scroll-view class="featured-scroll" scroll-x="true" enhanced="true" show-scrollbar="{{false}}">
+      <view class="featured-list">
+        <view
+          class="featured-card"
+          wx:for="{{featuredGuides}}"
+          wx:key="slug"
+          bindtap="onFeaturedTap"
+          data-item="{{item}}"
+        >
+          <view class="featured-cover cover-gradient-{{index % 6}}">
+            <image
+              wx:if="{{item.cover_image && !item._imgFailed}}"
+              class="featured-img"
+              src="{{item.cover_image}}"
+              mode="aspectFill"
+              lazy-load="true"
+              binderror="onCoverImageError"
+              data-index="{{index}}"
+            />
+            <!-- 渐变色底 + 城市大字（图片失败或无图时显示） -->
+            <view class="featured-city-label" wx:if="{{!item.cover_image || item._imgFailed}}">
+              {{item.destination || '旅行'}}
+            </view>
+            <view class="featured-category">{{item.category || '自由行'}}</view>
+          </view>
+          <view class="featured-info">
+            <view class="featured-title">{{item.title}}</view>
+            <view class="featured-meta">
+              <text wx:if="{{item.days}}">{{item.days}}天</text>
+              <text wx:if="{{item.budget}}"> · ¥{{item.budget}}</text>
+            </view>
+            <view class="featured-stats">
+              <text class="stat-views">👀 {{item.views}}</text>
+              <text class="stat-likes">❤️ {{item.likes}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
   <!-- 返现说明 -->
   <view class="cashback-banner card" bindtap="onCashbackInfo">
     <view class="cashback-icon">💰</view>
     <view class="cashback-content">
+<<<<<<< HEAD
       <view class="cashback-title">预订返现50%</view>
       <view class="cashback-desc">酒店+餐饮+门票，都返现</view>
+=======
+      <view class="cashback-title">预订立省50%</view>
+      <view class="cashback-desc">酒店+餐饮+门票，即订即省</view>
+>>>>>>> 43391bb678dd7937350065a348a1412a963940c3
     </view>
     <view class="cashback-arrow">→</view>
   </view>

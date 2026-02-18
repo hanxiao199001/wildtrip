@@ -213,46 +213,8 @@
   display: inline-block;
 }
 
-.hotel-pair-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.hotel-pair-item {
-  background: #f9f9f9;
-  border-radius: 12rpx;
-  padding: 16rpx;
-}
-
-.hotel-name-row {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 12rpx;
-}
-
-.hotel-btn-row {
-  display: flex;
-  gap: 16rpx;
-}
-
 .link-btn.hotel-btn {
   background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
-  flex: 1;
-  text-align: center;
-}
-
-.link-btn.meituan-btn {
-  background: linear-gradient(135deg, #FFB900 0%, #FF9500 100%);
-  flex: 1;
-  text-align: center;
-}
-
-.link-btn.feizhu-btn {
-  background: linear-gradient(135deg, #FF6A00 0%, #ee0979 100%);
-  flex: 1;
-  text-align: center;
 }
 
 .link-btn.food-btn {
@@ -272,4 +234,106 @@
   color: #FF6600;
   text-align: center;
   font-weight: 500;
+}
+
+/* 🔥 美团小程序跳转提示 */
+.miniprogram-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 24rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-radius: var(--radius-small);
+  border: 2rpx solid #4CAF50;
+}
+
+.miniprogram-tip .tip-icon {
+  font-size: 28rpx;
+}
+
+.miniprogram-tip .tip-text {
+  font-size: 24rpx;
+  color: #2E7D32;
+  font-weight: 500;
+}
+
+/* ========== 相关推荐 ========== */
+.related-section {
+  margin-bottom: 24rpx;
+}
+
+.related-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 24rpx;
+}
+
+.related-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.related-subtitle {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.related-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.related-card {
+  display: flex;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.related-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.12);
+}
+
+.related-cover {
+  width: 200rpx;
+  height: 160rpx;
+  flex-shrink: 0;
+}
+
+.related-info {
+  flex: 1;
+  padding: 20rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.related-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.related-meta {
+  font-size: 24rpx;
+  color: #20B2AA;
+  font-weight: 500;
+}
+
+.related-stats-row {
+  font-size: 22rpx;
+  color: #999;
+  display: flex;
+  gap: 16rpx;
 }

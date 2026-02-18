@@ -1,0 +1,59 @@
+{
+  "images": [
+    {
+      "keyword": "West Lake Su Causeway sunrise China",
+      "filename": "hangzhou-sudike.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "Leifeng Pagoda sunset Hangzhou",
+      "filename": "hangzhou-leifeng.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "Red Cliff Yangtze River dawn mist",
+      "filename": "huangzhou-chibi.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "ancient Chinese thatched cottage rural",
+      "filename": "huangzhou-xuetang.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "Huizhou West Lake China bridge",
+      "filename": "huizhou-xihu.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "lychee fruit tree mountain China",
+      "filename": "huizhou-lizhi.jpg",
+      "orientation": "portrait"
+    },
+    {
+      "keyword": "ancient stone well moss Chinese architecture",
+      "filename": "huizhou-dongjing.jpg",
+      "orientation": "portrait"
+    },
+    {
+      "keyword": "Chinese academy courtyard banyan tree students",
+      "filename": "danzhou-shuyuan.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "simple thatched hut tropical plants humble",
+      "filename": "danzhou-maowu.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "ocean sunrise silhouette cliff China",
+      "filename": "danzhou-richu.jpg",
+      "orientation": "landscape"
+    },
+    {
+      "keyword": "winding path mountains misty aerial view",
+      "filename": "ending-path.jpg",
+      "orientation": "landscape"
+    }
+  ]
+}
