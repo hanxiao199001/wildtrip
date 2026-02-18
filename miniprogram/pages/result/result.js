@@ -75,50 +75,29 @@ Page({
               const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
               if (!href) return
               wx.showToast({ title: '跳转中...', icon: 'loading', duration: 1500 })
-              const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('navi.sankuai')
+              const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('navi.sankuai') || href.includes('meituan')
               if (isMeituanLink) {
-                // 从 relay URL 提取参数，直接构建美团搜索 URL
-                const urlObj = href.split('?')[1] || ''
-                const params = {}
-                urlObj.split('&').forEach(p => {
-                  const [k, v] = p.split('=')
-                  if (k) params[k] = decodeURIComponent(v || '')
-                })
-                const keyword = params.keyword || ''
-                const city = params.city || ''
-                const poiType = params.type || 'food'
-                // 城市ID映射
-                const CITY_IDS = {
-                  '北京':1,'上海':2,'广州':3,'深圳':4,'天津':5,
-                  '杭州':6,'南京':7,'武汉':8,'西安':9,'成都':15,
-                  '长沙':16,'郑州':17,'厦门':18,'福州':20,'济南':21,
-                  '昆明':23,'合肥':26,'南昌':28,'南宁':29,'重庆':14,
-                  '苏州':13,'宁波':54,'无锡':55,'青岛':11,'大连':12,
-                  '沈阳':10,'哈尔滨':22,'长春':38,'贵阳':30,'太原':35,
-                  '石家庄':70,'东莞':58,'佛山':59,'温州':57,
-                  '海口':196,'三亚':252,
-                }
-                const cityShort = city.replace('市','').replace('区','')
-                let ci = CITY_IDS[city] || CITY_IDS[cityShort] || 0
-                // 模糊匹配
-                if (!ci) {
-                  for (const [name, id] of Object.entries(CITY_IDS)) {
-                    if (cityShort.includes(name) || name.includes(cityShort)) { ci = id; break }
-                  }
-                }
-                // 构建搜索 URL
-                let searchUrl
-                if (poiType === 'hotel') {
-                  searchUrl = `https://i.meituan.com/hotel/search?keyword=${encodeURIComponent(keyword)}${ci ? '&ci=' + ci : ''}`
-                } else {
-                  searchUrl = `https://i.meituan.com/search?keyword=${encodeURIComponent(keyword)}&type=deal${ci ? '&ci=' + ci : ''}&mt_app_version=9999`
-                }
-                wx.navigateToMiniProgram({
-                  appId: 'wxde8ac0a21135c07d',
-                  path: `/index/pages/h5/h5?weburl=${encodeURIComponent(searchUrl)}`,
-                  fail: () => {
-                    wx.navigateTo({
-                      url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购`
+                // 提取搜索词
+                const qs = href.split('?')[1] || ''
+                const qparams = {}
+                qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) qparams[k] = decodeURIComponent(v||'') })
+                const keyword = qparams.keyword || ''
+                const city = qparams.city || ''
+                const searchText = city ? `${city} ${keyword}` : keyword
+                // 弹框确认，复制搜索词后跳转
+                wx.showModal({
+                  title: '跳转美团搜索',
+                  content: `搜索词已复制：\n${searchText || '请手动搜索'}\n\n跳转后在搜索框粘贴即可`,
+                  confirmText: '去美团',
+                  cancelText: '取消',
+                  success: (res) => {
+                    if (!res.confirm) return
+                    if (searchText) wx.setClipboardData({ data: searchText, fail: ()=>{} })
+                    wx.navigateToMiniProgram({
+                      appId: 'wxde8ac0a21135c07d',
+                      fail: () => {
+                        wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
+                      }
                     })
                   }
                 })
