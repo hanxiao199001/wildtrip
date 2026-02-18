@@ -53,28 +53,19 @@ logger.add(
 from api.generate import generate_bp, register_socketio_events
 from api.guides import guides_bp
 from api.user import user_bp
-<<<<<<< HEAD
 from api.relay import relay_bp
-=======
 from api.clarify import clarify_bp
 from api.qrcode import qrcode_bp
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 
 app.register_blueprint(generate_bp, url_prefix='/api')
 app.register_blueprint(guides_bp, url_prefix='/api')
 app.register_blueprint(user_bp, url_prefix='/api')
-<<<<<<< HEAD
 app.register_blueprint(relay_bp, url_prefix='/api')
-register_socketio_events(socketio)
-
-logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统）")
-=======
 app.register_blueprint(clarify_bp, url_prefix='/api')
 app.register_blueprint(qrcode_bp, url_prefix='/api')
 register_socketio_events(socketio)
 
-logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统 + 需求澄清 + 小程序码）")
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
+logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统 + 需求澄清 + 小程序码 + 中转页）")
 
 
 @app.route('/')
@@ -121,11 +112,7 @@ def serve_public(filename):
 @app.route('/guides/<path:filename>')
 def serve_guides(filename):
     """攻略静态页面"""
-<<<<<<< HEAD
-    web_dir = Path('/root/clawd/wildtrip/web/guides')
-=======
     web_dir = Path(__file__).parent.parent / 'web' / 'guides'
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
     return send_from_directory(str(web_dir), filename)
 
 

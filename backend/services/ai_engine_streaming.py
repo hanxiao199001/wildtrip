@@ -1,10 +1,6 @@
 """
 AI生成引擎 - 流式版本（优化进度反馈）
-<<<<<<< HEAD
 支持DeepSeek/Claude/OpenAI等模型的流式输出
-=======
-支持Qwen/DeepSeek/Claude/OpenAI等模型的流式输出
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
 """
 
 from loguru import logger
@@ -18,13 +14,8 @@ class StreamingAIEngine:
     def __init__(self):
         """初始化AI引擎"""
         self.api_key = os.getenv('AI_API_KEY', '')
-<<<<<<< HEAD
         self.base_url = os.getenv('AI_BASE_URL', 'https://api.deepseek.com')
         self.model = os.getenv('AI_MODEL', 'deepseek-chat')
-=======
-        self.base_url = os.getenv('AI_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
-        self.model = os.getenv('AI_MODEL', 'qwen3-max')
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
         
         if not self.api_key:
             logger.warning("⚠️ AI_API_KEY未配置，将使用Mock数据")
@@ -116,13 +107,8 @@ class StreamingAIEngine:
             response = client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-<<<<<<< HEAD
                 temperature=0.9,
                 max_tokens=4000,
-=======
-                temperature=0.7,  # 降回0.7，减少幻觉，提高真实性
-                max_tokens=8000,  # 🔥 提高到8000，支持更长的攻略（15天+详细内容）
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
                 timeout=180,
                 stream=True,  # 🔥 启用流式输出
             )
@@ -212,11 +198,8 @@ class StreamingAIEngine:
                 guide_type = 'hotel'
             elif mode == 'food':
                 guide_type = 'food'
-<<<<<<< HEAD
             elif mode == 'history':
                 guide_type = 'history'
-=======
->>>>>>> 43391bb678dd7937350065a348a1412a963940c3
             # full模式不限制类型
             
             # 检索
