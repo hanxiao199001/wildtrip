@@ -221,7 +221,42 @@ Page({
 
       if (markdownContent && towxml) {
         try {
-          article = towxml.toJson(markdownContent, 'markdown')
+          article = towxml.toJson(markdownContent, 'markdown', {
+            events: {
+              tap: (e) => {
+                const nodeData = e.currentTarget.dataset.data
+                const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
+                if (!href) return
+                const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('meituan')
+                if (isMeituanLink) {
+                  const qs = href.split('?')[1] || ''
+                  const qparams = {}
+                  qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) qparams[k] = decodeURIComponent(v||'') })
+                  const keyword = qparams.keyword || ''
+                  const city = qparams.city || ''
+                  const searchText = city ? `${city} ${keyword}` : keyword
+                  wx.showModal({
+                    title: '跳转美团搜索',
+                    content: `搜索词已复制：\n${searchText || '请手动搜索'}\n\nhref:${href.substring(0,60)}`,
+                    confirmText: '去美团',
+                    cancelText: '取消',
+                    success: (res) => {
+                      if (!res.confirm) return
+                      if (searchText) wx.setClipboardData({ data: searchText, fail: ()=>{} })
+                      wx.navigateToMiniProgram({
+                        appId: 'wxde8ac0a21135c07d',
+                        fail: () => {
+                          wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
+                        }
+                      })
+                    }
+                  })
+                } else if (href.startsWith('http')) {
+                  wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=链接` })
+                }
+              }
+            }
+          })
           console.log('📖 内容渲染成功')
         } catch (e) {
           console.error('towxml渲染失败:', e)
