@@ -429,10 +429,18 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
             feizhu_info = jt_api.get_feizhu_link(sid=f'{city}_{clean_name}')
             feizhu_link = feizhu_info['h5'] if feizhu_info else meituan_link  # fallback到美团
             
+            # 🔥 尝试提取价格(从酒店名附近的内容)
+            price = None
+            price_pattern = rf'{re.escape(clean_name)}[^¥]*?¥(\d+)'
+            price_match = re.search(price_pattern, content)
+            if price_match:
+                price = int(price_match.group(1))
+            
             recommendations['hotels'].append({
                 'name': clean_name,
                 'meituan_link': meituan_link,
                 'feizhu_link': feizhu_link,
+                'price': price,  # 🔥 新增：价格
                 'search_query': search_query
             })
     
@@ -462,12 +470,13 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
             count=1
         )
 
-    # 🔥 酒店兜底：为没有预订链接的酒店注入比价链接
+    # 🔥 酒店兜底：为没有预订链接的酒店注入比价链接(带价格对比)
     # 查找酒店section中每个 ### N. 酒店名 块，如果缺少预订链接则追加
     for hotel in recommendations['hotels']:
         hotel_name = re.escape(hotel['name'])
         meituan_link = hotel['meituan_link']
         feizhu_link = hotel['feizhu_link']
+        price = hotel.get('price')
         
         # 检查该酒店附近是否已有预订链接（向后搜索到下一个 ### 或 ## 为止）
         hotel_section_pattern = rf'(###\s+(?:\d+\.\s+)?[^\n]*?{hotel_name}[^\n]*?\n)(.*?)(?=###\s+|##\s+[^#]|$)'
@@ -476,11 +485,26 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
             section_text = hotel_section_match.group(2)
             # 如果这个section中没有预订链接
             if '预订' not in section_text and 'meituan.com' not in section_text and 'LINK_HOTEL' not in section_text:
+                # 🔥 计算返现(估算)
+                if price:
+                    meituan_cashback = int(price * 0.05)  # 美团约5%返现
+                    feizhu_cashback = int(price * 0.03)   # 飞猪约3%返现
+                    
+                    # 带价格对比的比价链接
+                    booking_line = f'''
+- **预订比价：**
+  - 🏆 美团: ¥{price}/晚 返¥{meituan_cashback} [立即预订]({meituan_link})
+  - 飞猪: ¥{price}/晚 返¥{feizhu_cashback} [立即预订]({feizhu_link})
+  - 💡 美团返现更多,推荐美团预订
+'''
+                else:
+                    # 无价格时的简化版
+                    booking_line = f'\n- **预订比价：**\n  - [美团酒店 💰返现]({meituan_link})\n  - [飞猪酒店 💰返现]({feizhu_link})\n  - 💡 建议先比价再下单\n'
+                
                 # 在section末尾注入比价链接
                 insert_point = hotel_section_match.end(2)
-                booking_line = f'\n- **预订比价：**\n  - [美团酒店 💰返现]({meituan_link})\n  - [飞猪酒店 💰返现]({feizhu_link})\n  - 💡 建议先比价再下单\n'
                 content = content[:insert_point] + booking_line + content[insert_point:]
-                logger.info(f"🏨 兜底注入比价链接: {hotel['name']}")
+                logger.info(f"🏨 兜底注入比价链接: {hotel['name']}{' (含价格)' if price else ''}")
     
     # === 3. 餐厅链接替换（优化正则，匹配多种格式） ===
     # 格式1：**XX文昌鸡饭** ¥50/人
