@@ -292,6 +292,7 @@ Page({
                 const nodeData = e.currentTarget.dataset.data
                 const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
                 if (!href) return
+                console.log('🔥 链接被点击了!', '链接地址:', href)
                 const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('meituan') || href.includes('navi.sankuai')
                 if (isMeituanLink) {
                   // 🔥 优化版：直接跳转美团搜索结果，无需粘贴
@@ -320,8 +321,9 @@ Page({
                   }
                   
                   // 直接跳转，无需modal、无需剪贴板
+                  console.log('🔍 构建的美团URL:', finalSearchUrl)
                   const mpSearchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(finalSearchUrl)}`
-                  console.log('🔍 美团小程序路径:', mpSearchPath)
+                  console.log('🔍 跳转路径:', mpSearchPath)
                   
                   wx.navigateToMiniProgram({
                     appId: 'wxde8ac0a21135c07d',
