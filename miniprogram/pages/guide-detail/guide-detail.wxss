@@ -359,3 +359,71 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ========== 🔥 比价表格样式优化 ========== */
+.guide-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24rpx 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.25);
+}
+
+.guide-content table thead {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.guide-content table th {
+  padding: 24rpx 16rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  border-bottom: 2rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.guide-content table td {
+  padding: 28rpx 16rpx;
+  font-size: 28rpx;
+  color: white;
+  text-align: center;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
+}
+
+.guide-content table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.guide-content table tbody tr:nth-child(1) {
+  background: rgba(255, 215, 0, 0.15);  /* 推荐项高亮 */
+}
+
+.guide-content table a {
+  color: #FFD700;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 12rpx 32rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 24rpx;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.guide-content blockquote {
+  margin: 24rpx 0;
+  padding: 20rpx 28rpx;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+  border-left: 6rpx solid #FFD700;
+  border-radius: 8rpx;
+  color: #1F2937;
+  font-size: 26rpx;
+  line-height: 1.8;
+}
+
+.guide-content blockquote strong {
+  color: #D97706;
+  font-weight: 600;
+}

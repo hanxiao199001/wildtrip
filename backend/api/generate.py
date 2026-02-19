@@ -490,16 +490,29 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
                     meituan_cashback = int(price * 0.05)  # 美团约5%返现
                     feizhu_cashback = int(price * 0.03)   # 飞猪约3%返现
                     
-                    # 带价格对比的比价链接
+                    # 🔥 美观的表格格式比价
                     booking_line = f'''
-- **预订比价：**
-  - 🏆 美团: ¥{price}/晚 返¥{meituan_cashback} [立即预订]({meituan_link})
-  - 飞猪: ¥{price}/晚 返¥{feizhu_cashback} [立即预订]({feizhu_link})
-  - 💡 美团返现更多,推荐美团预订
+---
+
+**💰 预订比价**
+
+| 平台 | 价格/晚 | 返现 | 预订 |
+|:----:|:-------:|:----:|:----:|
+| 🏆 **美团** | ¥{price} | 返¥{meituan_cashback} | [立即预订]({meituan_link}) |
+| 飞猪 | ¥{price} | 返¥{feizhu_cashback} | [立即预订]({feizhu_link}) |
+
+> 💡 **推荐美团**:返现更多,省¥{meituan_cashback - feizhu_cashback}
+
+---
 '''
                 else:
                     # 无价格时的简化版
-                    booking_line = f'\n- **预订比价：**\n  - [美团酒店 💰返现]({meituan_link})\n  - [飞猪酒店 💰返现]({feizhu_link})\n  - 💡 建议先比价再下单\n'
+                    booking_line = f'''
+- **预订比价：**
+  - [美团酒店 💰返现]({meituan_link})
+  - [飞猪酒店 💰返现]({feizhu_link})
+  - 💡 建议先比价再下单
+'''
                 
                 # 在section末尾注入比价链接
                 insert_point = hotel_section_match.end(2)
