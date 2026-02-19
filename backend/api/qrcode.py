@@ -1,141 +1,123 @@
 """
-小程序码API - 生成真实微信小程序码
-用于分享海报中的二维码
+小程序码生成API
+调用微信官方接口生成小程序码
 """
 
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, request, send_file
 from loguru import logger
-import os
-import time
-import hashlib
 import requests
+import os
 from pathlib import Path
 
-# 创建Blueprint
 qrcode_bp = Blueprint('qrcode', __name__)
 
 # 小程序码缓存目录
 QRCODE_DIR = Path(__file__).parent.parent.parent / 'web' / 'qrcodes'
 QRCODE_DIR.mkdir(parents=True, exist_ok=True)
 
-# Access Token 缓存
-_access_token_cache = {
-    'token': '',
-    'expires_at': 0
-}
-
-
-def _get_access_token():
+def get_access_token():
     """
-    获取微信小程序 access_token（带缓存）
-    需要在 .env 中配置 WECHAT_APPID 和 WECHAT_SECRET
+    获取微信 Access Token
+    
+    需要在 .env 配置：
+    WX_APPID=你的小程序AppID
+    WX_SECRET=你的小程序AppSecret
     """
-    global _access_token_cache
-
-    # 检查缓存是否有效（提前5分钟过期）
-    if _access_token_cache['token'] and _access_token_cache['expires_at'] > time.time() + 300:
-        return _access_token_cache['token']
-
-    appid = os.getenv('WECHAT_APPID', '')
-    secret = os.getenv('WECHAT_SECRET', '')
-
+    appid = os.getenv('WX_APPID', '')
+    secret = os.getenv('WX_SECRET', '')
+    
     if not appid or not secret:
-        logger.error("❌ 未配置 WECHAT_APPID 或 WECHAT_SECRET，无法生成小程序码")
+        logger.warning("⚠️ 微信小程序未配置，使用占位二维码")
         return None
-
+    
+    url = f'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={secret}'
+    
     try:
-        url = f"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={secret}"
-        resp = requests.get(url, timeout=10)
-        data = resp.json()
-
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        
         if 'access_token' in data:
-            _access_token_cache['token'] = data['access_token']
-            _access_token_cache['expires_at'] = time.time() + data.get('expires_in', 7200)
-            logger.info(f"✅ 获取 access_token 成功，有效期 {data.get('expires_in', 7200)}s")
             return data['access_token']
         else:
-            logger.error(f"❌ 获取 access_token 失败: {data}")
+            logger.error(f"获取 Access Token 失败: {data}")
             return None
     except Exception as e:
-        logger.error(f"❌ 请求 access_token 异常: {e}")
+        logger.error(f"获取 Access Token 异常: {e}")
         return None
 
 
 @qrcode_bp.route('/qrcode/generate', methods=['POST'])
 def generate_qrcode():
     """
-    生成微信小程序码
-
-    请求参数:
-    {
-        "guide_id": "攻略slug或taskId",
-        "page": "pages/result/result"  // 跳转页面
-    }
-
-    返回: PNG图片二进制数据
+    生成小程序码
+    
+    参数：
+    - guide_id: 攻略ID（用于生成场景值）
+    - page: 跳转页面（默认 pages/guide-detail/guide-detail）
     """
     try:
-        data = request.get_json() or {}
-        guide_id = data.get('guide_id', 'demo')
-        page = data.get('page', 'pages/result/result')
-
-        # 生成缓存key
-        cache_key = hashlib.md5(f"{guide_id}_{page}".encode()).hexdigest()
-        cache_path = QRCODE_DIR / f"{cache_key}.png"
-
+        data = request.json
+        guide_id = data.get('guide_id', '')
+        page = data.get('page', 'pages/guide-detail/guide-detail')
+        
         # 检查缓存
-        if cache_path.exists():
-            logger.info(f"📱 返回缓存小程序码: {guide_id}")
-            return Response(
-                cache_path.read_bytes(),
-                mimetype='image/png',
-                headers={'Content-Type': 'image/png'}
-            )
-
-        # 获取 access_token
-        access_token = _get_access_token()
+        cache_file = QRCODE_DIR / f'{guide_id}.png'
+        if cache_file.exists():
+            logger.info(f"✅ 使用缓存二维码: {guide_id}")
+            return send_file(str(cache_file), mimetype='image/png')
+        
+        # 获取 Access Token
+        access_token = get_access_token()
         if not access_token:
-            logger.warning("⚠️ 无 access_token，返回空白占位图")
-            return jsonify({'error': '未配置微信凭证', 'code': 'NO_CREDENTIALS'}), 503
-
-        # 调用微信 wxacode.getUnlimited 接口
-        # 使用 scene 参数（最多32位），不限制数量
-        scene = guide_id[:32] if len(guide_id) > 32 else guide_id
-
-        url = f"https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={access_token}"
+            return jsonify({
+                'status': 'error',
+                'message': '小程序未配置，请设置 WX_APPID 和 WX_SECRET'
+            }), 500
+        
+        # 调用微信接口生成小程序码
+        url = f'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={access_token}'
+        
         payload = {
-            "scene": scene,
-            "page": page,
-            "width": 430,
-            "auto_color": False,
-            "line_color": {"r": 255, "g": 107, "b": 53},  # 野游记主题橙色
-            "is_hyaline": False
+            'scene': guide_id,  # 场景值（最多32字符）
+            'page': page,
+            'width': 280,  # 二维码宽度
+            'auto_color': False,
+            'line_color': {'r': 0, 'g': 0, 'b': 0},
+            'is_hyaline': False
         }
-
-        resp = requests.post(url, json=payload, timeout=15)
-
-        # 检查返回类型
-        content_type = resp.headers.get('Content-Type', '')
-
-        if 'image' in content_type:
-            # 成功返回图片
-            cache_path.write_bytes(resp.content)
-            logger.info(f"✅ 小程序码生成成功: {guide_id} ({len(resp.content)} bytes)")
-
-            return Response(
-                resp.content,
-                mimetype='image/png',
-                headers={'Content-Type': 'image/png'}
-            )
+        
+        response = requests.post(url, json=payload, timeout=30)
+        
+        # 检查是否返回图片
+        if response.headers.get('Content-Type') == 'image/jpeg':
+            # 保存到缓存
+            with open(cache_file, 'wb') as f:
+                f.write(response.content)
+            
+            logger.info(f"✅ 生成小程序码成功: {guide_id}")
+            return send_file(str(cache_file), mimetype='image/png')
         else:
-            # 返回了错误JSON
-            error_data = resp.json()
+            error_data = response.json()
             logger.error(f"❌ 生成小程序码失败: {error_data}")
             return jsonify({
-                'error': error_data.get('errmsg', '生成失败'),
-                'code': str(error_data.get('errcode', 'UNKNOWN'))
+                'status': 'error',
+                'message': f"微信接口错误: {error_data.get('errmsg', '未知错误')}"
             }), 500
-
+    
     except Exception as e:
         logger.error(f"❌ 生成小程序码异常: {e}")
-        return jsonify({'error': str(e), 'code': 'INTERNAL_ERROR'}), 500
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@qrcode_bp.route('/qrcode/<guide_id>.png', methods=['GET'])
+def get_qrcode(guide_id):
+    """获取已生成的小程序码"""
+    cache_file = QRCODE_DIR / f'{guide_id}.png'
+    
+    if cache_file.exists():
+        return send_file(str(cache_file), mimetype='image/png')
+    else:
+        return jsonify({'status': 'error', 'message': '二维码不存在'}), 404

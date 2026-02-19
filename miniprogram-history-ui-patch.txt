@@ -1,0 +1,177 @@
+=====================================
+小程序UI修改 - 添加历史人文模式
+=====================================
+
+【文件1：miniprogram/pages/index/index.wxml】
+
+找到生成模式选择区域（大约第50-80行），替换成：
+
+```xml
+<!-- 生成模式 -->
+<view class="mode-section">
+  <text class="section-label">🎯 选择你的旅行风格</text>
+  
+  <view class="mode-grid">
+    <view class="mode-card {{mode === 'full' ? 'active' : ''}}" 
+          bindtap="onModeSelect" data-mode="full">
+      <view class="mode-icon">🗺️</view>
+      <text class="mode-name">完整攻略</text>
+      <text class="mode-desc">吃住行全包</text>
+    </view>
+    
+    <view class="mode-card {{mode === 'hotel' ? 'active' : ''}}" 
+          bindtap="onModeSelect" data-mode="hotel">
+      <view class="mode-icon">🏨</view>
+      <text class="mode-name">只推酒店</text>
+      <text class="mode-desc">住宿专家</text>
+    </view>
+    
+    <view class="mode-card {{mode === 'food' ? 'active' : ''}}" 
+          bindtap="onModeSelect" data-mode="food">
+      <view class="mode-icon">🍜</view>
+      <text class="mode-name">只推美食</text>
+      <text class="mode-desc">吃货天堂</text>
+    </view>
+    
+    <!-- ✅ 新增：历史人文模式 -->
+    <view class="mode-card mode-card-highlight {{mode === 'history' ? 'active' : ''}}" 
+          bindtap="onModeSelect" data-mode="history">
+      <view class="mode-icon">📜</view>
+      <text class="mode-name">历史人文</text>
+      <text class="mode-desc">重走古人路</text>
+      <view class="mode-badge">NEW</view>
+    </view>
+  </view>
+  
+  <!-- ✅ 历史人文模式的提示 -->
+  <view class="mode-hint" wx:if="{{mode === 'history'}}">
+    <text class="hint-icon">💡</text>
+    <text class="hint-text">输入历史人物名或路线，如"苏东坡被贬路线"、"玄奘取经之路"、"李白游历图"</text>
+  </view>
+</view>
+```
+
+=====================================
+
+【文件2：miniprogram/pages/index/index.wxss】
+
+在样式文件末尾添加：
+
+```css
+/* 历史人文模式卡片高亮 */
+.mode-card-highlight {
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFE0B2 100%);
+  border: 2px solid #FF6B35;
+  position: relative;
+}
+
+.mode-card-highlight .mode-icon {
+  font-size: 48rpx;
+}
+
+.mode-card-highlight .mode-name {
+  color: #D84315;
+  font-weight: 700;
+}
+
+.mode-badge {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+  color: white;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-weight: 700;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
+}
+
+/* 历史人文提示框 */
+.mode-hint {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-left: 6rpx solid #4CAF50;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+
+.hint-icon {
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.hint-text {
+  font-size: 24rpx;
+  color: #2E7D32;
+  line-height: 1.6;
+}
+```
+
+=====================================
+
+【文件3：miniprogram/pages/index/index.js】
+
+在 data 里添加：
+
+```javascript
+data: {
+  mode: 'full',  // 默认模式
+  query: '',
+  // ... 其他字段
+},
+
+// ✅ 新增：模式选择
+onModeSelect(e) {
+  const { mode } = e.currentTarget.dataset;
+  this.setData({ mode });
+  
+  // 历史人文模式给个示例提示
+  if (mode === 'history' && !this.data.query) {
+    wx.showToast({
+      title: '试试"苏东坡被贬路线"',
+      icon: 'none',
+      duration: 2000
+    });
+  }
+},
+
+// 生成攻略时传递 mode
+onGenerate() {
+  const { query, mode } = this.data;
+  
+  wx.request({
+    url: 'https://api.wildtrip.com.cn/api/generate',
+    method: 'POST',
+    data: {
+      query: query,
+      mode: mode  // ← 传递模式
+    },
+    success: (res) => {
+      // 跳转结果页
+      wx.navigateTo({
+        url: `/pages/result/result?taskId=${res.data.task_id}`
+      });
+    }
+  });
+}
+```
+
+=====================================
+
+【效果预览】
+
+首页会显示4个模式卡片：
+┌────┬────┬────┬────┐
+│🗺️ │🏨  │🍜  │📜  │
+│完整│酒店│美食│历史│← NEW徽章
+│攻略│    │    │人文│
+└────┴────┴────┴────┘
+
+点击"历史人文"后，下方出现绿色提示框：
+💡 输入历史人物名或路线，如"苏东坡被贬路线"...
+
+=====================================

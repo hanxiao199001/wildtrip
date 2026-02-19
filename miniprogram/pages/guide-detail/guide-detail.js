@@ -295,8 +295,9 @@ Page({
                 console.log('🔥 链接被点击了!', '链接地址:', href)
                 const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('meituan') || href.includes('navi.sankuai')
                 if (isMeituanLink) {
-                  // 🔥 优化版：直接跳转美团搜索结果，无需粘贴
+                  // 🔥 优化版：Toast提示 + 自动跳转
                   let finalSearchUrl = ''
+                  let searchText = ''
                   
                   // 判断是relay URL还是直接美团URL
                   if (href.includes('/api/relay/meituan')) {
@@ -306,6 +307,7 @@ Page({
                     const city = params.city || (this.data.guide && this.data.guide.destination) || ''
                     const type = params.type || 'food'
                     finalSearchUrl = buildMeituanSearchUrl(keyword, city, type)
+                    searchText = city ? `${city} ${keyword}` : keyword
                     
                     // 🔥 后台静默触发CPS追踪（设置返佣cookie）
                     wx.request({
@@ -320,19 +322,47 @@ Page({
                     finalSearchUrl = href
                   }
                   
-                  // 直接跳转，无需modal、无需剪贴板
                   console.log('🔍 构建的美团URL:', finalSearchUrl)
-                  const mpSearchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(finalSearchUrl)}`
-                  console.log('🔍 跳转路径:', mpSearchPath)
+                  console.log('🔍 搜索词:', searchText)
                   
-                  wx.navigateToMiniProgram({
-                    appId: 'wxde8ac0a21135c07d',
-                    path: mpSearchPath,
-                    fail: () => {
-                      // 降级：用内置webview
-                      wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(finalSearchUrl)}&title=美团团购` })
-                    }
-                  })
+                  // Toast提示 + 自动跳转
+                  if (searchText) {
+                    wx.setClipboardData({ 
+                      data: searchText,
+                      success: () => {
+                        wx.showToast({
+                          title: `已复制: ${searchText}\n\n① 即将跳转美团\n② 搜索框长按粘贴`,
+                          icon: 'none',
+                          duration: 2000
+                        })
+                        setTimeout(() => {
+                          wx.navigateToMiniProgram({
+                            appId: 'wxde8ac0a21135c07d',
+                            fail: () => {
+                              wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(finalSearchUrl)}&title=美团团购` })
+                            }
+                          })
+                        }, 1500)
+                      },
+                      fail: () => {
+                        // 复制失败则直接跳转
+                        wx.navigateToMiniProgram({
+                          appId: 'wxde8ac0a21135c07d',
+                          fail: () => {
+                            wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(finalSearchUrl)}&title=美团团购` })
+                          }
+                        })
+                      }
+                    })
+                  } else {
+                    // 没有搜索词则直接跳转
+                    wx.navigateToMiniProgram({
+                      appId: 'wxde8ac0a21135c07d',
+                      fail: () => {
+                        wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(finalSearchUrl)}&title=美团团购` })
+                      }
+                    })
+                  }
                 } else if (href.startsWith('http')) {
                   wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=链接` })
                 }

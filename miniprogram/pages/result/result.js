@@ -84,23 +84,48 @@ Page({
                 const keyword = qparams.keyword || ''
                 const city = qparams.city || ''
                 const searchText = qparams.q || (city ? `${city} ${keyword}` : keyword)
-                // 弹框确认，复制搜索词后跳转
-                wx.showModal({
-                  title: '搜索词已复制',
-                  content: `"${searchText || '未找到搜索词'}"\n\n跳转后在美团搜索框长按粘贴`,
-                  confirmText: '去美团',
-                  cancelText: '取消',
-                  success: (res) => {
-                    if (!res.confirm) return
-                    if (searchText) wx.setClipboardData({ data: searchText, fail: ()=>{} })
-                    wx.navigateToMiniProgram({
-                      appId: 'wxde8ac0a21135c07d',
-                      fail: () => {
-                        wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
-                      }
-                    })
-                  }
-                })
+                
+                // 🔥 Toast提示 + 自动跳转(方案D)
+                if (searchText) {
+                  wx.setClipboardData({ 
+                    data: searchText,
+                    success: () => {
+                      // 复制成功后显示Toast
+                      wx.showToast({
+                        title: `已复制: ${searchText}\n\n① 即将跳转美团\n② 搜索框长按粘贴`,
+                        icon: 'none',
+                        duration: 2000
+                      })
+                      // 1.5秒后自动跳转
+                      setTimeout(() => {
+                        wx.navigateToMiniProgram({
+                          appId: 'wxde8ac0a21135c07d',
+                          fail: () => {
+                            wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
+                          }
+                        })
+                      }, 1500)
+                    },
+                    fail: () => {
+                      // 复制失败则使用原modal方式
+                      wx.showModal({
+                        title: '搜索词已复制',
+                        content: `"${searchText}"\n\n跳转后在美团搜索框长按粘贴`,
+                        confirmText: '去美团',
+                        cancelText: '取消',
+                        success: (res) => {
+                          if (!res.confirm) return
+                          wx.navigateToMiniProgram({
+                            appId: 'wxde8ac0a21135c07d',
+                            fail: () => {
+                              wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
+                            }
+                          })
+                        }
+                      })
+                    }
+                  })
+                }
               } else if (href.startsWith('http')) {
                 wx.navigateTo({
                   url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=链接`
