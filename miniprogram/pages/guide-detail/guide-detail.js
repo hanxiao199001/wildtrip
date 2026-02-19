@@ -319,8 +319,18 @@ Page({
                     finalSearchUrl = href
                   }
                   
+                  // 调试：显示构建的最终URL
+                  console.log('🔍 最终美团搜索URL:', finalSearchUrl)
+                  wx.showToast({ 
+                    title: `调试: ${finalSearchUrl.substring(0, 50)}...`, 
+                    icon: 'none', 
+                    duration: 3000 
+                  })
+                  
                   // 直接跳转，无需modal、无需剪贴板
                   const mpSearchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(finalSearchUrl)}`
+                  console.log('🔍 美团小程序路径:', mpSearchPath)
+                  
                   wx.navigateToMiniProgram({
                     appId: 'wxde8ac0a21135c07d',
                     path: mpSearchPath,
