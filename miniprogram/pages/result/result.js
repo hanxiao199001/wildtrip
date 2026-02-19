@@ -86,9 +86,9 @@ Page({
                 const searchText = qparams.q || (city ? `${city} ${keyword}` : keyword)
                 // 弹框确认，复制搜索词后跳转
                 wx.showModal({
-                  title: '📋 搜索词已复制',
-                  content: `✅ 已复制: "${searchText || '未找到搜索词'}"\n\n👉 跳转美团后，在搜索框「长按粘贴」即可\n\n💡 无需手动输入，直接粘贴搜索！`,
-                  confirmText: '立即跳转',
+                  title: '搜索词已复制',
+                  content: `"${searchText || '未找到搜索词'}"\n\n跳转后在美团搜索框长按粘贴`,
+                  confirmText: '去美团',
                   cancelText: '取消',
                   success: (res) => {
                     if (!res.confirm) return
