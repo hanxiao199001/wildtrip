@@ -416,51 +416,71 @@ def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:
             seen_hotels.add(clean_name)
             
             search_query = f"{city} {clean_name}"
-            link = affiliate.get_search_link(query=search_query, category="hotel")
+            
+            # 🔥 同时获取美团和飞猪的链接
+            from services.jutuike_api import get_jutuike_api
+            jt_api = get_jutuike_api()
+            
+            # 美团酒店链接
+            meituan_info = jt_api.get_hotel_link(sid=f'{city}_{clean_name}')
+            meituan_link = meituan_info['h5'] if meituan_info else affiliate.get_search_link(query=search_query, category="hotel")
+            
+            # 飞猪酒店链接
+            feizhu_info = jt_api.get_feizhu_link(sid=f'{city}_{clean_name}')
+            feizhu_link = feizhu_info['h5'] if feizhu_info else meituan_link  # fallback到美团
             
             recommendations['hotels'].append({
                 'name': clean_name,
-                'link': link,
+                'meituan_link': meituan_link,
+                'feizhu_link': feizhu_link,
                 'search_query': search_query
             })
     
-    # 🔥 替换所有酒店的预订链接
+    # 🔥 替换所有酒店的预订链接(支持比价)
     for hotel in recommendations['hotels']:
         hotel_name = hotel['name']
-        link = hotel['link']
-
-        # 方案1：替换Markdown格式 [携程/美团](链接占位)
+        meituan_link = hotel['meituan_link']
+        feizhu_link = hotel['feizhu_link']
+        
+        # 方案1：替换比价占位符 LINK_HOTEL_MEITUAN_xxx 和 LINK_HOTEL_FEIZHU_xxx
+        content = content.replace(f'LINK_HOTEL_MEITUAN_{hotel_name}', meituan_link)
+        content = content.replace(f'LINK_HOTEL_FEIZHU_{hotel_name}', feizhu_link)
+        
+        # 方案2：兼容旧格式 [携程/美团](链接占位) → 替换为美团链接
         content = re.sub(
             r'\[(?:携程|美团|预订)[^\]]*?\]\((?:链接占位|占位|#)\)',
-            f'[美团预订]({link})',
+            f'[美团预订]({meituan_link})',
             content,
             count=1
         )
-        # 方案2：替换纯文本"查看详情"
+        
+        # 方案3：替换纯文本"查看详情"
         content = re.sub(
             r'预订[：:]\s*查看详情',
-            f'预订：[查看详情]({link})',
+            f'预订：[查看详情]({meituan_link})',
             content,
             count=1
         )
 
-    # 🔥 酒店兜底：为没有预订链接的酒店注入链接
+    # 🔥 酒店兜底：为没有预订链接的酒店注入比价链接
     # 查找酒店section中每个 ### N. 酒店名 块，如果缺少预订链接则追加
     for hotel in recommendations['hotels']:
         hotel_name = re.escape(hotel['name'])
-        link = hotel['link']
+        meituan_link = hotel['meituan_link']
+        feizhu_link = hotel['feizhu_link']
+        
         # 检查该酒店附近是否已有预订链接（向后搜索到下一个 ### 或 ## 为止）
-        hotel_section_pattern = rf'(###\s+\d+\.\s+[^\n]*?{hotel_name}[^\n]*?\n)(.*?)(?=###\s+\d+\.|##\s+[^#]|$)'
+        hotel_section_pattern = rf'(###\s+(?:\d+\.\s+)?[^\n]*?{hotel_name}[^\n]*?\n)(.*?)(?=###\s+|##\s+[^#]|$)'
         hotel_section_match = re.search(hotel_section_pattern, content, re.S)
         if hotel_section_match:
             section_text = hotel_section_match.group(2)
-            # 如果这个section中没有美团预订链接
-            if '美团预订' not in section_text and 'meituan.com' not in section_text and 'LINK_HOTEL' not in section_text:
-                # 在section末尾（下一个 ### 之前）注入预订链接
+            # 如果这个section中没有预订链接
+            if '预订' not in section_text and 'meituan.com' not in section_text and 'LINK_HOTEL' not in section_text:
+                # 在section末尾注入比价链接
                 insert_point = hotel_section_match.end(2)
-                booking_line = f'\n- **预订：** [美团预订]({link})\n'
+                booking_line = f'\n- **预订比价：**\n  - [美团酒店 💰返现]({meituan_link})\n  - [飞猪酒店 💰返现]({feizhu_link})\n  - 💡 建议先比价再下单\n'
                 content = content[:insert_point] + booking_line + content[insert_point:]
-                logger.info(f"🏨 兜底注入酒店链接: {hotel['name']}")
+                logger.info(f"🏨 兜底注入比价链接: {hotel['name']}")
     
     # === 3. 餐厅链接替换（优化正则，匹配多种格式） ===
     # 格式1：**XX文昌鸡饭** ¥50/人
