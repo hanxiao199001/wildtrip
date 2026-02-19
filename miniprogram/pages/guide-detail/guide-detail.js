@@ -2,6 +2,70 @@
 const app = getApp()
 const api = require('../../utils/api')
 
+// 美团城市ID映射（ci参数，用于精准定位城市）
+const MEITUAN_CITY_IDS = {
+  '北京': 1, '上海': 2, '广州': 3, '深圳': 4, '天津': 5,
+  '杭州': 6, '南京': 7, '武汉': 8, '西安': 9, '沈阳': 10,
+  '青岛': 11, '大连': 12, '苏州': 13, '重庆': 14, '成都': 15,
+  '长沙': 16, '郑州': 17, '厦门': 18, '福州': 20, '济南': 21,
+  '哈尔滨': 22, '昆明': 23, '合肥': 26, '南昌': 28, '南宁': 29,
+  '贵阳': 30, '太原': 35, '兰州': 37, '长春': 38, '乌鲁木齐': 40,
+  '宁波': 54, '无锡': 55, '温州': 57, '东莞': 58, '佛山': 59,
+  '石家庄': 70, '呼和浩特': 80, '银川': 93, '西宁': 108,
+  '海口': 196, '三亚': 252,
+  '黄州': 8,  // 黄州属于湖北黄冈，近武汉，共用武汉ID
+}
+
+// 获取美团城市ID（支持模糊匹配）
+function getMeituanCityId(city) {
+  if (!city) return 0
+  // 精确匹配
+  if (MEITUAN_CITY_IDS[city]) return MEITUAN_CITY_IDS[city]
+  // 模糊匹配（去掉"市"/"区"）
+  const cityShort = city.replace(/[市区]/g, '')
+  for (const name in MEITUAN_CITY_IDS) {
+    if (cityShort.includes(name) || name.includes(cityShort)) {
+      return MEITUAN_CITY_IDS[name]
+    }
+  }
+  return 0
+}
+
+// 解析relay URL参数
+function parseRelayUrl(url) {
+  const params = {}
+  const qs = url.split('?')[1] || ''
+  qs.split('&').forEach(p => {
+    const [k, v] = p.split('=')
+    if (k) params[k] = decodeURIComponent(v || '')
+  })
+  return params
+}
+
+// 构建美团最终搜索URL
+function buildMeituanSearchUrl(keyword, city, type = 'food') {
+  const cityId = getMeituanCityId(city)
+  const encodedKeyword = encodeURIComponent(keyword || '团购')
+  
+  const templates = {
+    'food': 'https://i.meituan.com/search?keyword={keyword}&type=deal&ci={ci}&mt_app_version=9999',
+    'hotel': 'https://i.meituan.com/hotel/search?keyword={keyword}&ci={ci}',
+    'ticket': 'https://i.meituan.com/search?keyword={keyword}%20门票&type=deal&ci={ci}',
+  }
+  
+  const template = templates[type] || templates['food']
+  
+  if (cityId) {
+    return template.replace('{keyword}', encodedKeyword).replace('{ci}', cityId)
+  } else {
+    // 没有城市ID时，关键词拼接城市名
+    const fallbackKeyword = city ? `${city} ${keyword}`.trim() : keyword
+    return template
+      .replace('{keyword}', encodeURIComponent(fallbackKeyword))
+      .replace('&ci={ci}', '')
+  }
+}
+
 // 城市渐变色映射
 const CITY_GRADIENTS = {
   '深圳': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -230,42 +294,39 @@ Page({
                 if (!href) return
                 const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('meituan') || href.includes('navi.sankuai')
                 if (isMeituanLink) {
-                  // 从URL参数提取关键词和城市
-                  const qs = href.split('?')[1] || ''
-                  const qparams = {}
-                  qs.split('&').forEach(p => { const [k, v] = p.split('='); if (k) qparams[k] = decodeURIComponent(v || '') })
-                  const keyword = qparams.keyword || ''
-                  const urlCity = qparams.city || ''
-                  // 支持 q= 格式（直接美团搜索URL）和 keyword+city 格式（relay URL），兜底用攻略目的地
-                  const guideCity = (this.data.guide && this.data.guide.destination) || ''
-                  const searchText = qparams.q || (urlCity ? `${urlCity} ${keyword}` : keyword) || guideCity
-
-                  const doNavigate = () => {
-                    const mpSearchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(href)}`
-                    wx.navigateToMiniProgram({
-                      appId: 'wxde8ac0a21135c07d',
-                      path: mpSearchPath,
-                      fail: () => {
-                        wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
-                      }
+                  // 🔥 优化版：直接跳转美团搜索结果，无需粘贴
+                  let finalSearchUrl = ''
+                  
+                  // 判断是relay URL还是直接美团URL
+                  if (href.includes('/api/relay/meituan')) {
+                    // relay URL → 解析参数构建最终搜索URL
+                    const params = parseRelayUrl(href)
+                    const keyword = params.keyword || ''
+                    const city = params.city || (this.data.guide && this.data.guide.destination) || ''
+                    const type = params.type || 'food'
+                    finalSearchUrl = buildMeituanSearchUrl(keyword, city, type)
+                    
+                    // 🔥 后台静默触发CPS追踪（设置返佣cookie）
+                    wx.request({
+                      url: href + (href.includes('?') ? '&' : '?') + 'direct=1',
+                      method: 'GET',
+                      header: { 'Content-Type': 'application/json' },
+                      success: () => console.log('✅ CPS追踪已触发'),
+                      fail: (err) => console.warn('⚠️ CPS追踪失败（不影响跳转）:', err)
                     })
+                  } else {
+                    // 直接美团URL，不处理
+                    finalSearchUrl = href
                   }
-
-                  wx.showModal({
-                    title: '跳转美团搜索',
-                    content: searchText
-                      ? `搜索词已复制：\n"${searchText}"\n\n跳转后在美团搜索框长按粘贴`
-                      : '即将跳转美团小程序',
-                    confirmText: '去美团',
-                    cancelText: '取消',
-                    success: (res) => {
-                      if (!res.confirm) return
-                      if (searchText) {
-                        // 先设剪贴板，成功后再跳转（避免竞态）
-                        wx.setClipboardData({ data: searchText, success: doNavigate, fail: doNavigate })
-                      } else {
-                        doNavigate()
-                      }
+                  
+                  // 直接跳转，无需modal、无需剪贴板
+                  const mpSearchPath = `/index/pages/h5/h5?weburl=${encodeURIComponent(finalSearchUrl)}`
+                  wx.navigateToMiniProgram({
+                    appId: 'wxde8ac0a21135c07d',
+                    path: mpSearchPath,
+                    fail: () => {
+                      // 降级：用内置webview
+                      wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(finalSearchUrl)}&title=美团团购` })
                     }
                   })
                 } else if (href.startsWith('http')) {
