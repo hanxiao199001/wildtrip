@@ -97,6 +97,7 @@ def create_generate_task():
             'status': 'pending',
             'created_at': time.time(),
             'progress': 0,
+            'message': '准备生成...',  # 🔥 新增：进度消息
             'result': None,
             'error': None
         }
@@ -164,6 +165,7 @@ def get_task_status(task_id):
         'task_id': task_id,
         'status': task['status'],
         'progress': task['progress'],
+        'message': task.get('message', ''),  # 🔥 新增：返回进度消息
         'mode': task.get('mode', 'full'),
         'query': task.get('query', '')
     }
@@ -243,13 +245,10 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         emit_progress(socketio, task_id, 'affiliate_start', '🔗 正在添加美团返佣链接...', 70)
         time.sleep(0.5)
         
-        emit_progress(socketio, task_id, 'affiliate_hotels', '🏨 正在匹配酒店链接...', 75)
-        time.sleep(0.3)
-        
-        emit_progress(socketio, task_id, 'affiliate_food', '🍜 正在匹配餐厅链接...', 80)
-        time.sleep(0.3)
-        
-        emit_progress(socketio, task_id, 'affiliate_tickets', '🎫 正在匹配景点门票...', 85)
+        # 🔥 提取并替换返佣链接（保持原逻辑，增加进度提示）
+        emit_progress(socketio, task_id, 'affiliate_hotels', '🏨 正在匹配酒店链接...', 72)
+        emit_progress(socketio, task_id, 'affiliate_food', '🍜 正在匹配餐厅链接...', 77)
+        emit_progress(socketio, task_id, 'affiliate_tickets', '🎫 正在匹配景点门票...', 82)
         
         enhanced_content, recommendations = enhance_with_affiliate(content, query, mode)
         
@@ -662,6 +661,7 @@ def emit_progress(socketio, task_id: str, event_type: str, message: str, progres
     try:
         if task_id in active_tasks:
             active_tasks[task_id]['progress'] = progress
+            active_tasks[task_id]['message'] = message  # 🔥 新增：更新消息
         
         socketio.emit('wildtrip_progress', {
             'task_id': task_id,

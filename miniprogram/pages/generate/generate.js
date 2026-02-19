@@ -81,14 +81,20 @@ Page({
   // 轮询任务状态
   async pollTaskStatus() {
     const { taskId } = this.data
+    let lastProgress = 0
+    let lastMessage = ''
     
     this.timer = setInterval(async () => {
       try {
         const status = await this.callAPI(`/task/${taskId}`, {}, 'GET')
         
+        const currentProgress = status.progress || 0
+        const currentMessage = status.message || `正在生成 ${currentProgress}%`
+        
         // 更新进度
         this.setData({
-          progress: status.progress || 0
+          progress: currentProgress,
+          statusText: currentMessage
         })
 
         // 根据状态更新UI
@@ -103,15 +109,17 @@ Page({
           })
           this.addMessage(`❌ ${status.error || '生成失败'}`)
         } else {
-          // 正在运行
-          if (status.progress > this.data.progress) {
-            this.addMessage(`⏳ 进度 ${status.progress}%`)
+          // 正在运行 - 只在进度或消息变化时添加日志
+          if (currentProgress > lastProgress || currentMessage !== lastMessage) {
+            this.addMessage(`${currentMessage}`)
+            lastProgress = currentProgress
+            lastMessage = currentMessage
           }
         }
       } catch (error) {
         console.error('查询状态失败:', error)
       }
-    }, 2000)  // 每2秒查询一次
+    }, 1500)  // 每1.5秒查询一次(更频繁)
   },
 
   // 生成完成
