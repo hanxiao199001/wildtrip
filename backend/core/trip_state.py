@@ -102,6 +102,10 @@ class TripState(BaseModel):
     markdown_content: Optional[str] = None
     xiaohongshu_content: Optional[str] = None
     
+    # ========== 路由控制 (Gemini 建议) ==========
+    next_agent: str = 'profile'  # 当前应该执行哪个 Agent
+    is_finished: bool = False  # 是否完成
+    
     # ========== 元数据 ==========
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
