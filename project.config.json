@@ -1,5 +1,6 @@
 {
   "description": "野游记 WildTrip - 懒人旅游AI，预订返现50%",
+  "miniprogramRoot": "miniprogram/",
   "packOptions": {
     "ignore": [],
     "include": []
