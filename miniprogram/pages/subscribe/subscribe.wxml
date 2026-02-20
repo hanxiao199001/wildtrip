@@ -1,0 +1,82 @@
+<!-- 订阅页面 -->
+<view class="subscribe-page">
+  <!-- 头部标题 -->
+  <view class="header">
+    <image class="icon" src="/images/notification-icon.png" mode="aspectFit"></image>
+    <view class="title">订阅周末野游计划</view>
+    <view class="subtitle">每周四晚 8 点,精准推送</view>
+  </view>
+
+  <!-- 权益卡片 -->
+  <view class="benefits-section">
+    <view class="section-title">订阅后你将获得</view>
+    
+    <view class="benefit-list">
+      <view class="benefit-item" wx:for="{{benefits}}" wx:key="title">
+        <view class="benefit-icon">{{item.icon}}</view>
+        <view class="benefit-content">
+          <view class="benefit-title">{{item.title}}</view>
+          <view class="benefit-desc">{{item.desc}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 示例预览 -->
+  <view class="preview-section">
+    <view class="section-title">推送示例</view>
+    
+    <view class="preview-card">
+      <view class="preview-title">周末野游计划</view>
+      <view class="preview-item">
+        <text class="label">推荐目的地:</text>
+        <text class="value">万宁神州半岛</text>
+      </view>
+      <view class="preview-item">
+        <text class="label">出行时间:</text>
+        <text class="value">本周六 2月24日</text>
+      </view>
+      <view class="preview-item">
+        <text class="label">行程亮点:</text>
+        <text class="value">避开人群,亲子玩水,适合航拍</text>
+      </view>
+      <view class="preview-item">
+        <text class="label">温馨提示:</text>
+        <text class="value">记得带遥控积木和防晒霜</text>
+      </view>
+      <view class="preview-action">点击查看完整攻略 →</view>
+    </view>
+  </view>
+
+  <!-- 订阅状态 -->
+  <view class="status-section" wx:if="{{subscribed}}">
+    <view class="status-card subscribed">
+      <view class="status-icon">✅</view>
+      <view class="status-text">已订阅周末野游计划</view>
+      <view class="status-desc">下次推送:本周四晚 8:00</view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <button 
+      class="subscribe-btn primary" 
+      bindtap="requestSubscribe"
+      loading="{{loading}}"
+      disabled="{{subscribed}}"
+    >
+      {{subscribed ? '已订阅' : '立即订阅(免费)'}}
+    </button>
+    
+    <button class="subscribe-btn secondary" bindtap="onSkip" wx:if="{{!subscribed}}">
+      稍后再说
+    </button>
+  </view>
+
+  <!-- 说明文字 -->
+  <view class="tips-section">
+    <view class="tip-item">💡 完全免费,无需付费</view>
+    <view class="tip-item">🔒 随时可取消,不打扰</view>
+    <view class="tip-item">🎯 AI 个性化推荐,千人千面</view>
+  </view>
+</view>

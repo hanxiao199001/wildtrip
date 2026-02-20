@@ -56,6 +56,7 @@ from api.user import user_bp
 from api.relay import relay_bp
 from api.clarify import clarify_bp
 from api.qrcode import qrcode_bp
+from api.subscription import subscription_bp  # 🔥 新增:订阅消息
 
 app.register_blueprint(generate_bp, url_prefix='/api')
 app.register_blueprint(guides_bp, url_prefix='/api')
@@ -63,9 +64,19 @@ app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(relay_bp, url_prefix='/api')
 app.register_blueprint(clarify_bp, url_prefix='/api')
 app.register_blueprint(qrcode_bp, url_prefix='/api')
+app.register_blueprint(subscription_bp, url_prefix='/api')  # 🔥 新增
 register_socketio_events(socketio)
 
-logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统 + 需求澄清 + 小程序码 + 中转页）")
+logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统 + 需求澄清 + 小程序码 + 中转页 + 订阅消息）")
+
+# 🔥 启动周末推送服务
+try:
+    from services.weekend_push_service import get_weekend_push_service
+    push_service = get_weekend_push_service()
+    push_service.start()
+    logger.info("✅ 周末推送服务已启动(每周四 20:00)")
+except Exception as e:
+    logger.warning(f"⚠️ 周末推送服务启动失败(可能缺少配置): {e}")
 
 
 @app.route('/')
