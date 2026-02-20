@@ -1,0 +1,44 @@
+# 环境变量和敏感信息
+.env
+.env.local
+.env.*.local
+
+# API Keys
+*.key
+*.pem
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+
+# 日志
+*.log
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 备份文件
+*.backup
+*.bak

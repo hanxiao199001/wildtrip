@@ -13,27 +13,49 @@ class AIEngine:
     def __init__(self):
         """初始化AI引擎"""
         self.api_key = os.getenv('AI_API_KEY', '')
-        self.base_url = os.getenv('AI_BASE_URL', 'https://api.deepseek.com')
-        self.model = os.getenv('AI_MODEL', 'deepseek-chat')
+        
+        # 🔥 支持多种 AI 提供商
+        # Qwen (通义千问): https://dashscope.aliyuncs.com/compatible-mode/v1
+        # DeepSeek: https://api.deepseek.com
+        # OpenAI: https://api.openai.com/v1
+        self.base_url = os.getenv('AI_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
+        self.model = os.getenv('AI_MODEL', 'qwen-plus')
         
         if not self.api_key:
             logger.warning("⚠️ AI_API_KEY未配置，将使用Mock数据")
             self.use_mock = True
         else:
             self.use_mock = False
-            logger.info(f"✅ AI引擎初始化完成 | 模型: {self.model}")
+            provider = self._get_provider_name()
+            logger.info(f"✅ AI引擎初始化完成 | 提供商: {provider} | 模型: {self.model}")
+    
+    def _get_provider_name(self):
+        """识别 AI 提供商"""
+        if 'dashscope.aliyuncs.com' in self.base_url:
+            return '通义千问(Qwen)'
+        elif 'deepseek.com' in self.base_url:
+            return 'DeepSeek'
+        elif 'openai.com' in self.base_url:
+            return 'OpenAI'
+        else:
+            return '自定义'
     
     def generate(self, prompt: str, query: str, mode: str = 'full') -> str:
         """
-        生成攻略内容（RAG增强）
+        生成内容（支持多种场景）
         
         Args:
             prompt: 完整的prompt（包含system + user）
             query: 用户原始查询
             mode: 生成模式
+                - 'full': 完整旅游攻略（野游记主功能）
+                - 'hotel': 酒店推荐
+                - 'food': 美食推荐
+                - 'history': 历史人文路线
+                - 'chat': SaaS 客服对话（短文本，不检索攻略库）
             
         Returns:
-            生成的攻略内容（Markdown格式）
+            生成的内容（Markdown格式 or 纯文本）
         """
         if self.use_mock:
             logger.info(f"🔧 使用Mock数据生成（mode={mode}）")
@@ -42,8 +64,13 @@ class AIEngine:
         try:
             import openai
             
-            # 🔥 RAG步骤1：检索相关攻略
-            rag_context = self._retrieve_relevant_guides(query, mode)
+            # 🔥 RAG步骤1：检索相关攻略（SaaS客服模式跳过）
+            if mode == 'chat':
+                # SaaS 客服对话不检索攻略库，避免混淆
+                rag_context = None
+            else:
+                # 野游记攻略生成才检索
+                rag_context = self._retrieve_relevant_guides(query, mode)
             
             # 分离system和user prompt
             parts = prompt.split('\n\n', 1)
@@ -76,19 +103,24 @@ class AIEngine:
                 {"role": "user", "content": user_prompt}
             ]
             
-            logger.info(f"🤖 调用AI模型: {self.model} | RAG增强: {'是' if rag_context else '否'}")
+            logger.info(f"🤖 调用AI模型: {self.model} | 模式: {mode} | RAG增强: {'是' if rag_context else '否'}")
             
-            # 🔥 提高temperature增加多样性，添加随机seed
-            import time
-            random_seed = int(time.time() * 1000) % 1000000  # 基于时间的随机种子
+            # 🔥 根据 mode 调整生成参数
+            if mode == 'chat':
+                # SaaS 客服：短回复，快速响应
+                temperature = 0.7
+                max_tokens = 500  # 限制长度，避免过长回复
+            else:
+                # 野游记攻略：长文本，高创意
+                temperature = 0.9
+                max_tokens = 4000
             
             response = client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=0.9,  # 🔥 从0.7提高到0.9，增加创意和多样性
-                max_tokens=4000,
+                temperature=temperature,
+                max_tokens=max_tokens,
                 timeout=120,
-                # seed=random_seed,  # 不同的seed会生成不同的内容（如果模型支持）
             )
             
             content = response.choices[0].message.content
