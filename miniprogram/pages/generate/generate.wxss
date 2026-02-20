@@ -1,98 +1,189 @@
-/* 攻略生成页面样式 */
+/* 攻略生成页面样式 — 4阶段流水线 */
 
 .generate-page {
   padding: 32rpx;
 }
 
-/* 进度卡片 */
-.progress-card {
-  margin-bottom: 24rpx;
-}
-
-.progress-header {
+/* ========== 顶部状态 ========== */
+.status-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 32rpx;
+  padding: 48rpx 0 24rpx;
 }
 
-.progress-icon {
-  font-size: 64rpx;
-  margin-right: 20rpx;
+.status-emoji {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
 }
 
-.progress-title {
+.status-emoji.pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.status-label {
   font-size: 36rpx;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-/* 进度条 */
-.progress-bar-container {
-  margin-bottom: 32rpx;
+/* ========== 进度条 ========== */
+.bar-wrap {
+  padding: 24rpx 0 32rpx;
 }
 
-.progress-bar {
+.bar-track {
   width: 100%;
-  height: 16rpx;
-  background: #E5E5E5;
-  border-radius: 8rpx;
+  height: 12rpx;
+  background: #E8E8E8;
+  border-radius: 6rpx;
   overflow: hidden;
-  margin-bottom: 12rpx;
 }
 
-.progress-fill {
+.bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  border-radius: 8rpx;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, var(--primary-color) 0%, #5FCCC4 100%);
+  border-radius: 6rpx;
+  transition: width 0.5s ease;
 }
 
-.progress-percent {
-  text-align: right;
-  font-size: 28rpx;
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* 进度消息 */
-.progress-messages {
-  max-height: 400rpx;
-  overflow-y: auto;
-  padding: 24rpx;
-  background: #F8F8F8;
-  border-radius: var(--radius-normal);
+/* ========== 4 阶段流水线 ========== */
+.stage-pipeline {
+  padding: 32rpx;
   margin-bottom: 24rpx;
 }
 
-.progress-message {
+.stage-item {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 16rpx;
-  font-size: 26rpx;
-  line-height: 1.6;
 }
 
-.progress-message:last-child {
-  margin-bottom: 0;
+.stage-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
 }
 
-.message-time {
-  color: var(--text-hint);
+/* 圆点 */
+.stage-dot {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  background: #F0F0F0;
+  color: #BBBBBB;
+  transition: all 0.3s ease;
+}
+
+.stage-dot.active {
+  background: var(--primary-color);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 8rpx rgba(32, 178, 170, 0.15);
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+.stage-dot.done {
+  background: var(--primary-color);
+  color: #FFFFFF;
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 8rpx rgba(32, 178, 170, 0.15); }
+  50% { box-shadow: 0 0 0 16rpx rgba(32, 178, 170, 0.08); }
+}
+
+/* 竖线 */
+.stage-line {
+  width: 4rpx;
+  height: 48rpx;
+  background: #E8E8E8;
+  margin: 8rpx 0;
+  transition: background 0.3s ease;
+}
+
+.stage-item.done .stage-line {
+  background: var(--primary-color);
+}
+
+/* 右侧文字 */
+.stage-right {
+  flex: 1;
+  padding-bottom: 20rpx;
+}
+
+.stage-label {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #BBBBBB;
+  margin-bottom: 4rpx;
+  transition: color 0.3s ease;
+}
+
+.stage-item.active .stage-label,
+.stage-item.done .stage-label {
+  color: var(--text-primary);
+}
+
+.stage-desc {
+  font-size: 24rpx;
+  color: #CCCCCC;
+  transition: color 0.3s ease;
+}
+
+.stage-item.active .stage-desc {
+  color: var(--primary-color);
+}
+
+.stage-item.done .stage-desc {
+  color: var(--text-secondary);
+}
+
+/* ========== 轮播贴士 ========== */
+.tip-bar {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 28rpx;
+  background: rgba(32, 178, 170, 0.06);
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  animation: tipFade 3s ease-in-out infinite;
+}
+
+@keyframes tipFade {
+  0%, 100% { opacity: 1; }
+  48% { opacity: 1; }
+  50% { opacity: 0.4; }
+  52% { opacity: 1; }
+}
+
+.tip-icon {
+  font-size: 32rpx;
   margin-right: 12rpx;
   flex-shrink: 0;
 }
 
-.message-text {
+.tip-text {
+  font-size: 26rpx;
   color: var(--text-secondary);
-  flex: 1;
+  line-height: 1.5;
 }
 
-/* 查询显示 */
+/* ========== 查询显示 ========== */
 .query-display {
   padding: 24rpx;
-  background: rgba(32, 178, 170, 0.05);
-  border-radius: var(--radius-normal);
+  margin-bottom: 24rpx;
   border-left: 4rpx solid var(--primary-color);
+  background: rgba(32, 178, 170, 0.03);
 }
 
 .query-label {
@@ -107,68 +198,7 @@
   line-height: 1.6;
 }
 
-/* 速度对比 */
-.speed-compare {
-  margin-bottom: 24rpx;
-}
-
-.compare-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 24rpx;
-  text-align: center;
-}
-
-.compare-items {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-}
-
-.compare-item {
-  flex: 1;
-  text-align: center;
-  padding: 24rpx;
-  border-radius: var(--radius-normal);
-  background: #F8F8F8;
-}
-
-.compare-item.active {
-  background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(95, 204, 196, 0.1) 100%);
-  border: 2rpx solid var(--primary-color);
-}
-
-.compare-label {
-  font-size: 24rpx;
-  color: var(--text-hint);
-  margin-bottom: 12rpx;
-}
-
-.compare-time {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8rpx;
-}
-
-.compare-item.active .compare-time {
-  color: var(--primary-color);
-}
-
-.compare-desc {
-  font-size: 24rpx;
-  color: var(--text-secondary);
-}
-
-.compare-divider {
-  font-size: 32rpx;
-  color: var(--primary-color);
-  font-weight: 600;
-  margin: 0 24rpx;
-}
-
-/* 返现提示 */
+/* ========== 返现提示 ========== */
 .cashback-hint {
   display: flex;
   align-items: center;

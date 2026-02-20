@@ -169,7 +169,7 @@ async def profile_agent_handler(state: TripState, context: dict) -> TripState:
     else:
         # 信息完整,转到规划 Agent
         state.next_agent = 'wild_routing'
-        logger.info(f"👤 用户偏好: {preferences.dict()}, 转到规划 Agent")
+        logger.info(f"👤 用户偏好: {preferences.model_dump()}, 转到规划 Agent")
     
     return state
 
@@ -185,34 +185,74 @@ async def wild_routing_agent_handler(state: TripState, context: dict) -> TripSta
     """
     from services.ai_engine import AIEngine
     from prompts.wildtrip_prompt import build_wildtrip_prompt
-    
-    # 构建 Prompt
-    prompt = build_wildtrip_prompt(
-        query=state.original_query,
-        mode='full',
-        preferences=context['preferences']
-    )
-    
-    # 调用 AI 生成
-    ai_engine = AIEngine()
-    content = ai_engine.generate(prompt, state.original_query, 'full')
-    
-    # 从内容中提取结构化数据
+    from services.user_profile import enhance_prompt_with_preferences
     from services.content_parser import parse_itinerary, parse_hotels, parse_restaurants
     
-    state.itinerary = parse_itinerary(content)
-    state.hotels = parse_hotels(content, state.requirements.destination)
-    state.restaurants = parse_restaurants(content, state.requirements.destination)
-    state.markdown_content = content
+    logger.info(f"🗺️ 开始生成行程: {state.requirements.destination} {state.requirements.days}天")
     
-    logger.info(f"🗺️ 生成行程: {len(state.itinerary)}天, {len(state.hotels)}家酒店")
+    # 1. 构建基础 Prompt
+    base_prompt = build_wildtrip_prompt(
+        query=state.original_query,
+        mode='full'
+    )
     
-    # 🔥 路由决策:转到比价 Agent
-    if state.hotels:
-        state.next_agent = 'pricing'
-    else:
-        # 没有酒店推荐,跳过比价,直接完成
+    # 2. 根据用户偏好增强 Prompt
+    enhanced_prompt = enhance_prompt_with_preferences(
+        base_prompt,
+        state.preferences
+    )
+    
+    logger.info(f"📝 Prompt 已增强，包含用户偏好")
+    
+    # 3. 调用 AI 生成攻略
+    try:
+        ai_engine = AIEngine()
+        content = ai_engine.generate(
+            enhanced_prompt,
+            state.original_query,
+            mode='full'  # 注意：使用 full 模式，不是 chat
+        )
+        
+        logger.info(f"✅ AI 生成完成: {len(content)}字")
+        
+        # 保存完整内容
+        state.markdown_content = content
+        
+    except Exception as e:
+        logger.error(f"❌ AI 生成失败: {e}")
+        # 降级：使用简化内容
+        state.markdown_content = f"# {state.requirements.destination}{state.requirements.days}天攻略\n\n攻略生成中..."
         state.next_agent = 'done'
+        return state
+    
+    # 4. 从 Markdown 内容中提取结构化数据
+    try:
+        logger.info("🔍 开始解析结构化数据...")
+        
+        state.itinerary = parse_itinerary(content)
+        state.hotels = parse_hotels(content, state.requirements.destination)
+        state.restaurants = parse_restaurants(content, state.requirements.destination)
+        
+        logger.info(
+            f"✅ 解析完成: "
+            f"{len(state.itinerary)}天行程, "
+            f"{len(state.hotels)}家酒店, "
+            f"{len(state.restaurants)}家餐厅"
+        )
+        
+    except Exception as e:
+        logger.warning(f"⚠️ 结构化数据解析失败: {e}")
+        # 解析失败不影响主流程，继续
+    
+    # 5. 路由决策
+    if state.hotels and len(state.hotels) > 0:
+        # 有酒店推荐，转到比价 Agent
+        state.next_agent = 'pricing'
+        logger.info(f"🔄 路由到 Pricing Agent (发现{len(state.hotels)}家酒店)")
+    else:
+        # 没有酒店推荐，跳过比价，直接到内容生成
+        state.next_agent = 'content'
+        logger.info(f"🔄 路由到 Content Agent (跳过比价)")
     
     return state
 
@@ -257,26 +297,68 @@ async def content_agent_handler(state: TripState, context: dict) -> TripState:
     """
     Content Agent: 生成分享内容
     """
+    logger.info("📱 开始生成分享内容...")
+    
     try:
         from services.content_generator import generate_xiaohongshu
         
+        # 转换为 dict 格式（content_generator 需要）
+        itinerary_dicts = [
+            {
+                'day': it.day,
+                'theme': it.theme,
+                'morning': it.morning,
+                'afternoon': it.afternoon
+            }
+            for it in state.itinerary
+        ] if state.itinerary else []
+        
+        hotel_dicts = [
+            {
+                'name': h.name,
+                'price': h.price,
+                'features': h.features,
+                'reason': h.reason
+            }
+            for h in state.hotels
+        ] if state.hotels else []
+        
+        restaurant_dicts = [
+            {
+                'name': r.name,
+                'cuisine': r.cuisine,
+                'price_per_person': r.price_per_person,
+                'dishes': r.dishes,
+                'reason': r.reason
+            }
+            for r in state.restaurants
+        ] if state.restaurants else []
+        
+        preferences_dict = state.preferences.model_dump() if state.preferences else None
+        
         # 生成小红书内容
         xiaohongshu = generate_xiaohongshu(
-            itinerary=context['itinerary'],
-            hotels=context['hotels'],
-            destination=state.requirements.destination
+            itinerary=itinerary_dicts,
+            hotels=hotel_dicts,
+            destination=state.requirements.destination,
+            preferences=preferences_dict,
+            restaurants=restaurant_dicts
         )
         
         state.xiaohongshu_content = xiaohongshu
         
-        logger.info(f"📱 生成小红书内容: {len(xiaohongshu)}字")
+        logger.info(f"✅ 小红书内容生成完成: {len(xiaohongshu)}字")
         
     except Exception as e:
-        logger.warning(f"⚠️ 小红书内容生成失败: {e},跳过")
+        logger.warning(f"⚠️ 小红书内容生成失败: {e}")
+        # 生成简化版本
+        state.xiaohongshu_content = f"📍 {state.requirements.destination}{state.requirements.days}天游 | 野游记攻略\n\n详细攻略请查看完整版本～"
     
     # 🔥 路由决策:全部完成
     state.next_agent = 'done'
     state.is_finished = True
+    
+    logger.info("🎉 所有 Agent 执行完成！")
     
     return state
 

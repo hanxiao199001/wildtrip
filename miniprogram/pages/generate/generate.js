@@ -1,31 +1,48 @@
 // 攻略生成页面
 const app = getApp()
 
+// 4 个 Agent 阶段定义
+var STAGES = [
+  { key: 'profile',      icon: '📋', label: '分析需求',   desc: '理解你的旅行偏好' },
+  { key: 'wild_routing', icon: '🗺️', label: '规划行程',   desc: 'AI 生成最佳路线' },
+  { key: 'pricing',      icon: '💰', label: '比价推荐',   desc: '对比平台找底价' },
+  { key: 'content',      icon: '✨', label: '生成攻略',   desc: '排版输出完整攻略' }
+]
+
+// 轮播小贴士
+var TIPS = [
+  '野游记的推荐来自本地人真实评价',
+  'AI 正在从 1000+ 条点评中筛选精华',
+  '每篇攻略平均为您节省 3 小时规划时间',
+  '攻略内嵌预订链接，返现高达 50%',
+  '不走寻常路，就走野路子',
+  '30 秒搞定，比传统攻略快 10 倍',
+  '已为 10000+ 旅客生成个性化攻略'
+]
+
 Page({
   data: {
     query: '',
     mode: 'full',
     taskId: '',
     progress: 0,
-    statusText: '正在生成攻略...',
-    statusIcon: '⏳',
-    messages: [],
-    isCompleted: false
+    stages: STAGES,
+    currentStage: 0,           // 当前阶段 0-3
+    currentTip: TIPS[0],       // 当前显示的贴士
+    isCompleted: false,
+    isFailed: false
   },
 
-  timer: null,
+  timer: null,        // 轮询定时器
+  tipTimer: null,     // 贴士轮播定时器
+  tipIndex: 0,
 
   onLoad(options) {
     var query = decodeURIComponent(options.query || '')
     var mode = options.mode || app.globalData._generateMode || 'full'
-    app.globalData._generateMode = null  // 清除，避免污染
+    app.globalData._generateMode = null
 
-    var isHistory = mode === 'history'
-    this.setData({
-      query: query,
-      mode: mode,
-      statusText: isHistory ? '📜 正在生成历史人文攻略...' : '正在生成攻略...'
-    })
+    this.setData({ query: query, mode: mode })
 
     if (query) {
       this.startGenerate()
@@ -33,43 +50,46 @@ Page({
   },
 
   onUnload() {
-    if (this.timer) {
-      clearInterval(this.timer)
-    }
+    if (this.timer) clearInterval(this.timer)
+    if (this.tipTimer) clearInterval(this.tipTimer)
+  },
+
+  // 启动贴士轮播
+  startTipRotation() {
+    this.tipTimer = setInterval(() => {
+      this.tipIndex = (this.tipIndex + 1) % TIPS.length
+      this.setData({ currentTip: TIPS[this.tipIndex] })
+    }, 3000)
+  },
+
+  // 根据进度计算当前阶段 (0-3)
+  getStageFromProgress(progress) {
+    if (progress < 20) return 0       // Profile Agent
+    if (progress < 55) return 1       // Wild-Routing Agent
+    if (progress < 80) return 2       // Pricing Agent
+    return 3                          // Content Agent
   },
 
   // 开始生成
   async startGenerate() {
-    var query = this.data.query
-    var mode = this.data.mode
-    var isHistory = mode === 'history'
-
-    this.addMessage(isHistory ? '📜 历史人文导游上线...' : '🔥 野游记开始工作...')
+    this.startTipRotation()
 
     try {
-      // 调用后端API
       var res = await this.callAPI('/generate', {
-        query: query,
-        mode: mode
+        query: this.data.query,
+        mode: this.data.mode
       })
 
       if (res.task_id) {
         this.setData({ taskId: res.task_id })
-        this.addMessage('✅ 任务创建成功')
-        
-        // 开始轮询状态
         this.pollTaskStatus()
       } else {
         throw new Error('创建任务失败')
       }
     } catch (error) {
       console.error('生成失败:', error)
-      this.setData({
-        statusText: '生成失败',
-        statusIcon: '❌'
-      })
-      this.addMessage(`❌ ${error.message || '生成失败'}`)
-      
+      if (this.tipTimer) clearInterval(this.tipTimer)
+      this.setData({ isFailed: true })
       wx.showModal({
         title: '生成失败',
         content: error.message || '请检查网络后重试',
@@ -79,99 +99,69 @@ Page({
   },
 
   // 轮询任务状态
-  async pollTaskStatus() {
-    const { taskId } = this.data
-    let lastProgress = 0
-    let lastMessage = ''
-    
-    this.timer = setInterval(async () => {
+  pollTaskStatus() {
+    var self = this
+    var taskId = this.data.taskId
+
+    this.timer = setInterval(async function () {
       try {
-        const status = await this.callAPI(`/task/${taskId}`, {}, 'GET')
-        
-        const currentProgress = status.progress || 0
-        // 优先使用后端返回的 message，如果没有就用进度百分比
-        const currentMessage = status.message || `正在生成 ${currentProgress}%`
-        
-        // 更新进度（statusText 始终使用最新的进度百分比）
-        this.setData({
+        var status = await self.callAPI('/task/' + taskId, {}, 'GET')
+        var currentProgress = status.progress || 0
+        var stage = self.getStageFromProgress(currentProgress)
+
+        self.setData({
           progress: currentProgress,
-          statusText: `正在生成 ${currentProgress}%`
+          currentStage: stage
         })
 
-        // 根据状态更新UI
         if (status.status === 'completed') {
-          clearInterval(this.timer)
-          this.onGenerateComplete(status.result)
+          clearInterval(self.timer)
+          clearInterval(self.tipTimer)
+          self.onGenerateComplete(status.result)
         } else if (status.status === 'failed') {
-          clearInterval(this.timer)
-          this.setData({
-            statusText: '生成失败',
-            statusIcon: '❌'
-          })
-          this.addMessage(`❌ ${status.error || '生成失败'}`)
-        } else {
-          // 正在运行 - 只在进度或消息变化时添加日志
-          if (currentProgress > lastProgress || currentMessage !== lastMessage) {
-            this.addMessage(`${currentMessage}`)
-            lastProgress = currentProgress
-            lastMessage = currentMessage
-          }
+          clearInterval(self.timer)
+          clearInterval(self.tipTimer)
+          self.setData({ isFailed: true })
         }
       } catch (error) {
         console.error('查询状态失败:', error)
       }
-    }, 1500)  // 每1.5秒查询一次(更频繁)
+    }, 1500)
   },
 
   // 生成完成
   onGenerateComplete(result) {
     this.setData({
       progress: 100,
-      statusText: '生成完成',
-      statusIcon: '🎉',
+      currentStage: 4,
       isCompleted: true
     })
-    this.addMessage('🎉 攻略生成完成！')
 
-    // 延迟跳转到结果页
     setTimeout(() => {
       wx.redirectTo({
-        url: `/pages/result/result?taskId=${this.data.taskId}`
+        url: '/pages/result/result?taskId=' + this.data.taskId
       })
-    }, 1000)
-  },
-
-  // 添加进度消息
-  addMessage(text) {
-    const now = new Date()
-    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
-    
-    const messages = this.data.messages.concat({
-      text,
-      time
-    })
-
-    this.setData({ messages })
+    }, 1200)
   },
 
   // 调用API
-  async callAPI(url, data = {}, method = 'POST') {
-    return new Promise((resolve, reject) => {
+  callAPI(url, data, method) {
+    data = data || {}
+    method = method || 'POST'
+    return new Promise(function (resolve, reject) {
       wx.request({
-        url: `${app.globalData.apiBaseUrl}${url}`,
-        method,
-        data,
-        header: {
-          'Content-Type': 'application/json'
-        },
-        success: (res) => {
+        url: app.globalData.apiBaseUrl + url,
+        method: method,
+        data: data,
+        header: { 'Content-Type': 'application/json' },
+        success: function (res) {
           if (res.statusCode === 200) {
             resolve(res.data)
           } else {
-            reject(new Error(res.data.error || '请求失败'))
+            reject(new Error((res.data && res.data.error) || '请求失败'))
           }
         },
-        fail: (err) => {
+        fail: function () {
           reject(new Error('网络请求失败'))
         }
       })
