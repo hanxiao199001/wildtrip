@@ -89,12 +89,13 @@ Page({
         const status = await this.callAPI(`/task/${taskId}`, {}, 'GET')
         
         const currentProgress = status.progress || 0
+        // 优先使用后端返回的 message，如果没有就用进度百分比
         const currentMessage = status.message || `正在生成 ${currentProgress}%`
         
-        // 更新进度
+        // 更新进度（statusText 始终使用最新的进度百分比）
         this.setData({
           progress: currentProgress,
-          statusText: currentMessage
+          statusText: `正在生成 ${currentProgress}%`
         })
 
         // 根据状态更新UI
