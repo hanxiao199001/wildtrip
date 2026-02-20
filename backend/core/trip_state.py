@@ -118,7 +118,7 @@ class TripState(BaseModel):
     
     def to_json(self) -> dict:
         """导出为 JSON (用于存储和传递)"""
-        return self.dict()
+        return self.model_dump(mode='json')
     
     @classmethod
     def from_json(cls, data: dict):
@@ -134,7 +134,7 @@ class TripState(BaseModel):
         if agent_name == 'profile':
             return {
                 'query': self.original_query,
-                'previous_preferences': self.preferences.dict() if self.preferences else None
+                'previous_preferences': self.preferences.model_dump() if self.preferences else None
             }
         
         elif agent_name == 'wild_routing':
@@ -142,23 +142,23 @@ class TripState(BaseModel):
                 'destination': self.requirements.destination,
                 'days': self.requirements.days,
                 'budget': self.requirements.budget,
-                'preferences': self.preferences.dict(),
+                'preferences': self.preferences.model_dump(),
                 'travelers': self.requirements.travelers
             }
         
         elif agent_name == 'pricing':
             return {
-                'hotels': [h.dict() for h in self.hotels],
+                'hotels': [h.model_dump() for h in self.hotels],
                 'destination': self.requirements.destination,
                 'check_in_date': self.requirements.start_date
             }
         
         elif agent_name == 'content':
             return {
-                'itinerary': [d.dict() for d in self.itinerary],
-                'hotels': [h.dict() for h in self.hotels],
-                'restaurants': [r.dict() for r in self.restaurants],
-                'pricing_insights': [p.dict() for p in self.pricing_insights]
+                'itinerary': [d.model_dump() for d in self.itinerary],
+                'hotels': [h.model_dump() for h in self.hotels],
+                'restaurants': [r.model_dump() for r in self.restaurants],
+                'pricing_insights': [p.model_dump() for p in self.pricing_insights]
             }
         
         return {}

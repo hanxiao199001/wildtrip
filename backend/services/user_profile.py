@@ -185,4 +185,4 @@ if __name__ == '__main__':
     for query in test_queries:
         print(f"\n查询: {query}")
         prefs = extract_preferences(query)
-        print(f"偏好: {prefs.dict()}")
+        print(f"偏好: {prefs.model_dump()}")

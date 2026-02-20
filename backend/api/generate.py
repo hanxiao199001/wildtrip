@@ -183,6 +183,8 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
     """
     执行攻略生成任务（后台线程）
     
+    🔥 新版：使用多智能体架构（4个 Agent 协同工作）
+    
     Args:
         task_id: 任务ID
         query: 用户查询
@@ -191,12 +193,40 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         user_id: 用户ID（可选，如果提供则保存到用户历史）
     """
     from app import socketio  # 延迟导入避免循环依赖
-    from prompts.wildtrip_prompt import extract_city_name
+    from prompts.wildtrip_prompt import extract_city_name, extract_days, extract_budget
     
     try:
         # 更新状态
         active_tasks[task_id]['status'] = 'running'
         emit_progress(socketio, task_id, 'start', '🔥 野游记开始工作...', 0)
+        
+        # 🔥 新增：尝试使用多智能体架构
+        USE_MULTI_AGENT = os.getenv('USE_MULTI_AGENT', 'true').lower() == 'true'
+        
+        if USE_MULTI_AGENT:
+            # === 多智能体模式 ===
+            logger.info(f"🤖 使用多智能体架构生成攻略")
+            
+            try:
+                content, enhanced_result = run_multi_agent_generation(
+                    task_id, query, mode, options, user_id, socketio
+                )
+                
+                # 如果多智能体成功，直接返回结果
+                if content and enhanced_result:
+                    active_tasks[task_id]['status'] = 'completed'
+                    active_tasks[task_id]['progress'] = 100
+                    active_tasks[task_id]['result'] = enhanced_result
+                    emit_progress(socketio, task_id, 'done', '🎉 攻略生成完成！', 100)
+                    logger.info(f"✅ 多智能体任务完成: {task_id}")
+                    return
+                
+            except Exception as e:
+                logger.warning(f"⚠️ 多智能体模式失败，降级到传统模式: {e}")
+                emit_progress(socketio, task_id, 'fallback', '⚠️ 切换到传统模式...', 5)
+        
+        # === 传统模式（降级方案）===
+        logger.info(f"📝 使用传统模式生成攻略")
         
         # 提取城市信息
         city = extract_city_name(query)
@@ -372,6 +402,132 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         active_tasks[task_id]['status'] = 'failed'
         active_tasks[task_id]['error'] = str(e)
         emit_progress(socketio, task_id, 'error', f'生成失败: {str(e)}', 0)
+
+
+def run_multi_agent_generation(task_id: str, query: str, mode: str, options: dict, user_id: str, socketio):
+    """
+    🔥 新增：使用多智能体架构生成攻略
+    
+    Returns:
+        (content, enhanced_result) 或 (None, None) 如果失败
+    """
+    import asyncio
+    from core.trip_state import TripState, TripRequirements
+    from core.agent_orchestrator import create_trip_orchestrator
+    from prompts.wildtrip_prompt import extract_city_name, extract_days, extract_budget
+    
+    try:
+        # 1. 提取查询信息
+        city = extract_city_name(query)
+        days = extract_days(query)
+        budget = extract_budget(query) or options.get('budget', 0)
+        travelers = options.get('travelers', 1)
+        
+        emit_progress(socketio, task_id, 'parsing', f'📍 识别目的地: {city}, {days}天', 5)
+        
+        # 2. 创建初始状态
+        initial_state = TripState(
+            original_query=query,
+            user_id=user_id,
+            session_id=task_id,
+            requirements=TripRequirements(
+                destination=city,
+                days=days,
+                budget=budget,
+                travelers=travelers
+            )
+        )
+        
+        logger.info(f"🤖 多智能体初始状态: {city} {days}天 预算{budget}")
+        
+        # 3. 创建编排器
+        orchestrator = create_trip_orchestrator()
+        
+        # 4. 定义进度回调
+        def on_agent_progress(progress: int, message: str):
+            emit_progress(socketio, task_id, 'agent', message, progress)
+        
+        # 5. 执行 Agent 链路（使用 asyncio）
+        emit_progress(socketio, task_id, 'multi_agent_start', '🤖 启动多智能体系统...', 10)
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        final_state = loop.run_until_complete(
+            orchestrator.execute(
+                initial_state=initial_state,
+                progress_callback=on_agent_progress
+            )
+        )
+        
+        loop.close()
+        
+        logger.info(f"🤖 多智能体执行完成: {len(final_state.markdown_content or '')}字")
+        
+        # 6. 提取生成的内容
+        content = final_state.markdown_content
+        
+        if not content:
+            logger.warning("⚠️ 多智能体未生成内容，降级到传统模式")
+            return None, None
+        
+        # 7. 后处理：插入返佣链接
+        emit_progress(socketio, task_id, 'affiliate_start', '🔗 正在添加返佣链接...', 70)
+        enhanced_content, recommendations = enhance_with_affiliate(content, query, mode)
+        
+        # 8. 统计信息
+        emit_progress(socketio, task_id, 'stats', '📊 正在统计攻略信息...', 90)
+        stats = {
+            'word_count': len(enhanced_content),
+            'hotels_count': len(final_state.hotels),
+            'restaurants_count': len(final_state.restaurants),
+            'tickets_count': len(recommendations.get('tickets', []))
+        }
+        
+        # 9. 生成所有链接
+        all_links = []
+        server_base = os.getenv('SERVER_BASE_URL', 'https://api.wildtrip.com.cn')
+        
+        for hotel in final_state.hotels:
+            from urllib.parse import urlencode as _urlencode
+            meituan_relay = f"{server_base}/api/relay/meituan?{_urlencode({'keyword': hotel.name, 'type': 'hotel', 'city': city})}"
+            all_links.append({
+                'type': 'hotel',
+                'name': hotel.name,
+                'url': meituan_relay,
+                'button_text': f"美团订 {hotel.name}",
+                'platform': 'meituan',
+                'icon': '🟡'
+            })
+        
+        # 10. 构建完整结果（兼容现有小程序）
+        enhanced_result = {
+            'content': enhanced_content,  # 必需：Markdown 攻略
+            
+            # 兼容字段（现有小程序使用）
+            'recommendations': recommendations,
+            'links': all_links,
+            'stats': stats,
+            
+            # 🔥 新增：多智能体独有数据（小程序可选使用）
+            'preferences': final_state.preferences.model_dump() if final_state.preferences else {},
+            'hotels': [h.model_dump() for h in final_state.hotels],
+            'restaurants': [r.model_dump() for r in final_state.restaurants],
+            'pricing_insights': [p.model_dump() for p in final_state.pricing_insights],
+            'xiaohongshu_content': final_state.xiaohongshu_content,
+            
+            # 元数据
+            'agent_mode': True,  # 标识使用了多智能体
+            'guide_id': None  # 后续填充
+        }
+        
+        logger.info(f"✅ 多智能体结果构建完成")
+        
+        return content, enhanced_result
+        
+    except Exception as e:
+        logger.error(f"❌ 多智能体执行失败: {e}", exc_info=True)
+        return None, None
 
 
 def enhance_with_affiliate(content: str, query: str, mode: str) -> tuple:

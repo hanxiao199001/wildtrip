@@ -49,7 +49,7 @@ async def test_wildtrip_workflow():
         print("🎉 【最终结果】")
         print(f"状态: {final_state.status}")
         print(f"是否完成: {final_state.is_finished}")
-        print(f"用户偏好: {final_state.preferences.dict()}")
+        print(f"用户偏好: {final_state.preferences.model_dump()}")
         print(f"行程天数: {len(final_state.itinerary)}")
         print(f"酒店数量: {len(final_state.hotels)}")
         print(f"比价建议: {len(final_state.pricing_insights)}")
