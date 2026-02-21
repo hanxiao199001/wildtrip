@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>酒店 CTA 测试</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; padding: 20px; background: #f5f5f5; }
+        :root {
+            --primary-green: #4CAF50;
+            --accent-orange: #FF9500;
+            --text-dark: #333;
+            --text-light: #666;
+            --card-radius: 16px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .poi-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .poi-meta { display: flex; gap: 12px; font-size: 14px; }
+        .poi-price { font-weight: 700; color: #E53935; }
+        .poi-rating { color: #666; }
+        .recommend-reason { margin: 12px 0; padding: 10px; background: #fffbeb; border-left: 3px solid #f59e0b; font-size: 14px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <h1>酒店 CTA 优化测试</h1>
+    
+<div itemscope itemtype="https://schema.org/Hotel" style="background: linear-gradient(135deg, #FFF5E6 0%, #FFFDE7 100%); border: 2px solid var(--accent-orange, #FF9500); border-radius: var(--card-radius, 16px); padding: 24px; margin: 16px 0; box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div style="display: flex; align-items: flex-start; gap: 14px; flex: 1;">
+            <span style="font-size: 42px; flex-shrink: 0;">🏨</span>
+            <div>
+                <div class="poi-name" itemprop="name">海口柚庐民宿</div>
+                <div class="poi-meta">
+                    <span class="poi-rating" itemprop="starRating" itemscope itemtype="https://schema.org/Rating"><meta itemprop="ratingValue" content="4.8">⭐ 4.8</span>
+                    <span style="color: var(--text-light);" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><meta itemprop="addressLocality" content="海口">📍 <span itemprop="streetAddress">西海岸观海台1号</span></span>
+                </div>
+            </div>
+        </div>
+        <div style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 8px 16px; border-radius: 20px; font-size: 15px; font-weight: 700; flex-shrink: 0;">
+            返¥18
+        </div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #FFF8E1, #FFFDE7); border-radius: 10px; padding: 10px 14px; margin: 12px 0; display: flex; align-items: center; gap: 12px;">
+        <span style="color: #9e9e9e; text-decoration: line-through; font-size: 15px;">门市价 ¥412/晚</span>
+        <span class="poi-price" style="font-size: 22px;" itemprop="priceRange">¥350/晚</span>
+        <span style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">省¥62</span>
+    </div>
+
+    <p style="color: #4b5563; font-size: 14px; margin: 8px 0 4px 0; line-height: 1.6;" itemprop="description">
+        ✨ 室内恒温泳池、亲子房配置、楼顶观海台
+    </p>
+
+    <div class="recommend-reason">💡 7岁孩子可以在恒温泳池安全玩水，无需去公共泳池人挤人</div>
+
+    <!-- 🆕 优化后的 CTA 区域 -->
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid rgba(255, 149, 0, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="color: #78350f; font-size: 14px; font-weight: 600;">💰 预订优惠</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="background: #fef3c7; color: #92400e; padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: 700;">省¥62</span>
+                <span style="background: #dcfce7; color: #166534; padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: 700;">返¥18</span>
+            </div>
+        </div>
+        <a href="https://i.meituan.com/search?q=%E6%B5%B7%E5%8F%A3%20%E6%B5%B7%E5%8F%A3%E6%9F%9A%E5%BA%90%E6%B0%91%E5%AE%BF" target="_blank" rel="noopener" itemprop="url" data-name="海口柚庐民宿" data-type="hotel" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 14px 18px; background: white; border: 2px solid #d97706; color: #92400e; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(217, 119, 6, 0.1);">
+            <span>查看房间和价格</span>
+            <span style="color: #d97706;">→</span>
+        </a>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 8px;">
+            <span style="color: #78350f; font-size: 12px; opacity: 0.8;">🔥 56人已订</span>
+            <span style="color: #78350f; font-size: 12px; opacity: 0.8;">✅ 免费取消</span>
+            <span style="color: #78350f; font-size: 12px; opacity: 0.8;">⚡ 返现秒到</span>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

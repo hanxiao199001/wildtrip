@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>餐厅 CTA 测试</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; padding: 20px; background: #f5f5f5; }
+        :root {
+            --primary-green: #4CAF50;
+            --accent-orange: #FF9500;
+            --text-dark: #333;
+            --text-light: #666;
+            --card-radius: 16px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .poi-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .poi-meta { display: flex; gap: 12px; font-size: 14px; color: #666; }
+        .feature-tag { display: inline-block; background: #f0f0f0; padding: 4px 8px; border-radius: 6px; font-size: 12px; margin-right: 6px; }
+        .recommend-reason { margin: 8px 0; padding: 8px; background: #fffbeb; border-left: 3px solid #f59e0b; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <h1>餐厅 CTA 优化测试</h1>
+    <div itemscope itemtype="https://schema.org/Restaurant" style="background: white; border: 2px solid var(--primary-green, #4CAF50); border-radius: var(--card-radius, 16px); padding: 18px; margin: 16px 0; box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));">
+    <meta itemprop="priceRange" content="¥45-52">
+    <meta itemprop="description" content="海南粉, 清补凉, 椰子饭, 老爸茶">
+    <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px;">
+        <span style="font-size: 36px; flex-shrink: 0;">🍜</span>
+        <div style="flex: 1;">
+            <div class="poi-name" itemprop="name">海南粉老店（骑楼老街店）</div>
+            <div class="poi-meta">
+        <span class="poi-rating" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"><meta itemprop="ratingValue" content="4.7"><meta itemprop="bestRating" content="5">⭐ 4.7</span><span class="poi-price">¥45/人</span></div>
+        </div>
+    </div>
+    <div style="margin: 8px 0;"><span class="feature-tag" itemprop="servesCuisine">海南粉</span><span class="feature-tag" itemprop="servesCuisine">清补凉</span><span class="feature-tag" itemprop="servesCuisine">椰子饭</span><span class="feature-tag" itemprop="servesCuisine">老爸茶</span></div>
+    <div class="recommend-reason">💡 本地人常去，性价比高，孩子可以尝试椰子饭</div>
+    
+    <div style="background: linear-gradient(135deg, #FFF8E1, #FFFDE7); border-radius: 10px; padding: 10px 14px; margin: 10px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="color: #9e9e9e; text-decoration: line-through; font-size: 14px;">¥52/人</span>
+        <span style="color: #E53935; font-weight: 700; font-size: 20px;">¥45/人</span>
+        <span style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">返¥8</span>
+    </div>
+    <!-- 🆕 优化后的 CTA 区域 -->
+    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="color: #6b7280; font-size: 13px;">💰 预订优惠</span>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">省¥7</span>
+                <span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">返¥8</span>
+            </div>
+        </div>
+        <a href="https://i.meituan.com/search?q=测试餐厅" target="_blank" rel="noopener" itemprop="url" data-name="海南粉老店（骑楼老街店）" data-type="restaurant" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 12px 16px; background: #f9fafb; border: 2px solid #e5e7eb; color: #374151; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 600; box-sizing: border-box; transition: all 0.2s;">
+            <span>查看团购详情</span>
+            <span style="color: #6b7280;">→</span>
+        </a>
+        <div style="display: flex; justify-content: center; gap: 16px; margin-top: 8px;">
+            <span style="color: #9ca3af; font-size: 11px;">🔥 29人已购</span>
+            <span style="color: #9ca3af; font-size: 11px;">✅ 支持退款</span>
+            <span style="color: #9ca3af; font-size: 11px;">⚡ 返现秒到</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>

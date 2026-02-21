@@ -1,0 +1,56 @@
+{
+  "date": "2026-02-21",
+  "count": 10,
+  "topics": [
+    {
+      "title": "海口带3岁宝宝周末去哪不晒",
+      "source": "manual",
+      "score": 1.0
+    },
+    {
+      "title": "三亚不开车怎么玩3天亲子游",
+      "source": "manual",
+      "score": 1.0
+    },
+    {
+      "title": "万宁日月湾冲浪带8岁小孩安全吗",
+      "source": "manual",
+      "score": 1.0
+    },
+    {
+      "title": "海口过年期间哪些餐厅不涨价",
+      "source": "manual",
+      "score": 1.0
+    },
+    {
+      "title": "文昌航天发射场带小学生参观攻略",
+      "source": "manual",
+      "score": 1.0
+    },
+    {
+      "title": "琼海带3岁宝宝周末不涨价",
+      "source": "template",
+      "score": 0.8
+    },
+    {
+      "title": "东方带小学生周末参观",
+      "source": "template",
+      "score": 0.8
+    },
+    {
+      "title": "万宁不晒怎么玩小学生",
+      "source": "template",
+      "score": 0.8
+    },
+    {
+      "title": "五指山假日海滩适合学龄前吗",
+      "source": "template",
+      "score": 0.8
+    },
+    {
+      "title": "琼海带7岁男孩周末不开车",
+      "source": "template",
+      "score": 0.8
+    }
+  ]
+}
