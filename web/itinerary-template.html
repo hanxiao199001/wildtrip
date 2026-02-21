@@ -1016,6 +1016,68 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        // 🔥 点击追踪（GEO优化）
+        function initClickTracking() {
+            // 追踪所有 affiliate 链接（美团、淘宝）
+            const trackableLinks = document.querySelectorAll('a[href*="meituan"], a[href*="taobao"], a[itemprop="url"]');
+            
+            trackableLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // 提取数据
+                    const data = {
+                        page: window.location.pathname,
+                        poi_name: this.dataset.name || this.textContent.trim().substring(0, 50),
+                        poi_type: this.dataset.type || detectPOIType(this),
+                        url: this.href,
+                        timestamp: Date.now()
+                    };
+                    
+                    // 发送追踪（使用 sendBeacon 确保发送成功）
+                    const apiUrl = '/api/track/click';
+                    const payload = JSON.stringify(data);
+                    
+                    if (navigator.sendBeacon) {
+                        navigator.sendBeacon(apiUrl, payload);
+                    } else {
+                        // 降级方案：使用 fetch
+                        fetch(apiUrl, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: payload,
+                            keepalive: true
+                        }).catch(err => console.warn('追踪失败:', err));
+                    }
+                });
+            });
+            
+            console.log(`✅ 点击追踪已初始化 | 追踪 ${trackableLinks.length} 个链接`);
+        }
+        
+        function detectPOIType(element) {
+            // 从父元素的 itemtype 属性推断类型
+            let parent = element.closest('[itemtype]');
+            if (parent) {
+                const itemType = parent.getAttribute('itemtype');
+                if (itemType.includes('Hotel')) return 'hotel';
+                if (itemType.includes('Restaurant')) return 'restaurant';
+            }
+            
+            // 从文本推断
+            const text = element.textContent;
+            if (text.includes('酒店') || text.includes('民宿')) return 'hotel';
+            if (text.includes('餐厅') || text.includes('美食') || text.includes('团购')) return 'restaurant';
+            if (text.includes('门票') || text.includes('景点')) return 'ticket';
+            
+            return 'unknown';
+        }
+        
+        // 页面加载完成后初始化追踪
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initClickTracking);
+        } else {
+            initClickTracking();
+        }
     </script>
 </body>
 </html>

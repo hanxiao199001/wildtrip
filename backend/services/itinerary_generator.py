@@ -1049,7 +1049,7 @@ class HotelExtractor:
 
     <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
 
-    <a href="{meituan_url}" target="_blank" rel="noopener" itemprop="url" style="display: block; width: 100%; padding: 16px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 17px; font-weight: 700; box-sizing: border-box; margin-bottom: 12px;">
+    <a href="{meituan_url}" target="_blank" rel="noopener" itemprop="url" data-name="{hotel['name']}" data-type="hotel" style="display: block; width: 100%; padding: 16px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 17px; font-weight: 700; box-sizing: border-box; margin-bottom: 12px;">
         💰 美团预订，返现¥{hotel['cashback']}
     </a>
 

@@ -370,7 +370,7 @@ class AffiliateManager:
     {reason_html}
     {price_html}
     <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
-    <a href="{url}" target="_blank" rel="noopener" itemprop="url"{mp_attrs} style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
+    <a href="{url}" target="_blank" rel="noopener" itemprop="url" data-name="{name}" data-type="restaurant"{mp_attrs} style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
         美团团购{f"，返现¥{cashback_amount}" if price else ""}
     </a>
     <div style="display: flex; justify-content: space-around; padding-top: 10px; margin-top: 10px; border-top: 1px dashed #e0e0e0;">
