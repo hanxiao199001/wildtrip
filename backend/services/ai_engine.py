@@ -1226,3 +1226,15 @@ class AIEngine:
 
 **🎁 福利：** 把这份攻略分享给3个好友，返现¥10！（具体规则见野游记小程序）
 """
+
+
+# 单例
+_ai_engine_instance = None
+
+
+def get_ai_engine() -> AIEngine:
+    """获取 AI 引擎实例（单例）"""
+    global _ai_engine_instance
+    if _ai_engine_instance is None:
+        _ai_engine_instance = AIEngine()
+    return _ai_engine_instance
