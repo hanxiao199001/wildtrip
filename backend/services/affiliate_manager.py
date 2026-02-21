@@ -369,14 +369,24 @@ class AffiliateManager:
     {features_html}
     {reason_html}
     {price_html}
-    <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
-    <a href="{url}" target="_blank" rel="noopener" itemprop="url" data-name="{name}" data-type="restaurant"{mp_attrs} style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
-        美团团购{f"，返现¥{cashback_amount}" if price else ""}
-    </a>
-    <div style="display: flex; justify-content: space-around; padding-top: 10px; margin-top: 10px; border-top: 1px dashed #e0e0e0;">
-        <span style="color: var(--text-light, #666); font-size: 12px;">✅ 支持退款</span>
-        <span style="color: var(--text-light, #666); font-size: 12px;">📅 过期退</span>
-        <span style="color: var(--text-light, #666); font-size: 12px;">⚡ 返现秒到</span>
+    <!-- 🆕 优化后的 CTA 区域 -->
+    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="color: #6b7280; font-size: 13px;">💰 预订优惠</span>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">省¥{market_price - price if price else 10}</span>
+                <span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">返¥{cashback_amount}</span>
+            </div>
+        </div>
+        <a href="{url}" target="_blank" rel="noopener" itemprop="url" data-name="{name}" data-type="restaurant"{mp_attrs} style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 12px 16px; background: #f9fafb; border: 2px solid #e5e7eb; color: #374151; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 600; box-sizing: border-box; transition: all 0.2s;">
+            <span>查看团购详情</span>
+            <span style="color: #6b7280;">→</span>
+        </a>
+        <div style="display: flex; justify-content: center; gap: 16px; margin-top: 8px;">
+            <span style="color: #9ca3af; font-size: 11px;">🔥 {booked_count}人已购</span>
+            <span style="color: #9ca3af; font-size: 11px;">✅ 支持退款</span>
+            <span style="color: #9ca3af; font-size: 11px;">⚡ 返现秒到</span>
+        </div>
     </div>
 </div>'''
 

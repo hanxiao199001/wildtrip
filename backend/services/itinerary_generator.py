@@ -1047,16 +1047,24 @@ class HotelExtractor:
 
     {reason_html}
 
-    <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
-
-    <a href="{meituan_url}" target="_blank" rel="noopener" itemprop="url" data-name="{hotel['name']}" data-type="hotel" style="display: block; width: 100%; padding: 16px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 17px; font-weight: 700; box-sizing: border-box; margin-bottom: 12px;">
-        💰 美团预订，返现¥{hotel['cashback']}
-    </a>
-
-    <div style="display: flex; justify-content: space-around; padding-top: 12px; border-top: 1px dashed var(--accent-orange, #FF9500);">
-        <span style="color: var(--text-light, #666); font-size: 13px;">✅ 免费取消</span>
-        <span style="color: var(--text-light, #666); font-size: 13px;">💳 到店付款</span>
-        <span style="color: var(--text-light, #666); font-size: 13px;">⚡ 返现秒到</span>
+    <!-- 🆕 优化后的 CTA 区域 -->
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid rgba(255, 149, 0, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="color: #78350f; font-size: 14px; font-weight: 600;">💰 预订优惠</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="background: #fef3c7; color: #92400e; padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: 700;">省¥{hotel['market_price'] - hotel['price']}</span>
+                <span style="background: #dcfce7; color: #166534; padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: 700;">返¥{hotel['cashback']}</span>
+            </div>
+        </div>
+        <a href="{meituan_url}" target="_blank" rel="noopener" itemprop="url" data-name="{hotel['name']}" data-type="hotel" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 14px 18px; background: white; border: 2px solid #d97706; color: #92400e; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(217, 119, 6, 0.1);">
+            <span>查看房间和价格</span>
+            <span style="color: #d97706;">→</span>
+        </a>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 8px;">
+            <span style="color: #78350f; font-size: 12px; opacity: 0.8;">🔥 {booked_count}人已订</span>
+            <span style="color: #78350f; font-size: 12px; opacity: 0.8;">✅ 免费取消</span>
+            <span style="color: #78350f; font-size: 12px; opacity: 0.8;">⚡ 返现秒到</span>
+        </div>
     </div>
 </div>
 '''
