@@ -301,16 +301,18 @@ class AffiliateManager:
 '''
     
     def _render_restaurant_card(self, link_info: dict, name: str, price: Optional[int] = None, cashback: Optional[int] = None, rating: Optional[str] = None, features: Optional[list] = None, reason: Optional[str] = None) -> str:
-        """渲染餐厅完整卡片组件（含店名、评分、特色菜、推荐理由、价格区、CTA、信任背书）"""
+        """渲染餐厅完整卡片组件（含店名、评分、特色菜、推荐理由、价格区、CTA、信任背书）+ Schema.org 结构化标记"""
         url = link_info['url']
 
         # 计算团购价（原价85折）
         if price:
             market_price = int(price / 0.85)
             cashback_amount = cashback or 5
+            price_range = f'¥{price}-{market_price}'
         else:
             market_price = None
             cashback_amount = cashback or 5
+            price_range = '¥¥'
 
         # 随机预订人数（社会证明）
         booked_count = random.randint(23, 88)
@@ -318,9 +320,12 @@ class AffiliateManager:
         # 评分
         rating_val = rating or '4.5'
 
+        # 特色菜描述（用于 schema description）
+        features_text = ', '.join(features[:4]) if features else '特色美食'
+
         # POI元信息行（评分 + 价格）
         meta_html = f'''<div class="poi-meta">
-        <span class="poi-rating">⭐ {rating_val}</span>'''
+        <span class="poi-rating" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"><meta itemprop="ratingValue" content="{rating_val}"><meta itemprop="bestRating" content="5">⭐ {rating_val}</span>'''
         if price:
             meta_html += f'<span class="poi-price">¥{price}/人</span>'
         meta_html += '</div>'
@@ -330,7 +335,7 @@ class AffiliateManager:
         if features:
             features_html = '<div style="margin: 8px 0;">'
             for feat in features[:4]:
-                features_html += f'<span class="feature-tag">{feat}</span>'
+                features_html += f'<span class="feature-tag" itemprop="servesCuisine">{feat}</span>'
             features_html += '</div>'
 
         # 推荐理由
@@ -348,11 +353,16 @@ class AffiliateManager:
         <span style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">返¥{cashback_amount}</span>
     </div>'''
 
-        return f'''<div style="background: white; border: 2px solid var(--primary-green, #4CAF50); border-radius: var(--card-radius, 16px); padding: 18px; margin: 16px 0; box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));">
+        # 🆕 Schema.org Restaurant 标记
+        mp_attrs = '' if not link_info.get('mp_appid') else f' data-miniprogram-appid="{link_info["mp_appid"]}" data-miniprogram-path="{link_info["mp_path"]}"'
+        
+        return f'''<div itemscope itemtype="https://schema.org/Restaurant" style="background: white; border: 2px solid var(--primary-green, #4CAF50); border-radius: var(--card-radius, 16px); padding: 18px; margin: 16px 0; box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.08));">
+    <meta itemprop="priceRange" content="{price_range}">
+    <meta itemprop="description" content="{features_text}">
     <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 8px;">
         <span style="font-size: 36px; flex-shrink: 0;">🍜</span>
         <div style="flex: 1;">
-            <div class="poi-name">{name}</div>
+            <div class="poi-name" itemprop="name">{name}</div>
             {meta_html}
         </div>
     </div>
@@ -360,7 +370,7 @@ class AffiliateManager:
     {reason_html}
     {price_html}
     <div style="color: var(--accent-orange, #FF9500); font-size: 13px; margin: 8px 0; font-weight: 600;">🔥 今日已有{booked_count}人预订</div>
-    <a href="{url}" target="_blank" rel="noopener"{mp_attrs} style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
+    <a href="{url}" target="_blank" rel="noopener" itemprop="url"{mp_attrs} style="display: block; width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary-green, #4CAF50), #43A047); color: white; text-align: center; text-decoration: none; border-radius: 12px; font-size: 16px; font-weight: 700; box-sizing: border-box;">
         美团团购{f"，返现¥{cashback_amount}" if price else ""}
     </a>
     <div style="display: flex; justify-content: space-around; padding-top: 10px; margin-top: 10px; border-top: 1px dashed #e0e0e0;">

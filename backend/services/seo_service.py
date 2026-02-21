@@ -70,8 +70,8 @@ class SEOService:
         # 提取城市
         city = extract_city_name(query)
         
-        # 生成标题（SEO优化）
-        title = f"{query} - 野游记AI攻略 | 不走寻常路的旅行指南"
+        # 🆕 生成答案式标题（GEO优化）
+        seo_title = self._generate_answer_style_title(query, content, city)
         
         # 生成描述（SEO优化）
         description = f"野游记为你生成{query}的个性化攻略，包含本地美食推荐、酒店预订、景点门票，带美团返现链接。{stats.get('word_count', 0)}字详细攻略，{stats.get('restaurants_count', 0)}家餐厅推荐。"
@@ -83,8 +83,9 @@ class SEOService:
         from services.itinerary_generator import get_itinerary_generator
         
         generator = get_itinerary_generator()
-        html = generator.generate(query, content, stats)
-        logger.info("✅ 使用行程规划生成器")
+        # 🆕 传入优化后的标题
+        html = generator.generate(query, content, stats, seo_title=seo_title)
+        logger.info("✅ 使用行程规划生成器（含GEO优化标题）")
         return html
         
         # 生成完整HTML
@@ -299,6 +300,94 @@ class SEOService:
             })
         
         return sorted(guides, key=lambda x: x['created_at'], reverse=True)
+
+    def _generate_answer_style_title(self, query: str, content: str, city: str) -> str:
+        """
+        生成答案式标题（GEO优化）
+        
+        规则：
+        - 如果 query 包含城市+天数+人群 → "{城市}{天数}天{人群}：{核心亮点1}+{核心亮点2} - 野游记"
+        - 否则 → 降级为通用格式
+        
+        Examples:
+            "海口周末带7岁男孩" → "海口周末带7岁男孩：恒温泳池民宿+野海滩赶海48小时方案 - 野游记"
+            "成都3天亲子游" → "成都3天亲子游：熊猫基地+宽窄巷子亲子深度游 - 野游记"
+        """
+        import re
+        
+        # 提取关键元素
+        days_match = re.search(r'(\d+)天|周末', query)
+        days_str = days_match.group(0) if days_match else ''
+        
+        crowd_match = re.search(r'(亲子|带\d+岁.*?孩子|带娃|情侣|闺蜜|独自|家庭)', query)
+        crowd_str = crowd_match.group(1) if crowd_match else ''
+        
+        # 从内容中提取核心亮点
+        highlights = self._extract_title_highlights(content, query)
+        
+        # 如果有明确的城市+天数+人群，生成答案式标题
+        if city and (days_str or crowd_str) and len(highlights) >= 2:
+            base = f"{city}{days_str}{crowd_str}"
+            highlight_text = '+'.join(highlights[:2])
+            return f"{base}：{highlight_text} - 野游记"
+        
+        # 降级：通用格式
+        return f"{query} - 野游记AI攻略 | 不走寻常路的旅行指南"
+
+    def _extract_title_highlights(self, content: str, query: str) -> list:
+        """
+        从攻略内容中提取核心亮点（用于标题）
+        
+        优先级：
+        1. 酒店特色（恒温泳池、民宿风格）
+        2. 核心活动（赶海、博物馆）
+        3. 美食特色
+        """
+        import re
+        highlights = []
+        
+        # 提取亲子特征关键词
+        is_family = bool(re.search(r'(亲子|带娃|孩子|宝宝)', query))
+        
+        # 1. 酒店特色
+        pool_match = re.search(r'(恒温泳池|室内泳池|无边泳池)', content)
+        if pool_match:
+            highlights.append(pool_match.group(1) + "民宿")
+        
+        guesthouse_match = re.search(r'(民国风|田园风|海景|山景|古镇|民宿)', content)
+        if guesthouse_match and not pool_match:
+            highlights.append(guesthouse_match.group(1) + "民宿")
+        
+        # 2. 核心活动
+        activity_patterns = [
+            r'(赶海|抓螃蟹|挖贝壳)',
+            r'(熊猫基地|大熊猫繁育研究基地)',
+            r'(博物馆|科技馆|海洋馆)',
+            r'(古镇|古城|老街)',
+            r'(温泉|玻璃栈道|索道)'
+        ]
+        
+        for pattern in activity_patterns:
+            match = re.search(pattern, content)
+            if match:
+                highlights.append(match.group(1))
+                if len(highlights) >= 2:
+                    break
+        
+        # 3. 美食特色（补充）
+        if len(highlights) < 2:
+            food_match = re.search(r'(海鲜大餐|老爸茶|清补凉|川菜|火锅|小吃)', content)
+            if food_match:
+                highlights.append(food_match.group(1))
+        
+        # 4. 时间特色（补充）
+        if len(highlights) < 2:
+            if re.search(r'(48小时|2天1晚)', content):
+                highlights.append("48小时方案")
+            elif re.search(r'(72小时|3天2晚)', content):
+                highlights.append("72小时深度游")
+        
+        return highlights
 
 
 # 单例
