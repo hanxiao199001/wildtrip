@@ -7,6 +7,11 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# 🔥 加载 .env 配置文件
+from dotenv import load_dotenv
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(env_path)
+
 from loguru import logger
 from datetime import datetime
 import json

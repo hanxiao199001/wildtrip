@@ -85,18 +85,22 @@ class ContentGeneratorBot:
     def _generate_content(self, topic: str) -> Tuple[str, Dict]:
         """调用 AI 引擎生成内容"""
         try:
-            # 调用现有的生成服务
-            result = self.ai_engine.generate(topic)
+            # 构建 prompt
+            from prompts.wildtrip_prompt import build_wildtrip_prompt
+            prompt = build_wildtrip_prompt(topic, mode='full')
+            
+            # 调用 AI 引擎生成
+            content = self.ai_engine.generate(prompt, topic, mode='full')
             
             # 统计信息
             stats = {
-                'word_count': len(result.get('content', '')),
-                'hotels_count': result.get('content', '').count('### 住宿推荐'),
-                'restaurants_count': result.get('content', '').count('餐厅'),
+                'word_count': len(content),
+                'hotels_count': content.count('### 住宿推荐') + content.count('## 住宿推荐'),
+                'restaurants_count': content.count('餐厅'),
                 'total_cashback': 0
             }
             
-            return result.get('content', ''), stats
+            return content, stats
             
         except Exception as e:
             logger.error(f"❌ 生成失败: {e}")

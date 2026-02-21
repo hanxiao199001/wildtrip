@@ -1,0 +1,61 @@
+{
+  "date": "2026-02-21",
+  "start_time": "2026-02-21T12:39:55.805400",
+  "end_time": "2026-02-21T12:40:02.440719",
+  "total_time_minutes": 0.1,
+  "target": 15,
+  "success": 0,
+  "failed": 10,
+  "results": [
+    {
+      "topic": "海口带3岁宝宝周末去哪不晒",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "三亚不开车怎么玩3天亲子游",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "万宁日月湾冲浪带8岁小孩安全吗",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "海口过年期间哪些餐厅不涨价",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "文昌航天发射场带小学生参观攻略",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "三亚不晒怎么玩学龄前",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "儋州假日海滩适合8岁小孩吗",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "陵水假日海滩适合8岁小孩吗",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "三亚过年期间免税店去哪",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    },
+    {
+      "topic": "保亭日月湾适合小学生吗",
+      "success": false,
+      "error": "cannot import name 'get_wildtrip_prompt' from 'prompts.wildtrip_prompt' (/root/clawd/wildtrip-existing/backend/prompts/wildtrip_prompt.py)"
+    }
+  ]
+}
