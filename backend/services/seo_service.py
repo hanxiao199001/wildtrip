@@ -328,8 +328,19 @@ class SEOService:
         # 如果有明确的城市+天数+人群，生成答案式标题
         if city and (days_str or crowd_str) and len(highlights) >= 2:
             base = f"{city}{days_str}{crowd_str}"
-            highlight_text = '+'.join(highlights[:2])
-            return f"{base}：{highlight_text} - 野游记"
+            # 🔥 去重亮点（避免"民宿民宿"这种重复）
+            unique_highlights = []
+            seen = set()
+            for h in highlights[:2]:
+                # 提取核心词（去除"民宿"等后缀）
+                core = re.sub(r'(民宿|酒店|景区|公园)$', '', h)
+                if core not in seen:
+                    seen.add(core)
+                    unique_highlights.append(h)
+            
+            if len(unique_highlights) >= 2:
+                highlight_text = '+'.join(unique_highlights[:2])
+                return f"{base}：{highlight_text} - 野游记"
         
         # 降级：通用格式
         return f"{query} - 野游记AI攻略 | 不走寻常路的旅行指南"
@@ -354,9 +365,14 @@ class SEOService:
         if pool_match:
             highlights.append(pool_match.group(1) + "民宿")
         
-        guesthouse_match = re.search(r'(民国风|田园风|海景|山景|古镇|民宿)', content)
+        guesthouse_match = re.search(r'(民国风|田园风|海景|山景|古镇)', content)
         if guesthouse_match and not pool_match:
-            highlights.append(guesthouse_match.group(1) + "民宿")
+            # 🔥 避免重复"民宿"
+            feature = guesthouse_match.group(1)
+            if '民宿' not in feature:
+                highlights.append(feature + "民宿")
+            else:
+                highlights.append(feature)
         
         # 2. 核心活动
         activity_patterns = [

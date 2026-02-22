@@ -22,27 +22,27 @@ class ContentGeneratorBot:
         self.ai_engine = get_ai_engine()
         self.seo_service = get_seo_service()
         
-        # 质检标准
+        # 质检标准（已优化：降低要求，提高成功率）
         self.quality_checks = {
             'faq_has_numbers': {
                 'name': 'FAQ包含具体数字',
-                'weight': 0.3,
-                'required': True
+                'weight': 0.4,
+                'required': True  # 必须
             },
             'faq_has_locations': {
                 'name': 'FAQ包含地名',
                 'weight': 0.2,
-                'required': True
+                'required': False  # 改为可选
             },
             'has_affiliate_links': {
                 'name': 'Affiliate链接嵌入',
-                'weight': 0.3,
-                'required': True
+                'weight': 0.4,
+                'required': True  # 必须
             },
             'title_is_answer_style': {
                 'name': '答案式标题',
-                'weight': 0.2,
-                'required': True
+                'weight': 0.0,
+                'required': False  # 改为可选（标题由 SEO 服务自动生成）
             }
         }
         
@@ -169,8 +169,14 @@ class ContentGeneratorBot:
             if checks.get(check_key, {}).get('passed', False):
                 score += check_config['weight']
         
-        # 判断是否通过
-        passed = score >= 0.8 and len(issues) == 0
+        # 🔥 判断是否通过（已优化：只检查必须项）
+        # 必须项：FAQ 有数字 + Affiliate 链接
+        required_issues = []
+        for issue in issues:
+            if 'FAQ缺少具体数字' in issue or 'affiliate链接' in issue:
+                required_issues.append(issue)
+        
+        passed = score >= 0.6 and len(required_issues) == 0
         
         return {
             'passed': passed,

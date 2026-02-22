@@ -800,14 +800,21 @@ class ItineraryGenerator:
     def _extract_faqs_from_content(self, query: str, content: str, city: str) -> list:
         """从攻略内容中提取 FAQ（规则 + 模板生成）"""
         faqs = []
+        
+        # 🔥 简化 query（去除冗余词，避免问题太长）
+        clean_query = query
+        # 去除重复的城市名
+        clean_query = re.sub(f'{city}{city}', city, clean_query)
+        # 去除"怎么玩"的重复
+        clean_query = re.sub(r'(怎么玩.*?)怎么玩', r'\1', clean_query)
 
         # 提取天数
-        days_match = re.search(r'(\d+)天', query)
+        days_match = re.search(r'(\d+)天', clean_query)
         days = int(days_match.group(1)) if days_match else 3
 
         # 提取人群特征
-        is_with_kids = bool(re.search(r'(带娃|亲子|孩子|宝宝|小朋友|\d+岁)', query))
-        age_match = re.search(r'(\d+)岁', query)
+        is_with_kids = bool(re.search(r'(带娃|亲子|孩子|宝宝|小朋友|\d+岁)', clean_query))
+        age_match = re.search(r'(\d+)岁', clean_query)
         kid_age = age_match.group(1) if age_match else '7'
 
         # 提取预算
