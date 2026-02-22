@@ -3,143 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="野游记AI旅游攻略大全 - 海量个性化攻略，覆盖全国热门城市，带美团返现链接">
-    <meta name="keywords" content="旅游攻略,AI攻略,城市旅游,美食推荐,酒店预订,景点门票">
-    <title>野游记 - AI旅游攻略大全 | 不走寻常路的旅行指南</title>
-    
+    <title>野游记攻略列表 - 最新旅游攻略</title>
+    <meta name="description" content="野游记AI生成的个性化旅游攻略，覆盖海口、三亚等热门目的地">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background: linear-gradient(135deg, #FFF5E6 0%, #FFE4B5 100%);
-        }
-        
-        header {
-            text-align: center;
-            padding: 40px 0;
+            background: linear-gradient(to bottom right, #fff5e6, #ffffff, #e6f3ff);
         }
         
         h1 {
-            color: #FF6B35;
-            font-size: 36px;
-            margin-bottom: 10px;
+            color: #ff6b35;
+            text-align: center;
+            margin-bottom: 40px;
         }
         
-        .subtitle {
+        .stats {
+            text-align: center;
             color: #666;
-            font-size: 18px;
+            margin-bottom: 30px;
+            font-size: 14px;
         }
         
-        .guide-list {
+        .guides-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
-            margin-top: 40px;
         }
         
         .guide-card {
             background: white;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
         .guide-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
         }
         
         .guide-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
             margin-bottom: 10px;
+            line-height: 1.4;
         }
         
         .guide-meta {
+            font-size: 12px;
             color: #999;
-            font-size: 14px;
             margin-bottom: 15px;
         }
         
         .guide-link {
             display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #FF6B35 0%, #F06543 100%);
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ff6b35, #ff8c00);
             color: white;
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: opacity 0.2s;
         }
         
         .guide-link:hover {
-            background: linear-gradient(135deg, #F06543 0%, #E55A2B 100%);
+            opacity: 0.9;
         }
         
         .back-link {
             display: inline-block;
-            margin: 20px 0;
-            padding: 12px 24px;
-            background: #FFD100;
-            color: #000;
+            margin-bottom: 20px;
+            color: #ff6b35;
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
         }
         
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>🌴 野游记 - AI攻略大全</h1>
-        <p class="subtitle">不走寻常路，就走野路子</p>
-        <a href="/" class="back-link">🚀 生成你的专属攻略</a>
-    </header>
+    <a href="/" class="back-link">← 返回首页</a>
     
-    <div id="guideList" class="guide-list">
-        <div class="loading">⏳ 加载中...</div>
+    <h1>🌴 野游记攻略列表</h1>
+    
+    <div class="stats">
+        共 5 篇攻略 | 持续更新中
     </div>
     
-    <script>
-        // 加载所有攻略
-        async function loadGuides() {
-            try {
-                // 从API获取攻略列表
-                const response = await fetch('/api/guides');
-                const guides = await response.json();
-                
-                const container = document.getElementById('guideList');
-                
-                if (guides.length === 0) {
-                    container.innerHTML = '<div class="loading">暂无攻略，<a href="/">去生成第一篇</a></div>';
-                    return;
-                }
-                
-                container.innerHTML = guides.map(guide => `
-                    <div class="guide-card">
-                        <div class="guide-title">${guide.title || guide.slug}</div>
-                        <div class="guide-meta">📅 ${guide.created_at}</div>
-                        <a href="${guide.url}" class="guide-link">查看攻略 →</a>
-                    </div>
-                `).join('');
-                
-            } catch (error) {
-                console.error('加载失败:', error);
-                document.getElementById('guideList').innerHTML = 
-                    '<div class="loading">❌ 加载失败，请<a href="/">返回首页</a></div>';
-            }
-        }
-        
-        // 页面加载时执行
-        loadGuides();
-    </script>
+    <div class="guides-grid">
+        <div class="guide-card">
+            <div class="guide-title">海口周末：博物馆+老街 - 野游记</div>
+            <div class="guide-meta">📅 2026-02-22 18:04</div>
+            <a href="/guides/guide-202602221804-75ae12ee.html" class="guide-link">查看攻略 →</a>
+        </div>
+        <div class="guide-card">
+            <div class="guide-title">海口假日海滩vs西秀海滩vs海口湾哪个更好</div>
+            <div class="guide-meta">📅 2026-02-22 18:02</div>
+            <a href="/guides/guide-202602221802-b64ff377.html" class="guide-link">查看攻略 →</a>
+        </div>
+        <div class="guide-card">
+            <div class="guide-title">海口2天亲子：无边泳池民宿+博物馆 - 野游记</div>
+            <div class="guide-meta">📅 2026-02-22 18:00</div>
+            <a href="/guides/guide-202602221800-22c98d2a.html" class="guide-link">查看攻略 →</a>
+        </div>
+        <div class="guide-card">
+            <div class="guide-title">海口2天亲子：赶海+博物馆 - 野游记</div>
+            <div class="guide-meta">📅 2026-02-22 17:59</div>
+            <a href="/guides/guide-202602221759-aaa639dc.html" class="guide-link">查看攻略 →</a>
+        </div>
+        <div class="guide-card">
+            <div class="guide-title">海口2天亲子：海景民宿+博物馆 - 野游记</div>
+            <div class="guide-meta">📅 2026-02-22 17:57</div>
+            <a href="/guides/guide-202602221757-18550f10.html" class="guide-link">查看攻略 →</a>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px; color: #999; font-size: 14px;">
+        <p>由野游记AI自动生成 | <a href="/" style="color: #ff6b35;">生成你的专属攻略</a></p>
+    </div>
 </body>
 </html>
