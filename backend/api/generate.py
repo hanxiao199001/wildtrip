@@ -20,10 +20,14 @@ from services.ai_engine import AIEngine
 from services.ai_engine_streaming import get_streaming_ai_engine  # 🔥 新增：流式引擎
 from services.affiliate import get_meituan_affiliate
 from services.affiliate_manager import get_affiliate_manager
+from services.paywall_service import add_paywall_to_content, verify_payment  # 🔥 新增：付费墙服务
 from prompts.wildtrip_prompt import build_wildtrip_prompt
 
 # 创建Blueprint
 generate_bp = Blueprint('generate', __name__)
+
+# 存储完整内容的缓存（临时方案，生产环境应该用Redis）
+content_cache = {}
 
 # 存储活跃任务
 active_tasks = {}
@@ -378,11 +382,24 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
             except Exception as e:
                 logger.warning(f"⚠️ 保存用户历史失败: {e}")
         
+        # 🔥 添加付费墙（web端个性化生成需要付费¥4.9）
+        paywall_data = add_paywall_to_content(enhanced_content, query)
+        
+        # 🔥 缓存完整内容（用于解锁API）
+        content_cache[task_id] = {
+            'full_content': paywall_data['full_content'],
+            'recommendations': recommendations,
+            'links': all_links
+        }
+        
         # 完成
         active_tasks[task_id]['status'] = 'completed'
         active_tasks[task_id]['progress'] = 100
         active_tasks[task_id]['result'] = {
-            'content': enhanced_content,
+            'content': paywall_data['preview'],  # 🔥 修改：返回预览内容
+            'locked': paywall_data['locked'],  # 🔥 新增：是否锁定
+            'price': paywall_data['price'],  # 🔥 新增：价格
+            'unlock_includes': paywall_data['unlock_includes'],  # 🔥 新增：解锁内容说明
             'recommendations': recommendations,
             'links': all_links,  # 🔥 新增：所有可点击链接
             'stats': stats,
@@ -922,3 +939,73 @@ def register_socketio_events(socketio):
     @socketio.on('disconnect')
     def handle_disconnect():
         logger.info("📴 客户端断开连接")
+
+
+@generate_bp.route('/unlock', methods=['POST'])
+def unlock_guide():
+    """
+    解锁完整攻略
+    
+    请求体:
+    {
+        "task_id": "uuid",
+        "payment_proof": "微信支付订单号"  // 或其他支付凭证
+    }
+    
+    响应:
+    {
+        "success": true,
+        "full_content": "完整攻略内容",
+        "message": "解锁成功"
+    }
+    """
+    try:
+        data = request.json
+        task_id = data.get('task_id')
+        payment_proof = data.get('payment_proof')
+        
+        if not task_id:
+            return jsonify({
+                'error': '缺少task_id',
+                'code': 'MISSING_TASK_ID'
+            }), 400
+        
+        # 检查任务是否存在
+        task = active_tasks.get(task_id)
+        if not task:
+            return jsonify({
+                'error': '任务不存在或已过期',
+                'code': 'TASK_NOT_FOUND'
+            }), 404
+        
+        # TODO: 实际生产环境需要验证支付
+        # if not verify_payment(task_id, payment_proof):
+        #     return jsonify({
+        #         'error': '支付验证失败',
+        #         'code': 'PAYMENT_INVALID'
+        #     }), 403
+        
+        # 测试模式：直接解锁
+        logger.info(f"🔓 解锁攻略: {task_id} (测试模式，跳过支付验证)")
+        
+        # 获取完整内容
+        full_content = content_cache.get(task_id, {}).get('full_content')
+        
+        if not full_content:
+            return jsonify({
+                'error': '完整内容不存在',
+                'code': 'CONTENT_NOT_FOUND'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'full_content': full_content,
+            'message': '解锁成功'
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ 解锁失败: {e}")
+        return jsonify({
+            'error': f'解锁失败: {str(e)}',
+            'code': 'UNLOCK_FAILED'
+        }), 500
