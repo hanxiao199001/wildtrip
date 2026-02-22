@@ -356,7 +356,7 @@ class SEOOptimizer:
             统计代码HTML
         """
         # 百度统计ID（需要替换为你的真实ID）
-        baidu_id = "2f348a42f00786d4955004971d986ec18"
+        baidu_id = "2f348a42f00786d4955004971d986ec1"
         
         analytics_html = f"""
 <!-- 百度统计 -->
