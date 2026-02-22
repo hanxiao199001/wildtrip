@@ -197,7 +197,7 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         user_id: 用户ID（可选，如果提供则保存到用户历史）
     """
     from app import socketio  # 延迟导入避免循环依赖
-    from prompts.wildtrip_prompt import extract_city_name, extract_days, extract_budget
+    from prompts.wildtrip_prompt import extract_city_name
     
     try:
         # 更新状态
