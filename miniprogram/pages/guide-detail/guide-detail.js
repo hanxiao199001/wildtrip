@@ -251,7 +251,7 @@ Page({
     try {
       const guide = await api.getGuideDetail(slug)
       if (!guide || guide.error) {
-        this.setData({ loading: false, error: guide?.error || '攻略不存在' })
+        this.setData({ loading: false, error: (guide && guide.error) || '攻略不存在' })
         return
       }
 
@@ -448,7 +448,7 @@ Page({
   // 复制攻略文本
   onCopy() {
     const { guide } = this.data
-    const content = guide?.markdown_content || guide?.title || ''
+    const content = (guide && guide.markdown_content) || (guide && guide.title) || ''
     if (!content) {
       wx.showToast({ title: '暂无内容', icon: 'none' })
       return

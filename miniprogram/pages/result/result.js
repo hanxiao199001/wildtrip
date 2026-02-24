@@ -493,7 +493,7 @@ Page({
         destination: dest,
         days: days || 3,
         budget: budget,
-        userName: wx.getStorageSync('userInfo')?.nickName || '野游记用户',
+        userName: (wx.getStorageSync('userInfo') || {}).nickName || '野游记用户',
         createdAt: new Date().toLocaleDateString('zh-CN')
       }
     })

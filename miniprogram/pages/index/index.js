@@ -2,7 +2,7 @@
 const app = getApp()
 const api = require('../../utils/api')
 
-// 📜 历史人文推荐主题
+// 📜 人文历史路线推荐主题
 var HISTORY_THEMES = [
   {
     icon: '📝',
@@ -49,7 +49,7 @@ Page({
     currentMode: 'full',                // 🔥 当前模式：full / history
     placeholderText: '说一句话，30秒生成攻略\n例如：海口3天亲子游，预算5000',
     btnText: '🚀 生成攻略',
-    historyThemes: HISTORY_THEMES,      // 📜 历史人文推荐主题
+    historyThemes: HISTORY_THEMES,      // 📜 人文历史路线推荐主题
     featuredGuides: []                  // 精选攻略
   },
 
@@ -85,9 +85,9 @@ Page({
       currentMode: mode,
       query: '',
       placeholderText: isHistory
-        ? '输入历史人文主题\n例如：苏东坡被贬路线15天'
+        ? '输入人文历史主题\n例如：苏东坡被贬路线15天'
         : '说一句话，30秒生成攻略\n例如：海口3天亲子游，预算5000',
-      btnText: isHistory ? '📜 生成人文攻略' : '🚀 生成攻略'
+      btnText: isHistory ? '📜 生成人文历史路线' : '🚀 生成攻略'
     })
 
     console.log('🔄 切换模式:', mode)
@@ -217,7 +217,7 @@ Page({
 
     if (!query.trim()) {
       wx.showToast({
-        title: mode === 'history' ? '请输入历史人文主题' : '请输入您的需求',
+        title: mode === 'history' ? '请输入人文历史主题' : '请输入您的需求',
         icon: 'none'
       })
       return

@@ -6,6 +6,8 @@
 from flask import Blueprint, jsonify, request
 from loguru import logger
 import os
+import re
+import json
 from pathlib import Path
 
 # 创建Blueprint
@@ -36,21 +38,20 @@ def list_guides():
     """
     try:
         from services.seo_service import get_seo_service
-        
+
         seo = get_seo_service()
         guides = seo.get_all_guides()
-        
-        # 提取标题（从slug中提取）
+
+        # 加载 metadata.json
+        metadata_map = _load_metadata_map()
+
         for guide in guides:
-            # slug格式：城市-天数-类型-时间戳-hash
-            # 示例：上海3天美食游测试-202602041633-51b4d9df
-            slug_parts = guide['slug'].rsplit('-', 2)  # 分割最后两部分（时间和hash）
-            guide['title'] = slug_parts[0] if slug_parts else guide['slug']
-        
+            _enrich_guide(guide, metadata_map)
+
         logger.info(f"📋 返回攻略列表: {len(guides)}篇")
-        
+
         return jsonify(guides), 200
-        
+
     except Exception as e:
         logger.error(f"获取攻略列表失败: {e}")
         return jsonify({
@@ -76,12 +77,20 @@ def get_featured_guides():
         if not all_guides:
             return jsonify([]), 200
 
+        # 加载 metadata.json 建立 slug→元数据 映射
+        metadata_map = _load_metadata_map()
+
+        # 过滤掉测试/demo页面和index
+        EXCLUDE = {'index', 'demo', 'demo-haikou-weekend-7yo-boy-paywall'}
+        all_guides = [g for g in all_guides if g['slug'] not in EXCLUDE
+                      and not g['slug'].startswith('guide-test')
+                      and not g['slug'].startswith('guide-ui-test')]
+
         # 按时间倒序，取前N篇
         featured = sorted(all_guides, key=lambda g: g.get('created_at', ''), reverse=True)[:limit]
 
         for guide in featured:
-            slug_parts = guide['slug'].rsplit('-', 2)
-            guide['title'] = slug_parts[0] if slug_parts else guide['slug']
+            _enrich_guide(guide, metadata_map)
 
         logger.info(f"⭐ 返回精选攻略: {len(featured)}篇")
         return jsonify(featured), 200
@@ -116,10 +125,15 @@ def get_guide_detail(slug):
             }), 404
         
         content = html_path.read_text(encoding='utf-8')
-        
-        # 提取标题
-        slug_parts = slug.rsplit('-', 2)
-        title = slug_parts[0] if slug_parts else slug
+
+        # 提取标题：优先metadata，其次slug，最后HTML
+        metadata_map = _load_metadata_map()
+        if slug in metadata_map:
+            title = _clean_title(metadata_map[slug].get('title', ''))
+        else:
+            title = _extract_title_from_slug(slug)
+            if not title or title.lower() == 'guide' or (len(title) < 4 and title.isascii()):
+                title = _extract_title_from_html(html_path)
         
         # 统计字数（简单统计，实际应该去除HTML标签）
         word_count = len(content)
@@ -251,3 +265,74 @@ def share_guide(slug):
             'error': str(e),
             'code': 'INTERNAL_ERROR'
         }), 500
+
+
+# ===== 辅助函数 =====
+
+def _load_metadata_map():
+    """加载 metadata.json，返回 slug→元数据 映射"""
+    metadata_map = {}
+    metadata_path = GUIDES_DIR / 'metadata.json'
+    if metadata_path.exists():
+        try:
+            meta_list = json.loads(metadata_path.read_text(encoding='utf-8'))
+            for m in meta_list:
+                metadata_map[m.get('slug', '')] = m
+        except Exception as e:
+            logger.warning(f"加载metadata.json失败: {e}")
+    return metadata_map
+
+
+def _clean_title(raw_title):
+    """清理标题：去掉后缀和开头emoji"""
+    if not raw_title:
+        return '旅行攻略'
+    clean = re.split(r'\s*[-|]\s*(?:野游记|我的行程|省[¥￥])', raw_title)[0].strip()
+    # 去掉开头emoji
+    clean = re.sub(r'^[\U0001f300-\U0001f9ff\u2600-\u26ff\u2700-\u27bf]+\s*', '', clean)
+    return clean or raw_title
+
+
+def _extract_title_from_slug(slug):
+    """从slug提取标题（去掉时间戳和hash后缀）"""
+    slug_parts = slug.rsplit('-', 2)
+    return slug_parts[0] if slug_parts else slug
+
+
+def _extract_title_from_html(html_path):
+    """从HTML文件的og:title或<title>标签提取标题"""
+    try:
+        if not html_path.exists():
+            return '旅行攻略'
+        head = html_path.read_text(encoding='utf-8')[:3000]
+        # 优先 og:title
+        og_match = re.search(r'<meta\s+property="og:title"\s+content="([^"]+)"', head)
+        if og_match:
+            return _clean_title(og_match.group(1))
+        # 回退 <title>
+        title_match = re.search(r'<title>([^<]+)</title>', head)
+        if title_match:
+            return _clean_title(title_match.group(1))
+        return '旅行攻略'
+    except Exception:
+        return '旅行攻略'
+
+
+def _enrich_guide(guide, metadata_map):
+    """用metadata或HTML丰富攻略数据"""
+    slug = guide['slug']
+    if slug in metadata_map:
+        meta = metadata_map[slug]
+        guide['title'] = _clean_title(meta.get('title', ''))
+        guide['destination'] = meta.get('destination', '')
+        guide['days'] = meta.get('days', 0)
+        guide['budget'] = meta.get('budget', '')
+        guide['views'] = meta.get('views', 0)
+        guide['likes'] = meta.get('likes', 0)
+        guide['cover_image'] = meta.get('cover_image', '')
+    else:
+        title = _extract_title_from_slug(slug)
+        # 如果slug提取的标题是纯英文（非中文），从HTML提取更好的标题
+        if not title or title.isascii():
+            title = _extract_title_from_html(GUIDES_DIR / f"{slug}.html")
+        guide['title'] = title

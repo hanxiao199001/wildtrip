@@ -37,7 +37,8 @@
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
-      "outputPath": ""
+      "outputPath": "",
+      "outputType": "commonjs"
     }
   },
   "compileType": "miniprogram",
