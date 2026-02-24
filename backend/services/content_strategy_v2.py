@@ -137,6 +137,53 @@ class ContentStrategyV2:
         
         return queries
     
+    # ========== 人文历史深度游 ==========
+    
+    def generate_cultural_history_queries(self, city: str) -> List[str]:
+        """
+        生成人文历史深度游查询
+        特点：
+        - 历史文化底蕴
+        - 名人故事
+        - 文化遗产
+        - 深度体验
+        """
+        queries = []
+        
+        # 海南人文历史主题
+        if city == "海口":
+            queries.extend([
+                "苏东坡被贬海南路线深度游-从儋州到东坡书院",
+                "海口骑楼老街人文历史3天深度游-南洋文化探访",
+                "海瑞故里与清官文化-海口人文历史一日游",
+                "海南侨乡文化深度游-文昌骑楼与归国华侨故事",
+                "琼台书院与海南文脉-海口古代教育史探访"
+            ])
+        
+        if city == "三亚":
+            queries.extend([
+                "鉴真东渡与南山寺-三亚佛教文化深度游",
+                "黎族苗族文化村落-三亚少数民族文化体验3天",
+                "崖州古城历史文化-三亚千年古城深度游",
+                "海上丝绸之路遗迹-三亚港口贸易历史探访"
+            ])
+        
+        if city == "文昌":
+            queries.extend([
+                "宋氏三姐妹与文昌名人-近代历史人文游",
+                "文昌航天文化与科技史-从古文化到现代航天",
+                "海南文昌孔庙与儒家文化-古代教育史深度游"
+            ])
+        
+        if city == "儋州":
+            queries.extend([
+                "苏东坡被贬儋州3年轨迹-东坡文化深度游",
+                "千年古盐田与盐业文化-儋州历史产业探访",
+                "东坡书院与儋州文化-历史名人足迹深度体验"
+            ])
+        
+        return queries
+    
     # ========== 本地生活类内容 ==========
     
     def generate_local_lifestyle_queries(self, city: str) -> List[str]:
@@ -177,6 +224,13 @@ class ContentStrategyV2:
             tasks['high'].extend([
                 {'query': q, 'city': city, 'type': 'deep_scenario', 'target_words': 4000}
                 for q in deep_queries[:20]  # 每个城市20个
+            ])
+            
+            # 人文历史深度游 (新增,高优先级)
+            cultural_queries = self.generate_cultural_history_queries(city)
+            tasks['high'].extend([
+                {'query': q, 'city': city, 'type': 'cultural_history', 'target_words': 4000}
+                for q in cultural_queries[:5]  # 每个城市5个
             ])
             
             # 对比决策

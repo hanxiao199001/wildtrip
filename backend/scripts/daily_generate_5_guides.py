@@ -58,7 +58,8 @@ def get_today_tasks(strategy: ContentStrategyV2, progress: dict) -> list:
     获取今天要生成的5个任务
     
     优先级分配:
-    - 3篇高优先级 (深度场景)
+    - 2篇高优先级深度场景 (常规旅游攻略)
+    - 1篇人文历史深度游 (如"苏东坡被贬之路")
     - 1篇中优先级 (对比决策)
     - 1篇低优先级 (本地生活)
     """
@@ -66,11 +67,21 @@ def get_today_tasks(strategy: ContentStrategyV2, progress: dict) -> list:
     
     today_tasks = []
     
-    # 3篇高优先级
+    # 从高优先级中分离出人文历史类
+    high_tasks_regular = [t for t in all_tasks['high'] if t.get('type') != 'cultural_history']
+    high_tasks_cultural = [t for t in all_tasks['high'] if t.get('type') == 'cultural_history']
+    
+    # 2篇常规深度场景
     high_start = progress['high_index']
-    high_tasks = all_tasks['high'][high_start:high_start+3]
-    today_tasks.extend(high_tasks)
-    progress['high_index'] += len(high_tasks)
+    regular_tasks = high_tasks_regular[high_start:high_start+2]
+    today_tasks.extend(regular_tasks)
+    progress['high_index'] += len(regular_tasks)
+    
+    # 1篇人文历史深度游
+    cultural_start = progress.get('cultural_index', 0)
+    if cultural_start < len(high_tasks_cultural):
+        today_tasks.append(high_tasks_cultural[cultural_start])
+        progress['cultural_index'] = cultural_start + 1
     
     # 1篇中优先级
     medium_start = progress['medium_index']
@@ -85,8 +96,8 @@ def get_today_tasks(strategy: ContentStrategyV2, progress: dict) -> list:
         progress['low_index'] += 1
     
     # 如果不够5篇,继续从高优先级补充
-    while len(today_tasks) < 5 and progress['high_index'] < len(all_tasks['high']):
-        today_tasks.append(all_tasks['high'][progress['high_index']])
+    while len(today_tasks) < 5 and progress['high_index'] < len(high_tasks_regular):
+        today_tasks.append(high_tasks_regular[progress['high_index']])
         progress['high_index'] += 1
     
     return today_tasks
@@ -119,12 +130,19 @@ def generate_guides(tasks: list):
         logger.info(f"{'='*80}\n")
         
         try:
+            # 根据任务类型选择生成模式
+            task_type = task.get('type', 'deep_scenario')
+            if task_type == 'cultural_history':
+                mode = 'history'  # 人文历史深度游模式
+            else:
+                mode = 'full'  # 常规完整攻略模式
+            
             # 构建prompt (告诉AI目标字数)
-            prompt = build_wildtrip_prompt(query, mode='full')
+            prompt = build_wildtrip_prompt(query, mode=mode)
             prompt += f"\n\n目标字数: {target_words}字以上，确保内容深度和实用性。"
             
             # 生成
-            content = ai.generate(prompt, query, mode='full', use_real_poi=True)
+            content = ai.generate(prompt, query, mode=mode, use_real_poi=True)
             
             # 保存HTML
             stats = {
