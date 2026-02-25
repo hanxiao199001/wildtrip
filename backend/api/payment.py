@@ -3,10 +3,12 @@
 小程序支付 + Web H5支付
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from loguru import logger
 import time
 import uuid
+from models import OrderStatus
+from services.order_service import OrderService
 
 payment_bp = Blueprint('payment', __name__)
 
@@ -55,17 +57,23 @@ def create_order():
                 'error': '缺少guide_id'
             }), 400
         
-        # 生成订单号
-        order_id = f"WT{int(time.time())}{uuid.uuid4().hex[:8].upper()}"
-        
         # 金额转换为分
         total_fee = int(amount * 100)
         
         # 商品描述
         description = f"野游记个性化攻略"
         
-        # TODO: 保存订单到数据库
-        # save_order(order_id, guide_id, openid, total_fee, 'pending')
+        # 创建订单
+        order = OrderService.create_order(
+            openid=openid,
+            product_type='guide',
+            product_name=description,
+            amount=total_fee,
+            client_ip=request.headers.get('X-Real-IP', request.remote_addr),
+            user_agent=request.headers.get('User-Agent')
+        )
+        
+        order_id = order.order_no
         
         # 调用微信支付
         from services.wechat_payment import get_payment_service
@@ -77,6 +85,11 @@ def create_order():
             total_fee=total_fee,
             description=description
         )
+        
+        # 保存预支付ID
+        order.prepay_id = pay_params.get('package', '').replace('prepay_id=', '')
+        from models import db
+        db.session.commit()
         
         logger.info(f"✅ 订单创建成功: {order_id} | 攻略: {guide_id} | 金额: ¥{amount}")
         
@@ -124,9 +137,6 @@ def create_h5_order():
                 'error': '缺少guide_id'
             }), 400
         
-        # 生成订单号
-        order_id = f"WT{int(time.time())}{uuid.uuid4().hex[:8].upper()}"
-        
         # 金额转换为分
         total_fee = int(amount * 100)
         
@@ -136,8 +146,17 @@ def create_h5_order():
         # 商品描述
         description = f"野游记个性化攻略"
         
-        # TODO: 保存订单到数据库
-        # save_order(order_id, guide_id, None, total_fee, 'pending')
+        # 创建订单 (H5支付没有openid)
+        order = OrderService.create_order(
+            openid='h5_user',  # H5支付用临时标识
+            product_type='guide',
+            product_name=description,
+            amount=total_fee,
+            client_ip=client_ip,
+            user_agent=request.headers.get('User-Agent')
+        )
+        
+        order_id = order.order_no
         
         # 调用微信支付
         from services.wechat_payment import get_payment_service
@@ -201,11 +220,32 @@ def payment_notify():
             
             logger.success(f"✅ 支付成功: {order_id} | 微信订单号: {transaction_id} | 金额: ¥{total_fee/100}")
             
-            # TODO: 更新订单状态
-            # update_order_status(order_id, 'paid', transaction_id)
+            # 更新订单状态
+            OrderService.update_order_status(
+                order_no=order_id,
+                status=OrderStatus.PAID,
+                transaction_id=transaction_id,
+                remark='微信支付成功'
+            )
             
-            # TODO: 解锁攻略内容
-            # unlock_guide_content(order_id)
+            # 查询订单详情
+            order = OrderService.get_order(order_id)
+            
+            # 如果是攻略解锁订单,记录日志
+            if order and order.product_type.startswith('guide_'):
+                try:
+                    # 从remark提取guide_id
+                    guide_id = None
+                    if order.remark and 'guide_id:' in order.remark:
+                        guide_id = order.remark.split('guide_id:')[1].strip()
+                    
+                    logger.success(f"🎉 攻略已解锁: {order.openid} | guide_id: {guide_id} | {order.product_name}")
+                    
+                    # TODO: 发送订阅消息通知用户
+                    # send_unlock_notification(order.openid, guide_id)
+                    
+                except Exception as e:
+                    logger.error(f"❌ 解锁攻略失败: {e}")
             
             # TODO: 发送支付成功通知
             # send_payment_notification(order_id)
@@ -256,16 +296,138 @@ def query_order():
             'error': '缺少order_id'
         }), 400
     
-    # TODO: 从数据库查询订单
-    # order = get_order_by_id(order_id)
+    # 从数据库查询订单
+    order = OrderService.get_order(order_id)
     
-    # 临时返回模拟数据
+    if not order:
+        return jsonify({
+            'success': False,
+            'error': '订单不存在'
+        }), 404
+    
     return jsonify({
         'success': True,
-        'order': {
-            'order_id': order_id,
-            'status': 'pending',
-            'amount': 4.9,
-            'created_at': time.strftime('%Y-%m-%d %H:%M:%S')
+        'order': order.to_dict()
+    })
+
+
+@payment_bp.route('/my_orders', methods=['GET'])
+def my_orders():
+    """
+    获取我的订单列表
+    
+    参数:
+    ?openid=xxx&limit=20
+    
+    响应:
+    {
+        "success": true,
+        "orders": [...]
+    }
+    """
+    openid = request.args.get('openid')
+    limit = int(request.args.get('limit', 20))
+    
+    if not openid:
+        return jsonify({
+            'success': False,
+            'error': '缺少openid'
+        }), 400
+    
+    orders = OrderService.get_user_orders(openid, limit=limit)
+    
+    return jsonify({
+        'success': True,
+        'orders': [order.to_dict() for order in orders],
+        'total': len(orders)
+    })
+
+
+@payment_bp.route('/cancel_order', methods=['POST'])
+def cancel_order():
+    """
+    取消订单
+    
+    请求:
+    {
+        "order_id": "WT1234567890"
+    }
+    """
+    data = request.json
+    order_id = data.get('order_id')
+    
+    if not order_id:
+        return jsonify({
+            'success': False,
+            'error': '缺少order_id'
+        }), 400
+    
+    order = OrderService.get_order(order_id)
+    
+    if not order:
+        return jsonify({
+            'success': False,
+            'error': '订单不存在'
+        }), 404
+    
+    # 只能取消待支付订单
+    if order.status != OrderStatus.PENDING.value:
+        return jsonify({
+            'success': False,
+            'error': f'订单状态为{order.status},无法取消'
+        }), 400
+    
+    success = OrderService.update_order_status(
+        order_no=order_id,
+        status=OrderStatus.CANCELLED,
+        remark='用户主动取消'
+    )
+    
+    if success:
+        logger.info(f"✅ 订单已取消: {order_id}")
+        return jsonify({
+            'success': True,
+            'message': '订单已取消'
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': '取消失败'
+        }), 500
+
+
+@payment_bp.route('/stats', methods=['GET'])
+def payment_stats():
+    """
+    订单统计 (管理员)
+    
+    参数:
+    ?start_date=2026-02-01&end_date=2026-02-28
+    
+    响应:
+    {
+        "success": true,
+        "stats": {
+            "total": 100,
+            "paid": 80,
+            "amount": 392000,
+            "pending": 15
         }
+    }
+    """
+    from datetime import datetime
+    
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    
+    stats = OrderService.get_stats(start_date, end_date)
+    
+    return jsonify({
+        'success': True,
+        'stats': stats
     })
