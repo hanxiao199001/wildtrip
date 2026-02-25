@@ -82,8 +82,33 @@
       </view>
     </view>
 
-    <!-- 🔥 完整攻略内容（towxml原生渲染） -->
-    <view class="section-card content-section" wx:if="{{article}}">
+    <!-- 🔐 解锁状态提示 -->
+    <view class="unlock-status" wx:if="{{!checkingUnlock}}">
+      <!-- 未解锁状态 -->
+      <view class="unlock-prompt" wx:if="{{!isUnlocked}}">
+        <view class="lock-icon">🔒</view>
+        <view class="unlock-title">完整攻略需要解锁</view>
+        <view class="unlock-desc">解锁后可查看完整行程、推荐酒店、美食餐厅等</view>
+        <view class="unlock-price">
+          <text class="price-label">{{guideType === 'history' ? '人文历史路线' : '旅行攻略'}}</text>
+          <text class="price-value">¥{{guideType === 'history' ? '0.01' : '0.01'}}</text>
+          <text class="test-notice">（测试价格）</text>
+        </view>
+        <button class="unlock-btn" bindtap="onUnlockGuide">
+          <text class="btn-icon">🔓</text>
+          <text>立即解锁</text>
+        </button>
+      </view>
+      
+      <!-- 已解锁状态 -->
+      <view class="unlocked-badge" wx:else>
+        <text class="badge-icon">✅</text>
+        <text>已解锁完整攻略</text>
+      </view>
+    </view>
+
+    <!-- 🔥 完整攻略内容（towxml原生渲染 - 仅解锁后显示） -->
+    <view class="section-card content-section" wx:if="{{article && isUnlocked}}">
       <view class="section-title-bar">
         <text class="section-icon">📖</text>
         <text class="section-title">完整攻略</text>

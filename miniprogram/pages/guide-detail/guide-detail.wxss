@@ -427,3 +427,114 @@
   color: #D97706;
   font-weight: 600;
 }
+
+/* ========== 解锁状态区域 ========== */
+.unlock-status {
+  margin: 20rpx;
+}
+
+/* 未解锁提示卡片 */
+.unlock-prompt {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 24rpx;
+  padding: 48rpx 32rpx;
+  text-align: center;
+  color: white;
+  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.3);
+}
+
+.lock-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+  animation: shake 2s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+  20%, 40%, 60%, 80% { transform: rotate(10deg); }
+}
+
+.unlock-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+}
+
+.unlock-desc {
+  font-size: 28rpx;
+  opacity: 0.9;
+  margin-bottom: 32rpx;
+  line-height: 1.6;
+}
+
+.unlock-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+.price-label {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.price-value {
+  font-size: 48rpx;
+  font-weight: bold;
+}
+
+.test-notice {
+  font-size: 24rpx;
+  opacity: 0.7;
+  margin-left: 12rpx;
+}
+
+.unlock-btn {
+  background: white !important;
+  color: #667eea !important;
+  border-radius: 48rpx !important;
+  padding: 24rpx 64rpx !important;
+  font-size: 32rpx !important;
+  font-weight: bold !important;
+  border: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.unlock-btn::after {
+  border: none;
+}
+
+.unlock-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon {
+  font-size: 32rpx;
+}
+
+/* 已解锁徽章 */
+.unlocked-badge {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  border-radius: 16rpx;
+  padding: 24rpx 32rpx;
+  text-align: center;
+  color: white;
+  font-size: 28rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(67, 233, 123, 0.3);
+}
+
+.badge-icon {
+  font-size: 32rpx;
+}
