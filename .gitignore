@@ -131,3 +131,26 @@ project.private.config.json
 htmlcov/
 *.bak
 *.orig
+
+# ========================================
+# OpenClaw 工作区（不属于项目）
+# ========================================
+.openclaw/
+MEMORY.md
+SOUL.md
+AGENTS.md
+USER.md
+IDENTITY.md
+HEARTBEAT.md
+TOOLS.md
+memory/
+openclaw-pm2.config.js
+GITHUB_PULL_INSTRUCTIONS.md
+GITHUB_SERVER_DIFF_REPORT.md
+fix_qrcode.py
+booking-monitor.log
+canvas/
+
+# web/images 中的运营图片需要入库（覆盖上面的图片排除规则）
+!web/images/
+!web/images/**

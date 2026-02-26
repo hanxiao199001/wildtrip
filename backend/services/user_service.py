@@ -1,289 +1,211 @@
 """
-用户服务 - 用户管理和历史记录
-简单版本：手机号登录，本地存储
+用户服务
 """
-
-import json
-import hashlib
-from datetime import datetime
-from pathlib import Path
-from typing import Optional, List
+from models import db, User
+from datetime import datetime, timedelta
 from loguru import logger
 
 
 class UserService:
-    """用户服务"""
+    """用户服务类"""
     
-    def __init__(self, data_dir: str = "/root/clawd/wildtrip/data/users"):
-        """初始化用户服务"""
-        self.data_dir = Path(data_dir)
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        
-        # 用户数据文件
-        self.users_file = self.data_dir / "users.json"
-        self.guides_file = self.data_dir / "user_guides.json"
-        
-        # 加载数据
-        self.users = self._load_users()
-        self.user_guides = self._load_guides()
-        
-        logger.info(f"✅ 用户服务初始化完成 | 用户数: {len(self.users)}")
-    
-    def _load_users(self) -> dict:
-        """加载用户数据"""
-        if self.users_file.exists():
-            return json.loads(self.users_file.read_text(encoding='utf-8'))
-        return {}
-    
-    def _save_users(self):
-        """保存用户数据"""
-        self.users_file.write_text(
-            json.dumps(self.users, ensure_ascii=False, indent=2),
-            encoding='utf-8'
-        )
-    
-    def _load_guides(self) -> dict:
-        """加载用户攻略数据"""
-        if self.guides_file.exists():
-            return json.loads(self.guides_file.read_text(encoding='utf-8'))
-        return {}
-    
-    def _save_guides(self):
-        """保存用户攻略数据"""
-        self.guides_file.write_text(
-            json.dumps(self.user_guides, ensure_ascii=False, indent=2),
-            encoding='utf-8'
-        )
-    
-    def create_or_get_user(self, phone: str, nickname: str = None) -> dict:
+    @staticmethod
+    def get_or_create_user(openid: str, unionid: str = None):
         """
-        创建或获取用户
+        获取或创建用户
         
         Args:
-            phone: 手机号
-            nickname: 昵称（可选）
-            
+            openid: 微信openid
+            unionid: 微信unionid (可选)
+        
         Returns:
-            用户信息
+            User对象
         """
-        # 生成用户ID（手机号hash）
-        user_id = hashlib.md5(phone.encode()).hexdigest()[:16]
-        
-        if user_id not in self.users:
-            # 创建新用户
-            self.users[user_id] = {
-                'user_id': user_id,
-                'phone': phone[-4:],  # 只保存后4位
-                'nickname': nickname or f"用户{phone[-4:]}",
-                'created_at': datetime.now().isoformat(),
-                'last_login': datetime.now().isoformat(),
-                'guide_count': 0
-            }
-            self._save_users()
-            logger.info(f"✅ 创建新用户: {user_id}")
-        else:
-            # 更新登录时间
-            self.users[user_id]['last_login'] = datetime.now().isoformat()
-            self._save_users()
-        
-        return self.users[user_id]
+        try:
+            user = User.query.filter_by(openid=openid).first()
+            
+            if not user:
+                user = User(
+                    openid=openid,
+                    unionid=unionid,
+                    created_at=datetime.now()
+                )
+                db.session.add(user)
+                db.session.commit()
+                logger.info(f"✅ 创建新用户: {openid}")
+            
+            # 更新最后登录时间
+            user.last_login_at = datetime.now()
+            db.session.commit()
+            
+            return user
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"❌ 获取/创建用户失败: {e}")
+            raise
     
-    def save_user_guide(self, user_id: str, guide_data: dict) -> str:
-        """
-        保存用户的攻略
-        
-        Args:
-            user_id: 用户ID
-            guide_data: 攻略数据
+    @staticmethod
+    def update_user_info(openid: str, nickname: str = None, avatar: str = None, gender: int = None):
+        """更新用户信息"""
+        try:
+            user = User.query.filter_by(openid=openid).first()
+            if not user:
+                return False
             
-        Returns:
-            guide_id
-        """
-        # 生成攻略ID
-        guide_id = hashlib.md5(
-            f"{user_id}{datetime.now().isoformat()}".encode()
-        ).hexdigest()[:16]
-        
-        # 保存攻略
-        if user_id not in self.user_guides:
-            self.user_guides[user_id] = []
-        
-        guide_record = {
-            'guide_id': guide_id,
-            'user_id': user_id,
-            'query': guide_data.get('query', ''),
-            'mode': guide_data.get('mode', 'full'),
-            'content': guide_data.get('content', ''),
-            'stats': guide_data.get('stats', {}),
-            'seo_url': guide_data.get('seo_url'),
-            'created_at': datetime.now().isoformat(),
-            'favorite': False
-        }
-        
-        self.user_guides[user_id].append(guide_record)
-        self._save_guides()
-        
-        # 更新用户攻略计数
-        if user_id in self.users:
-            self.users[user_id]['guide_count'] = len(self.user_guides[user_id])
-            self._save_users()
-        
-        logger.info(f"✅ 保存用户攻略: {user_id} | {guide_id}")
-        
-        return guide_id
-    
-    def get_user_guides(self, user_id: str, limit: int = 50) -> List[dict]:
-        """
-        获取用户的历史攻略
-        
-        Args:
-            user_id: 用户ID
-            limit: 返回数量
+            if nickname:
+                user.nickname = nickname
+            if avatar:
+                user.avatar = avatar
+            if gender is not None:
+                user.gender = gender
             
-        Returns:
-            攻略列表（按时间倒序）
-        """
-        guides = self.user_guides.get(user_id, [])
-        
-        # 按时间倒序
-        guides = sorted(guides, key=lambda x: x['created_at'], reverse=True)
-        
-        return guides[:limit]
-    
-    def get_guide_by_id(self, user_id: str, guide_id: str) -> Optional[dict]:
-        """
-        获取单个攻略
-        
-        Args:
-            user_id: 用户ID
-            guide_id: 攻略ID
+            db.session.commit()
+            logger.info(f"✅ 更新用户信息: {openid}")
+            return True
             
-        Returns:
-            攻略数据（如果存在）
-        """
-        guides = self.user_guides.get(user_id, [])
-        
-        for guide in guides:
-            if guide['guide_id'] == guide_id:
-                return guide
-        
-        return None
-    
-    def delete_guide(self, user_id: str, guide_id: str) -> bool:
-        """
-        删除攻略
-        
-        Args:
-            user_id: 用户ID
-            guide_id: 攻略ID
-            
-        Returns:
-            是否成功
-        """
-        if user_id not in self.user_guides:
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"❌ 更新用户信息失败: {e}")
             return False
-        
-        # 查找并删除
-        guides = self.user_guides[user_id]
-        for i, guide in enumerate(guides):
-            if guide['guide_id'] == guide_id:
-                guides.pop(i)
-                self._save_guides()
-                
-                # 更新计数
-                if user_id in self.users:
-                    self.users[user_id]['guide_count'] = len(guides)
-                    self._save_users()
-                
-                logger.info(f"🗑️ 删除攻略: {user_id} | {guide_id}")
-                return True
-        
-        return False
     
-    def toggle_favorite(self, user_id: str, guide_id: str) -> bool:
+    @staticmethod
+    def activate_vip(openid: str, duration_days: int):
         """
-        切换收藏状态
+        激活VIP
         
         Args:
-            user_id: 用户ID
-            guide_id: 攻略ID
+            openid: 用户openid
+            duration_days: VIP时长(天)
+        
+        Returns:
+            User对象
+        """
+        try:
+            user = User.query.filter_by(openid=openid).first()
+            if not user:
+                # 用户不存在,自动创建
+                user = UserService.get_or_create_user(openid)
             
-        Returns:
-            新的收藏状态
-        """
-        guides = self.user_guides.get(user_id, [])
-        
-        for guide in guides:
-            if guide['guide_id'] == guide_id:
-                guide['favorite'] = not guide.get('favorite', False)
-                self._save_guides()
-                logger.info(f"⭐ 切换收藏: {user_id} | {guide_id} | {guide['favorite']}")
-                return guide['favorite']
-        
-        return False
+            now = datetime.now()
+            
+            # 首次激活
+            if not user.is_vip or not user.vip_expire_at:
+                user.vip_activated_at = now
+                user.vip_expire_at = now + timedelta(days=duration_days)
+            else:
+                # 续费: 从当前到期时间延长
+                if user.vip_expire_at > now:
+                    # VIP未过期,从到期时间延长
+                    user.vip_expire_at += timedelta(days=duration_days)
+                else:
+                    # VIP已过期,从现在开始
+                    user.vip_expire_at = now + timedelta(days=duration_days)
+            
+            user.is_vip = True
+            user.order_count = (user.order_count or 0) + 1
+            
+            db.session.commit()
+            
+            logger.success(f"🎉 激活VIP成功: {openid} | +{duration_days}天 | 到期: {user.vip_expire_at.strftime('%Y-%m-%d')}")
+            return user
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"❌ 激活VIP失败: {e}")
+            raise
     
-    def get_stats(self) -> dict:
+    @staticmethod
+    def check_vip_status(openid: str):
         """
-        获取统计数据
+        检查VIP状态
         
         Returns:
-            统计信息
+            dict: {
+                'is_vip': bool,
+                'expire_at': str,
+                'days_left': int
+            }
         """
-        total_users = len(self.users)
-        total_guides = sum(len(guides) for guides in self.user_guides.values())
+        user = User.query.filter_by(openid=openid).first()
         
-        # 最近7天新增用户
-        from datetime import timedelta
+        if not user:
+            return {
+                'is_vip': False,
+                'expire_at': None,
+                'days_left': 0
+            }
+        
+        # 检查是否过期
         now = datetime.now()
-        week_ago = now - timedelta(days=7)
-        
-        new_users_week = sum(
-            1 for user in self.users.values()
-            if datetime.fromisoformat(user['created_at']) > week_ago
-        )
+        if user.is_vip and user.vip_expire_at and user.vip_expire_at <= now:
+            # VIP已过期,更新状态
+            user.is_vip = False
+            db.session.commit()
         
         return {
-            'total_users': total_users,
-            'total_guides': total_guides,
-            'new_users_week': new_users_week,
-            'avg_guides_per_user': round(total_guides / total_users, 2) if total_users > 0 else 0
+            'is_vip': user.is_vip,
+            'expire_at': user.vip_expire_at.isoformat() if user.vip_expire_at else None,
+            'days_left': user.vip_days_left()
         }
-
-
-# 单例
-_user_service_instance = None
-
-
-def get_user_service() -> UserService:
-    """获取用户服务实例（单例模式）"""
-    global _user_service_instance
     
-    if _user_service_instance is None:
-        _user_service_instance = UserService()
+    @staticmethod
+    def increment_generate_count(openid: str):
+        """增加生成次数"""
+        try:
+            user = User.query.filter_by(openid=openid).first()
+            if user:
+                user.generate_count = (user.generate_count or 0) + 1
+                db.session.commit()
+        except Exception as e:
+            logger.error(f"❌ 增加生成次数失败: {e}")
     
-    return _user_service_instance
-
-
-# 测试
-if __name__ == "__main__":
-    service = UserService()
+    @staticmethod
+    def add_paid_amount(openid: str, amount: int):
+        """增加累计消费"""
+        try:
+            user = User.query.filter_by(openid=openid).first()
+            if user:
+                user.total_paid = (user.total_paid or 0) + amount
+                db.session.commit()
+        except Exception as e:
+            logger.error(f"❌ 增加累计消费失败: {e}")
     
-    # 创建用户
-    user = service.create_or_get_user("13800138000", "测试用户")
-    print("用户信息:", user)
+    @staticmethod
+    def get_vip_users(limit: int = 100):
+        """获取VIP用户列表"""
+        now = datetime.now()
+        return User.query.filter(
+            User.is_vip == True,
+            User.vip_expire_at > now
+        ).order_by(User.vip_expire_at.desc()).limit(limit).all()
     
-    # 保存攻略
-    guide_id = service.save_user_guide(user['user_id'], {
-        'query': '上海3天游',
-        'content': '# 上海攻略\n...',
-        'stats': {'word_count': 1000}
-    })
-    print("攻略ID:", guide_id)
-    
-    # 查询历史
-    guides = service.get_user_guides(user['user_id'])
-    print(f"历史攻略: {len(guides)}篇")
-    
-    # 统计
-    stats = service.get_stats()
-    print("统计:", stats)
+    @staticmethod
+    def expire_vip_users():
+        """
+        清理过期VIP (定时任务)
+        返回清理数量
+        """
+        try:
+            now = datetime.now()
+            expired_users = User.query.filter(
+                User.is_vip == True,
+                User.vip_expire_at <= now
+            ).all()
+            
+            count = 0
+            for user in expired_users:
+                user.is_vip = False
+                count += 1
+            
+            db.session.commit()
+            
+            if count > 0:
+                logger.info(f"✅ 清理过期VIP: {count}个")
+            
+            return count
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"❌ 清理过期VIP失败: {e}")
+            return 0
