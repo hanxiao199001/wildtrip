@@ -221,7 +221,7 @@ Component({
       try {
         // 调用后端接口生成小程序码
         const app = getApp();
-        const apiBase = app.globalData.apiBaseUrl || 'https://api.wildtrip.com.cn/api';
+        const apiBase = app.globalData.apiBase + '/api';
 
         const res = await new Promise((resolve, reject) => {
           wx.request({

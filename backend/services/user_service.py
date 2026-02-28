@@ -57,18 +57,18 @@ class UserService:
     
     def create_or_get_user(self, phone: str, nickname: str = None) -> dict:
         """
-        创建或获取用户
-        
+        创建或获取用户（手机号登录，保留兼容）
+
         Args:
             phone: 手机号
             nickname: 昵称（可选）
-            
+
         Returns:
             用户信息
         """
         # 生成用户ID（手机号hash）
         user_id = hashlib.md5(phone.encode()).hexdigest()[:16]
-        
+
         if user_id not in self.users:
             # 创建新用户
             self.users[user_id] = {
@@ -85,7 +85,44 @@ class UserService:
             # 更新登录时间
             self.users[user_id]['last_login'] = datetime.now().isoformat()
             self._save_users()
-        
+
+        return self.users[user_id]
+
+    def create_or_get_user_by_openid(self, openid: str, nickname: str = None) -> dict:
+        """
+        通过微信openid创建或获取用户（小程序登录）
+
+        Args:
+            openid: 微信openid
+            nickname: 昵称（可选）
+
+        Returns:
+            用户信息
+        """
+        # 生成用户ID（openid hash）
+        user_id = hashlib.md5(openid.encode()).hexdigest()[:16]
+
+        if user_id not in self.users:
+            # 创建新用户
+            short_id = openid[-4:] if len(openid) >= 4 else openid
+            self.users[user_id] = {
+                'user_id': user_id,
+                'openid': openid,
+                'nickname': nickname or f"野游侠{short_id}",
+                'created_at': datetime.now().isoformat(),
+                'last_login': datetime.now().isoformat(),
+                'guide_count': 0
+            }
+            self._save_users()
+            logger.info(f"✅ 创建新用户(微信): {user_id}")
+        else:
+            # 更新登录时间
+            self.users[user_id]['last_login'] = datetime.now().isoformat()
+            # 确保旧用户也有openid字段
+            if 'openid' not in self.users[user_id]:
+                self.users[user_id]['openid'] = openid
+            self._save_users()
+
         return self.users[user_id]
     
     def save_user_guide(self, user_id: str, guide_data: dict) -> str:

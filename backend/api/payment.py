@@ -220,12 +220,11 @@ def payment_notify():
             
             logger.success(f"✅ 支付成功: {order_id} | 微信订单号: {transaction_id} | 金额: ¥{total_fee/100}")
             
-            # 更新订单状态
+            # 更新订单状态（不传remark，保留原始的guide_id等信息）
             OrderService.update_order_status(
                 order_no=order_id,
                 status=OrderStatus.PAID,
-                transaction_id=transaction_id,
-                remark='微信支付成功'
+                transaction_id=transaction_id
             )
             
             # 查询订单详情

@@ -108,7 +108,11 @@ class OrderService:
                 order.transaction_id = transaction_id
             
             if remark:
-                order.remark = remark
+                # 追加备注而非覆盖，保留原始的guide_id等关键信息
+                if order.remark:
+                    order.remark = f"{order.remark} | {remark}"
+                else:
+                    order.remark = remark
             
             # 更新时间戳
             if status == OrderStatus.PAID:

@@ -7,7 +7,7 @@
 .guide-detail-page {
   background: #F3F4F6;
   min-height: 100vh;
-  padding-bottom: 40rpx;
+  padding-bottom: 140rpx;
 }
 
 /* ========== 加载状态 ========== */
@@ -239,6 +239,24 @@
   margin: 16rpx 0;
 }
 
+/* ========== 未解锁预览（带渐变遮罩） ========== */
+.guide-content-preview {
+  position: relative;
+  max-height: 600rpx;
+  overflow: hidden;
+}
+
+.preview-fade-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 300rpx;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.85) 40%, white);
+  z-index: 10;
+  pointer-events: none;
+}
+
 /* 无内容提示 */
 .no-content-tip {
   display: flex;
@@ -292,21 +310,93 @@
   font-weight: 600;
 }
 
-/* ========== 操作按钮行 ========== */
+/* ========== 底部固定栏（通用） ========== */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1rpx solid #F0F0F0;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* --- 解锁底部栏 --- */
+.unlock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx;
+}
+
+.bottom-bar-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-price {
+  display: flex;
+  align-items: baseline;
+}
+
+.price-symbol {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #EF4444;
+}
+
+.price-amount {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #EF4444;
+  line-height: 1;
+}
+
+.price-desc {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  margin-top: 4rpx;
+}
+
+.bottom-unlock-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  font-size: 30rpx !important;
+  font-weight: 700 !important;
+  border: none !important;
+  border-radius: 44rpx !important;
+  padding: 22rpx 56rpx !important;
+  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.4);
+  line-height: 1.2;
+}
+
+.bottom-unlock-btn::after {
+  border: none;
+}
+
+.bottom-unlock-btn:active {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+/* --- 操作底部栏 --- */
 .action-bar {
   display: flex;
   justify-content: space-around;
-  padding: 24rpx 24rpx 0;
+  align-items: center;
+  padding: 16rpx 24rpx;
 }
 
 .action-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6rpx;
+  gap: 4rpx;
   background: none;
   border: none;
-  padding: 12rpx 32rpx;
+  padding: 8rpx 24rpx;
   line-height: 1.2;
 }
 
@@ -315,7 +405,7 @@
 }
 
 .action-icon {
-  font-size: 44rpx;
+  font-size: 40rpx;
 }
 
 .action-label {
@@ -428,113 +518,51 @@
   font-weight: 600;
 }
 
-/* ========== 解锁状态区域 ========== */
-.unlock-status {
-  margin: 20rpx;
-}
-
-/* 未解锁提示卡片 */
-.unlock-prompt {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* ========== 解锁提示卡片（内容区） ========== */
+.unlock-card {
+  margin: 20rpx 24rpx;
+  background: white;
   border-radius: 24rpx;
-  padding: 48rpx 32rpx;
-  text-align: center;
-  color: white;
-  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.3);
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
-.lock-icon {
-  font-size: 80rpx;
-  margin-bottom: 16rpx;
-  animation: shake 2s ease-in-out infinite;
-}
-
-@keyframes shake {
-  0%, 100% { transform: rotate(0deg); }
-  10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
-  20%, 40%, 60%, 80% { transform: rotate(10deg); }
-}
-
-.unlock-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  margin-bottom: 16rpx;
-}
-
-.unlock-desc {
-  font-size: 28rpx;
-  opacity: 0.9;
-  margin-bottom: 32rpx;
-  line-height: 1.6;
-}
-
-.unlock-price {
+.unlock-card-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16rpx;
-  margin-bottom: 32rpx;
-}
-
-.price-label {
-  font-size: 28rpx;
-  opacity: 0.9;
-}
-
-.price-value {
-  font-size: 48rpx;
-  font-weight: bold;
-}
-
-.test-notice {
-  font-size: 24rpx;
-  opacity: 0.7;
-  margin-left: 12rpx;
-}
-
-.unlock-btn {
-  background: white !important;
-  color: #667eea !important;
-  border-radius: 48rpx !important;
-  padding: 24rpx 64rpx !important;
-  font-size: 32rpx !important;
-  font-weight: bold !important;
-  border: none !important;
-  display: inline-flex;
-  align-items: center;
   gap: 12rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
-  transition: all 0.3s;
+  padding: 28rpx 32rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
-.unlock-btn::after {
-  border: none;
-}
-
-.unlock-btn:active {
-  transform: scale(0.95);
-}
-
-.btn-icon {
+.unlock-card-icon {
   font-size: 32rpx;
 }
 
-/* 已解锁徽章 */
-.unlocked-badge {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  border-radius: 16rpx;
+.unlock-card-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.unlock-card-body {
   padding: 24rpx 32rpx;
-  text-align: center;
-  color: white;
-  font-size: 28rpx;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  box-shadow: 0 4rpx 16rpx rgba(67, 233, 123, 0.3);
 }
 
-.badge-icon {
-  font-size: 32rpx;
+.unlock-benefit-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 0;
+}
+
+.benefit-check {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.benefit-text {
+  font-size: 26rpx;
+  color: #374151;
+  line-height: 1.5;
 }

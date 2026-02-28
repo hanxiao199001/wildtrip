@@ -9,8 +9,8 @@ Page({
     guideId: '',           // 攻略ID
     guideType: 'travel',   // travel 或 history
     guideData: null,       // 攻略数据
-    unlocked: false,       // 是否已解锁
-    price: 4.80,           // 价格
+    unlocked: true,        // 免费开放，所有攻略均可查看
+    price: 0,              // 免费
     loading: true,
     paying: false
   },
@@ -26,8 +26,7 @@ Page({
 
     this.setData({
       guideId: id,
-      guideType: type || 'travel',
-      price: type === 'history' ? 9.80 : 4.80
+      guideType: type || 'travel'
     });
 
     this.init();
@@ -40,8 +39,8 @@ Page({
         await this.login();
       }
 
-      // 2. 检查是否已解锁
-      await this.checkUnlock();
+      // 2. 当前免费开放，跳过解锁检查
+      // await this.checkUnlock();
 
       // 3. 加载攻略数据
       await this.loadGuide();

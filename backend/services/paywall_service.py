@@ -32,43 +32,8 @@ def add_paywall_to_content(content: str, query: str) -> dict:
     
     preview_content = content[:preview_end]
     
-    # 添加预览提示（使用Markdown格式）
-    preview_hint = f"""
-
----
-
-## 🔒 以下内容需解锁
-
-> 预览到此结束。完整攻略包含详细的**时间安排**、**餐厅地址**、**景点门票购买**等实用信息。
-
-### 💎 解锁后获得：
-
-✅ **完整行程时间表**（精确到每小时）  
-✅ **餐厅名称+地址+推荐菜品**（不再是模糊描述）  
-✅ **酒店/民宿直订方式**（省OTA抽佣费）  
-✅ **景点门票优惠渠道**（比官网便宜）  
-✅ **雨天备选方案**（天气变化不慌）
-
-**价格：¥4.9** 一次付费，永久查看
-
-<button class="unlock-btn" onclick="handleUnlock()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px 40px; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin: 20px auto; display: block; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);">
-💰 ¥4.9 解锁完整攻略
-</button>
-
-<p style="font-size: 13px; color: #999; text-align: center; margin-top: 12px;">
-💯 不满意24小时内全额退款 · 微信/支付宝支付
-</p>
-
----
-
-**为什么要付费？**
-- 🚫 拒绝千篇一律的"小红书复制粘贴"
-- 🎯 AI根据你的需求**定制化生成**，全网独一份
-- 💰 省下的OTA抽佣费，远超¥4.9
-- ⏱️ 节省你几小时的攻略整理时间
-
----
-"""
+    # 预览提示（简洁版，解锁UI由小程序原生渲染）
+    preview_hint = "\n\n---\n"
     
     return {
         'preview': preview_content + preview_hint,

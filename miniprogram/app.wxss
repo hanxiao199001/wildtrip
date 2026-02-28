@@ -2,10 +2,47 @@
 page {
   background-color: #f5f5f5;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* 🔥 全局CSS变量（品牌色系） */
+  --primary-color: #20B2AA;
+  --primary-light: #5FCCC4;
+
+  /* 文字颜色 */
+  --text-primary: #1A1A1A;
+  --text-secondary: #666666;
+  --text-hint: #999999;
+
+  /* 背景 & 边框 */
+  --bg-card: #FFFFFF;
+  --border-color: #E8E8E8;
+
+  /* 圆角 */
+  --radius-large: 24rpx;
+  --radius-normal: 16rpx;
+  --radius-small: 8rpx;
+
+  /* 阴影 */
+  --shadow-card: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  --shadow-light: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .container {
   min-height: 100vh;
+}
+
+/* 🔥 通用页面容器 */
+.page-container {
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 🔥 通用卡片样式 */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-normal);
+  box-shadow: var(--shadow-light);
+  padding: 24rpx;
+  margin-bottom: 24rpx;
 }
 
 /* 通用按钮样式 */

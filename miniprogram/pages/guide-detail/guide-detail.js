@@ -1,7 +1,6 @@
 // 攻略详情页 - 完整攻略原生渲染（使用towxml）
 const app = getApp()
 const api = require('../../utils/api')
-const unlockPayment = require('./unlock-payment.js')
 
 // 美团城市ID映射（ci参数，用于精准定位城市）
 const MEITUAN_CITY_IDS = {
@@ -219,11 +218,7 @@ Page({
     highlights: [],        // 从内容提取的亮点
     wordCountDisplay: '0',
     _coverFailed: false,
-    showContent: false,    // 是否展示完整内容
-    // 支付解锁相关
-    isUnlocked: false,     // 是否已解锁
-    checkingUnlock: true,  // 正在检查解锁状态
-    guideType: 'travel'    // 攻略类型 travel/history
+    showContent: false     // 是否展示完整内容
   },
 
   onLoad(options) {
@@ -244,9 +239,7 @@ Page({
     this.setData({ slug, coverGradient })
 
     if (slug) {
-      // 检查解锁状态
-      this.checkUnlockStatus()
-      // 加载攻略
+      // 精选攻略免费查看，直接加载
       this.loadGuideDetail()
     } else {
       this.setData({ loading: false, error: '攻略ID不存在' })
@@ -294,7 +287,7 @@ Page({
       if (markdownContent && towxml) {
         try {
           // 🔥 towxml 链接点击处理（通过 option.events 传入，toJson 内部会注册到 global._events）
-          article = towxml.toJson(markdownContent, 'markdown', {
+          article = towxml(markdownContent, 'markdown', {
             events: {
               tap: (e) => {
                 const nodeData = e.currentTarget.dataset.data
@@ -394,72 +387,11 @@ Page({
       })
 
       console.log('📖 攻略详情加载成功:', slug, article ? '(含内容渲染)' : '(仅预览)')
-      
-      // 判断攻略类型（旅行/人文历史）
-      let guideType = 'travel'
-      if (guide.category && (guide.category.includes('历史') || guide.category.includes('文化') || guide.category.includes('人文'))) {
-        guideType = 'history'
-      }
-      this.setData({ guideType })
-      
+
     } catch (error) {
       console.error('加载攻略详情失败:', error)
       this.setData({ loading: false, error: error.message || '加载失败' })
     }
-  },
-
-  // 检查攻略解锁状态
-  async checkUnlockStatus() {
-    const openid = app.globalData.openid
-    const { slug } = this.data
-    
-    if (!openid || !slug) {
-      this.setData({ checkingUnlock: false, isUnlocked: false })
-      return
-    }
-    
-    try {
-      const result = await unlockPayment.checkUnlockStatus(slug, openid)
-      this.setData({
-        isUnlocked: result.unlocked,
-        checkingUnlock: false
-      })
-      console.log('🔓 解锁状态:', result.unlocked ? '已解锁' : '未解锁')
-    } catch (error) {
-      console.error('检查解锁状态失败:', error)
-      this.setData({ checkingUnlock: false, isUnlocked: false })
-    }
-  },
-
-  // 点击解锁按钮
-  onUnlockGuide() {
-    const { slug, guide, guideType } = this.data
-    
-    if (!slug || !guide) {
-      wx.showToast({ title: '攻略加载中', icon: 'none' })
-      return
-    }
-    
-    // 调用支付流程
-    unlockPayment.startUnlockPayment({
-      guideId: slug,
-      guideTitle: guide.title,
-      guideType: guideType,
-      onSuccess: (order) => {
-        console.log('💰 支付成功:', order)
-        // 更新解锁状态
-        this.setData({ isUnlocked: true })
-        // 可选：重新加载攻略详情
-        wx.showToast({
-          title: '解锁成功！',
-          icon: 'success',
-          duration: 2000
-        })
-      },
-      onFail: (error) => {
-        console.error('💔 支付失败:', error)
-      }
-    })
   },
 
   // 从HTML内容提取每天的亮点标题

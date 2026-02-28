@@ -2,6 +2,23 @@
 const app = getApp()
 const api = require('../../utils/api')
 
+// 🔀 Fisher-Yates 随机洗牌
+function shuffleArray(arr) {
+  var a = arr.slice()
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1))
+    var t = a[i]; a[i] = a[j]; a[j] = t
+  }
+  return a
+}
+
+// 🏙️ 从标题/slug中猜测城市名
+function guessCity(item) {
+  var t = (item.title || '') + (item.slug || '')
+  var m = t.match(/[\u4e00-\u9fa5]{2,4}(?=[0-9\-\u5929\u65e5])/)
+  return m ? m[0] : (item.destination || '')
+}
+
 // 📜 人文历史路线推荐主题
 var HISTORY_THEMES = [
   {
@@ -105,64 +122,76 @@ Page({
     wx.pageScrollTo({ scrollTop: 0, duration: 300 })
   },
 
-  // 加载精选攻略
+  // 加载精选攻略（含过滤、去重、验证）
   async loadFeaturedGuides() {
     try {
-      var guides = await api.getFeaturedGuides(6)
-      this.setData({ featuredGuides: guides || [] })
-      console.log('🌟 精选攻略加载成功:', (guides || []).length, '篇')
-    } catch (error) {
-      console.log('精选攻略加载失败，使用默认数据:', error)
-      // API失败时使用前端fallback数据
-      this.setData({
-        featuredGuides: [
-          {
-            slug: '_fallback_haikou',
-            title: '海口3天亲子游攻略',
-            destination: '海口',
-            days: 3,
-            category: '亲子游',
-            budget: 5000,
-            views: 856,
-            likes: 72,
-            query: '海口3天亲子游，预算5000'
-          },
-          {
-            slug: '_fallback_chengdu',
-            title: '成都2天美食之旅',
-            destination: '成都',
-            days: 2,
-            category: '美食游',
-            budget: 2000,
-            views: 1203,
-            likes: 98,
-            query: '成都2天美食游，预算2000'
-          },
-          {
-            slug: '_fallback_shanghai',
-            title: '上海周末轻松游',
-            destination: '上海',
-            days: 2,
-            category: '周末游',
-            budget: 1000,
-            views: 645,
-            likes: 51,
-            query: '上海周末游，预算1000'
-          },
-          {
-            slug: '_fallback_xian',
-            title: '西安4天深度穷游',
-            destination: '西安',
-            days: 4,
-            category: '穷游',
-            budget: 800,
-            views: 932,
-            likes: 85,
-            query: '西安4天穷游，预算800'
-          }
-        ]
+      var raw = await api.getFeaturedGuides(20)
+      var list = raw || []
+
+      // ① 过滤低质量标题 + 清除假数据
+      var badTitles = ['旅行攻略', '旅游攻略', '出行攻略', '游玩攻略', '攻略详情']
+      var tooSimpleRe = /^.{2,4}\d+[日天][a-zA-Z\u4e00-\u9fa5]{0,3}游$/
+      list = list.filter(function (g) {
+        var t = (g.title || '').trim()
+        if (t.length <= 7) return false
+        if (badTitles.indexOf(t) >= 0) return false
+        if (tooSimpleRe.test(t)) return false
+        return true
       })
+
+      // 清除假数据：unsplash占位图、虚假浏览/点赞数
+      list.forEach(function (g) {
+        // 去掉unsplash占位图
+        if (g.cover_image && g.cover_image.indexOf('unsplash.com') >= 0) {
+          g.cover_image = ''
+        }
+        // 清零虚假的views/likes
+        g.views = 0
+        g.likes = 0
+      })
+
+      // ② 标题去重
+      var seenTitle = {}
+      list = list.filter(function (g) {
+        var k = (g.title || '').trim()
+        if (seenTitle[k]) return false
+        seenTitle[k] = true
+        return true
+      })
+
+      // ③ 城市去重（每城最多1条）
+      var seenCity = {}
+      list = list.filter(function (g) {
+        var c = guessCity(g)
+        if (!c) return true
+        if (seenCity[c]) return false
+        seenCity[c] = true
+        return true
+      })
+
+      // 缓存全部有效攻略，供"换一批"使用
+      this._allValidGuides = list
+
+      // ④ 洗牌取6条
+      var picked = shuffleArray(list).slice(0, 6)
+      this.setData({ featuredGuides: picked })
+      console.log('🌟 精选攻略加载成功:', picked.length, '/', list.length, '条有效')
+    } catch (error) {
+      console.log('精选攻略加载失败:', error)
+      this.setData({ featuredGuides: [] })
     }
+  },
+
+  // 🔄 换一批精选攻略
+  onRefreshGuides() {
+    var all = this._allValidGuides || []
+    if (all.length <= 6) {
+      wx.showToast({ title: '暂无更多攻略', icon: 'none' })
+      return
+    }
+    var picked = shuffleArray(all).slice(0, 6)
+    this.setData({ featuredGuides: picked })
+    wx.showToast({ title: '已刷新', icon: 'none', duration: 800 })
   },
 
   // 封面图加载失败时标记，显示渐变色底
@@ -180,34 +209,16 @@ Page({
     })
   },
 
-  // 点击精选攻略卡片
+  // 点击精选攻略卡片 → 跳转到攻略详情页（免费查看）
   onFeaturedTap(e) {
     var item = e.currentTarget.dataset.item
+    if (!item || !item.slug) return
 
-    // 如果是预设/fallback攻略（有query字段），填充搜索框
-    if (item.query) {
-      this.setData({ query: item.query })
-      wx.showToast({
-        title: '已填充，点击生成',
-        icon: 'none',
-        duration: 1500
-      })
-      // 滚动到顶部搜索区域
-      wx.pageScrollTo({
-        scrollTop: 0,
-        duration: 300
-      })
-      return
-    }
-
-    // 如果是真实攻略（有slug且非预设），跳转到攻略详情页
-    if (item.slug && !item.slug.startsWith('_preset') && !item.slug.startsWith('_fallback')) {
-      // 🔥 通过全局变量传递攻略数据（避免URL参数过长被截断）
-      app.globalData._guideItem = item
-      wx.navigateTo({
-        url: '/pages/guide-detail/guide-detail'
-      })
-    }
+    // 传递攻略数据给详情页
+    app.globalData._guideItem = item
+    wx.navigateTo({
+      url: '/pages/guide-detail/guide-detail?slug=' + item.slug + '&title=' + encodeURIComponent(item.title || '攻略详情')
+    })
   },
 
   // 生成攻略

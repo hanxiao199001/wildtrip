@@ -88,7 +88,7 @@
   <view class="featured-section" wx:if="{{featuredGuides.length > 0 && currentMode !== 'history'}}">
     <view class="section-header">
       <view class="section-title">精选攻略</view>
-      <view class="section-subtitle">点击即可生成同款</view>
+      <view class="section-action" bindtap="onRefreshGuides">换一批 ↻</view>
     </view>
     <scroll-view class="featured-scroll" scroll-x="true" enhanced="true" show-scrollbar="{{false}}">
       <view class="featured-list">
@@ -121,9 +121,8 @@
               <text wx:if="{{item.days}}">{{item.days}}天</text>
               <text wx:if="{{item.budget}}"> · ¥{{item.budget}}</text>
             </view>
-            <view class="featured-stats">
-              <text class="stat-views">👀 {{item.views}}</text>
-              <text class="stat-likes">❤️ {{item.likes}}</text>
+            <view class="featured-stats" wx:if="{{item.destination}}">
+              <text class="stat-dest">📍 {{item.destination}}</text>
             </view>
           </view>
         </view>

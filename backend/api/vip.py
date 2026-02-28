@@ -5,6 +5,7 @@
 
 from flask import Blueprint, request, jsonify
 from loguru import logger
+from datetime import datetime
 from models import OrderStatus
 from services.order_service import OrderService
 
@@ -122,29 +123,56 @@ def create_guide_order():
             remark=f"guide_id:{guide_id}"  # 记录攻略ID
         )
         
-        # 调用微信支付
+        # 检查微信支付凭证是否已配置
+        import os
+        mchid = os.getenv('WECHAT_MCHID', '')
+        api_key = os.getenv('WECHAT_API_KEY', '')
+
+        if not mchid or not api_key:
+            # 🔥 测试模式：商户凭证未配置，跳过微信支付，直接标记为已支付
+            logger.warning(f"⚠️ 测试模式: 商户凭证未配置，跳过微信支付，直接解锁")
+
+            order.status = OrderStatus.PAID.value
+            order.paid_at = datetime.now()
+            order.transaction_id = f"TEST_{order.order_no}"
+            order.prepay_id = 'test_mode'
+            from models import db
+            db.session.commit()
+
+            logger.success(f"✅ [测试模式] 攻略解锁成功: {order.order_no} | {guide_id}")
+
+            return jsonify({
+                'success': True,
+                'order': order.to_dict(),
+                'pay_params': None,
+                'guide_id': guide_id,
+                'test_mode': True
+            })
+
+        # 正式模式：调用微信支付
         from services.wechat_payment import get_payment_service
         payment = get_payment_service()
-        
+
         pay_params = payment.create_order(
             user_openid=openid,
             order_id=order.order_no,
             total_fee=order.amount,
             description=order.product_name
         )
-        
+
         # 保存预支付ID
         order.prepay_id = pay_params.get('package', '').replace('prepay_id=', '')
         from models import db
         db.session.commit()
-        
+
         logger.success(f"✅ 攻略解锁订单创建成功: {order.order_no} | {guide_id} | {product['name']} | ¥{product['amount']/100}")
-        
+
         return jsonify({
             'success': True,
             'order': order.to_dict(),
             'pay_params': pay_params,
-            'guide_id': guide_id
+            'guide_id': guide_id,
+            'test_mode': False
         })
         
     except Exception as e:

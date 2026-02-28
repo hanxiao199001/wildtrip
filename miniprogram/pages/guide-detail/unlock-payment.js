@@ -106,17 +106,38 @@ async function requestWxPayment(payParams) {
  */
 async function startUnlockPayment({ guideId, guideTitle, guideType, onSuccess, onFail }) {
   try {
-    // 1. 获取用户openid
+    // 1. 获取用户openid（如果未登录会自动触发登录）
     const app = getApp()
-    const openid = app.globalData.openid
-    
+    let openid = app.globalData.openid
+
     if (!openid) {
+      // 🔥 自动尝试登录（最多等8秒，getOpenid可能永远不resolve）
+      wx.showLoading({ title: '登录中...', mask: true })
+      try {
+        openid = await Promise.race([
+          app.getOpenid(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('登录超时')), 8000))
+        ])
+      } catch (e) {
+        console.error('自动登录失败:', e.message)
+        openid = app.globalData.openid  // 再检查一次
+      }
+      wx.hideLoading()
+    }
+
+    if (!openid) {
+      // 登录确实失败了，提示用户
       wx.showModal({
         title: '提示',
-        content: '请先登录',
+        content: '登录失败，请稍后重试',
+        confirmText: '重试',
         success: (res) => {
           if (res.confirm) {
-            wx.switchTab({ url: '/pages/user/user' })
+            // 🔥 重试：重新触发登录 + 支付流程
+            app.autoLogin()
+            setTimeout(() => {
+              startUnlockPayment({ guideId, guideTitle, guideType, onSuccess, onFail })
+            }, 2000)
           }
         }
       })
@@ -158,11 +179,24 @@ async function startUnlockPayment({ guideId, guideTitle, guideType, onSuccess, o
 
     wx.hideLoading()
 
-    // 6. 调起微信支付
+    // 6. 检查是否测试模式（后端商户凭证未配置时自动解锁）
+    if (orderData.test_mode || !orderData.pay_params) {
+      console.log('🔥 测试模式：跳过微信支付，直接解锁')
+      wx.showToast({
+        title: '解锁成功',
+        icon: 'success',
+        duration: 2000
+      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      onSuccess && onSuccess(orderData.order)
+      return
+    }
+
+    // 7. 正式模式：调起微信支付
     const paySuccess = await requestWxPayment(orderData.pay_params)
 
     if (paySuccess) {
-      // 7. 支付成功
+      // 8. 支付成功
       wx.showToast({
         title: '支付成功',
         icon: 'success',

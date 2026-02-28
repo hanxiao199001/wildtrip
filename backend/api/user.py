@@ -2,6 +2,8 @@
 用户API - 登录、历史记录、收藏等
 """
 
+import os
+import requests as http_requests
 from flask import Blueprint, request, jsonify
 from loguru import logger
 
@@ -12,52 +14,105 @@ user_bp = Blueprint('user', __name__)
 @user_bp.route('/user/login', methods=['POST'])
 def login():
     """
-    用户登录（手机号）
-    
+    微信小程序登录（code换openid）
+
     请求体:
     {
-        "phone": "13800138000",
-        "nickname": "张三"  // 可选
+        "code": "wx.login()返回的code"
     }
-    
+
     响应:
     {
+        "success": true,
+        "openid": "oXXXX...",
         "user_id": "abc123",
-        "phone": "8000",  // 后4位
-        "nickname": "张三",
+        "nickname": "用户xxxx",
         "guide_count": 5
     }
     """
     try:
         data = request.json
-        phone = data.get('phone', '').strip()
-        nickname = data.get('nickname', '').strip()
-        
-        if not phone:
+        code = data.get('code', '').strip() if data else ''
+
+        if not code:
             return jsonify({
-                'error': '手机号不能为空',
-                'code': 'EMPTY_PHONE'
+                'success': False,
+                'error': 'code不能为空',
+                'code': 'EMPTY_CODE'
             }), 400
-        
-        # 简单验证手机号格式
-        if not phone.isdigit() or len(phone) != 11:
+
+        # 获取微信配置
+        appid = os.getenv('WECHAT_APPID', '')
+        secret = os.getenv('WECHAT_SECRET', '')
+
+        if not appid or not secret:
+            logger.error("❌ 微信凭证未配置: WECHAT_APPID 或 WECHAT_SECRET 为空")
             return jsonify({
-                'error': '手机号格式不正确',
-                'code': 'INVALID_PHONE'
+                'success': False,
+                'error': '服务器微信配置缺失，请联系管理员',
+                'code': 'WECHAT_CONFIG_MISSING'
+            }), 500
+
+        # 调用微信 jscode2session 接口，用 code 换 openid
+        wx_url = (
+            f"https://api.weixin.qq.com/sns/jscode2session"
+            f"?appid={appid}"
+            f"&secret={secret}"
+            f"&js_code={code}"
+            f"&grant_type=authorization_code"
+        )
+
+        wx_resp = http_requests.get(wx_url, timeout=10)
+        wx_data = wx_resp.json()
+
+        logger.info(f"微信jscode2session响应: {wx_data}")
+
+        # 检查微信返回结果
+        if 'errcode' in wx_data and wx_data['errcode'] != 0:
+            logger.error(f"❌ 微信登录失败: {wx_data}")
+            return jsonify({
+                'success': False,
+                'error': f"微信登录失败: {wx_data.get('errmsg', '未知错误')}",
+                'code': 'WECHAT_LOGIN_FAILED'
             }), 400
-        
+
+        openid = wx_data.get('openid', '')
+        session_key = wx_data.get('session_key', '')
+
+        if not openid:
+            logger.error(f"❌ 未获取到openid: {wx_data}")
+            return jsonify({
+                'success': False,
+                'error': '未获取到用户标识',
+                'code': 'NO_OPENID'
+            }), 400
+
+        # 使用 openid 创建或获取用户
         from services.user_service import get_user_service
-        
+
         service = get_user_service()
-        user = service.create_or_get_user(phone, nickname)
-        
-        logger.info(f"✅ 用户登录: {user['user_id']}")
-        
-        return jsonify(user), 200
-        
+        user = service.create_or_get_user_by_openid(openid)
+
+        logger.info(f"✅ 微信登录成功: openid={openid[:8]}... user_id={user['user_id']}")
+
+        return jsonify({
+            'success': True,
+            'openid': openid,
+            **user
+        }), 200
+
+    except http_requests.exceptions.Timeout:
+        logger.error("❌ 调用微信接口超时")
+        return jsonify({
+            'success': False,
+            'error': '微信服务超时，请重试',
+            'code': 'WECHAT_TIMEOUT'
+        }), 504
+
     except Exception as e:
         logger.error(f"登录失败: {e}")
         return jsonify({
+            'success': False,
             'error': str(e),
             'code': 'INTERNAL_ERROR'
         }), 500

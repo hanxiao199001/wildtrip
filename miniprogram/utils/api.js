@@ -5,9 +5,11 @@ const app = getApp()
  * 统一API调用
  */
 function request(url, data = {}, method = 'POST') {
+  // 统一加 /api 前缀（如果还没有的话）
+  var fullUrl = url.startsWith('/api') ? url : '/api' + url
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${app.globalData.apiBaseUrl}${url}`,
+      url: `${app.globalData.apiBase}${fullUrl}`,
       method,
       data,
       header: {
