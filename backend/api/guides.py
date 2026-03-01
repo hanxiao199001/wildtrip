@@ -42,6 +42,9 @@ def list_guides():
         seo = get_seo_service()
         guides = seo.get_all_guides()
 
+        # 过滤掉测试/demo/假攻略
+        guides = _filter_valid_guides(guides)
+
         # 加载 metadata.json
         metadata_map = _load_metadata_map()
 
@@ -80,11 +83,8 @@ def get_featured_guides():
         # 加载 metadata.json 建立 slug→元数据 映射
         metadata_map = _load_metadata_map()
 
-        # 过滤掉测试/demo页面和index
-        EXCLUDE = {'index', 'demo', 'demo-haikou-weekend-7yo-boy-paywall'}
-        all_guides = [g for g in all_guides if g['slug'] not in EXCLUDE
-                      and not g['slug'].startswith('guide-test')
-                      and not g['slug'].startswith('guide-ui-test')]
+        # 过滤掉测试/demo/假攻略
+        all_guides = _filter_valid_guides(all_guides)
 
         # 按时间倒序，取前N篇
         featured = sorted(all_guides, key=lambda g: g.get('created_at', ''), reverse=True)[:limit]
@@ -268,6 +268,41 @@ def share_guide(slug):
 
 
 # ===== 辅助函数 =====
+
+# 明确排除的slug列表（测试、demo、重复页面）
+_EXCLUDE_SLUGS = {
+    'index', 'demo', 'demo-haikou-weekend-7yo-boy-paywall',
+    'haikou-weekend-ultimate',
+    '上海1天美食游测试-202602042201-ee8f22ca'
+}
+
+
+def _filter_valid_guides(guides):
+    """过滤掉测试/demo/假攻略，只保留真实可看的攻略"""
+    filtered = []
+    for g in guides:
+        slug = g['slug']
+        # 1. 排除明确的测试/demo页面
+        if slug in _EXCLUDE_SLUGS:
+            continue
+        if slug.startswith('guide-test') or slug.startswith('guide-ui-test'):
+            continue
+        # 2. 排除文件名中含有未替换占位符的假攻略
+        if '金额' in slug or '测试' in slug:
+            continue
+        # 3. 读取HTML头部检查是否含有[预算]或[金额]占位符
+        html_path = GUIDES_DIR / f"{slug}.html"
+        if html_path.exists():
+            try:
+                head_content = html_path.read_text(encoding='utf-8')[:500]
+                if '[预算]' in head_content or '[金额]' in head_content:
+                    continue
+            except Exception:
+                pass
+        filtered.append(g)
+    logger.info(f"🔍 攻略过滤: {len(guides)}→{len(filtered)}篇 (排除{len(guides)-len(filtered)}篇假攻略)")
+    return filtered
+
 
 def _load_metadata_map():
     """加载 metadata.json，返回 slug→元数据 映射"""
