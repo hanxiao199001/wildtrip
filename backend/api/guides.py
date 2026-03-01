@@ -295,13 +295,13 @@ _EXCLUDE_SLUGS = {
 
 
 def _filter_valid_guides(guides):
-    """过滤掉测试/demo/批量生成的假攻略，只保留真实用户生成的攻略
+    """只保留真实攻略：guide-YYYYMMDDHHMMSS-hash 格式的文件
 
     规则：
-    - 排除所有 guide- 开头的文件（批量自动生成的SEO攻略）
+    - 只保留 guide- 开头的文件（每日脚本生成的真实攻略）
     - 排除 test-/demo 开头的文件
-    - 排除含"测试"、"[预算]"、"[金额]"的文件
-    - 只保留中文名的真实用户攻略
+    - 排除 ui-test / guide-test 等测试文件
+    - 排除含"测试"、"[金额]"占位符的文件
     """
     filtered = []
     for g in guides:
@@ -309,24 +309,18 @@ def _filter_valid_guides(guides):
         # 1. 排除明确的测试/demo页面
         if slug in _EXCLUDE_SLUGS:
             continue
-        # 2. 排除所有 guide- 开头的文件（全部是批量自动生成的SEO攻略）
-        if slug.startswith('guide-'):
-            continue
-        # 3. 排除 test/demo 开头的文件
+        # 2. 排除 test/demo 开头
         if slug.startswith('test-') or slug.startswith('demo'):
             continue
-        # 4. 排除文件名中含有"测试"或未替换占位符的假攻略
+        # 3. 只保留 guide- 开头的真实攻略（排除旧版中文命名的假攻略）
+        if not slug.startswith('guide-'):
+            continue
+        # 4. 排除 guide-test / guide-ui-test 等测试文件
+        if 'test' in slug.lower():
+            continue
+        # 5. 排除文件名中含有"测试"或未替换占位符的假攻略
         if '金额' in slug or '测试' in slug:
             continue
-        # 5. 读取HTML头部检查是否含有[预算]或[金额]占位符
-        html_path = get_guides_dir() / f"{slug}.html"
-        if html_path.exists():
-            try:
-                head_content = html_path.read_text(encoding='utf-8')[:500]
-                if '[预算]' in head_content or '[金额]' in head_content:
-                    continue
-            except Exception:
-                pass
         filtered.append(g)
     logger.info(f"🔍 攻略过滤: {len(guides)}→{len(filtered)}篇 (排除{len(guides)-len(filtered)}篇假攻略)")
     return filtered
@@ -381,6 +375,12 @@ def _extract_title_from_html(html_path):
         return '旅行攻略'
 
 
+def _make_cover_image(slug: str) -> str:
+    """根据 slug hash 生成固定 picsum 封面图（无需 API key，seed 固定让同一攻略图片一致）"""
+    seed = abs(hash(slug)) % 1000
+    return f'https://picsum.photos/seed/{seed}/800/600'
+
+
 def _enrich_guide(guide, metadata_map):
     """用metadata或HTML丰富攻略数据"""
     slug = guide['slug']
@@ -392,10 +392,16 @@ def _enrich_guide(guide, metadata_map):
         guide['budget'] = meta.get('budget', '')
         guide['views'] = meta.get('views', 0)
         guide['likes'] = meta.get('likes', 0)
-        guide['cover_image'] = meta.get('cover_image', '')
+        cover = meta.get('cover_image', '')
+        # 兜底：空或失效的 source.unsplash.com 链接，自动换 picsum
+        if not cover or 'source.unsplash.com' in cover:
+            cover = _make_cover_image(slug)
+        guide['cover_image'] = cover
     else:
         title = _extract_title_from_slug(slug)
         # 如果slug提取的标题是纯英文（非中文），从HTML提取更好的标题
         if not title or title.isascii():
             title = _extract_title_from_html(get_guides_dir() / f"{slug}.html")
         guide['title'] = title
+        # 新攻略也保证有封面图
+        guide.setdefault('cover_image', _make_cover_image(slug))
