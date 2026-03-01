@@ -119,6 +119,40 @@ def get_today_tasks(strategy: ContentStrategyV2, progress: dict) -> list:
     return today_tasks[:5]
 
 
+XHS_PROMPT = """
+你是小红书爆款文案写手。根据以下旅游攻略内容，生成一篇小红书笔记。
+
+【攻略内容】
+{content}
+
+【要求】
+1. 标题：20字以内，带1-2个emoji，要有吸引力，突出"本地人才知道""隐藏玩法""避坑"等痛点词
+2. 正文：
+   - 每天行程用📍Day1/📍Day2格式
+   - 每个地点用简短的一句话描述亮点
+   - 加入真实感的细节（几点去、吃什么、多少钱）
+   - 控制在300字以内，小红书用户没耐心看长文
+3. 结尾固定格式（必须包含）：
+   💬 想要完整攻略的姐妹/朋友，评论区留言「发我」
+   🔖 收藏这篇，下次去海南直接用！
+4. 标签：5-8个，格式 #海南旅游 #城市名 等
+5. 风格：口语化、真实感、有温度，像闺蜜分享而不是广告
+
+只输出笔记内容，不要解释，不要加"以下是"之类的前缀。
+"""
+
+
+def generate_xiaohongshu_post(ai, query: str, content: str) -> str:
+    """为攻略生成小红书文案"""
+    try:
+        prompt = XHS_PROMPT.format(content=content[:3000])  # 避免太长
+        xhs = ai.generate(prompt, query, mode='full', use_real_poi=False)
+        return xhs.strip()
+    except Exception as e:
+        logger.warning(f"⚠️  小红书文案生成失败: {e}")
+        return ""
+
+
 def generate_guides(tasks: list):
     """
     生成攻略
@@ -134,6 +168,7 @@ def generate_guides(tasks: list):
     seo = get_seo_service()
     
     success_count = 0
+    xhs_posts = []  # 收集今日小红书文案
     
     for i, task in enumerate(tasks, 1):
         query = task['query']
@@ -194,6 +229,18 @@ def generate_guides(tasks: list):
             logger.info(f"   已部署: {web_file}")
             
             success_count += 1
+
+            # 🌸 生成小红书文案
+            logger.info(f"   生成小红书文案...")
+            xhs = generate_xiaohongshu_post(ai, query, content)
+            if xhs:
+                guide_url = f"https://wildtrip.com.cn/guides/{slug}.html"
+                xhs_posts.append({
+                    'title': query,
+                    'url': guide_url,
+                    'post': xhs
+                })
+                logger.info(f"   ✅ 小红书文案已生成")
             
             # 避免请求太快
             import time
@@ -204,7 +251,7 @@ def generate_guides(tasks: list):
             import traceback
             traceback.print_exc()
     
-    return success_count
+    return success_count, xhs_posts
 
 
 def main():
@@ -239,7 +286,20 @@ def main():
     logger.info("")
     
     # 生成
-    success_count = generate_guides(tasks)
+    success_count, xhs_posts = generate_guides(tasks)
+
+    # 保存小红书文案到文件
+    xhs_dir = Path("/root/clawd/backend/data/xiaohongshu")
+    xhs_dir.mkdir(parents=True, exist_ok=True)
+    xhs_file = xhs_dir / f"{today}.md"
+    with open(xhs_file, 'w', encoding='utf-8') as f:
+        f.write(f"# 野游记小红书文案 {today}\n\n")
+        for idx, item in enumerate(xhs_posts, 1):
+            f.write(f"---\n\n## 第{idx}篇：{item['title']}\n\n")
+            f.write(f"🔗 攻略链接：{item['url']}\n\n")
+            f.write(item['post'])
+            f.write("\n\n")
+    logger.info(f"✅ 小红书文案已保存: {xhs_file}")
     
     # 更新进度
     progress['last_date'] = today
@@ -268,21 +328,29 @@ def main():
     try:
         import subprocess
         
-        message = f"""📝 **野游记每日攻略已生成**
+        message = f"""📝 野游记每日攻略已生成
 
 📅 日期: {today}
 ✅ 成功: {success_count}/{len(tasks)} 篇
 📊 累计: {progress['total_generated']} 篇
 
-🔍 **今日生成列表:**
-
+今日生成列表:
 """
         for i, task in enumerate(tasks[:success_count], 1):
             message += f"{i}. {task['query']}\n"
-        
+
+        # 附上小红书文案
+        if xhs_posts:
+            message += f"\n🌸 今日小红书文案（共{len(xhs_posts)}篇，可直接复制发布）:\n"
+            message += "=" * 30 + "\n"
+            for idx, item in enumerate(xhs_posts, 1):
+                message += f"\n【第{idx}篇】{item['title']}\n"
+                message += item['post'][:600]  # 每篇截取前600字，避免消息太长
+                message += "\n🔗 " + item['url'] + "\n"
+                message += "-" * 20 + "\n"
+
         message += f"""
-📖 查看地址:
-https://wildtrip.com.cn/guides/
+📖 全部攻略: https://wildtrip.com.cn/guides/
 
 ⚠️ 请检查内容质量，如有问题请调整!
 """
