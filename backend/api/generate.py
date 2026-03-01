@@ -382,24 +382,27 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
             except Exception as e:
                 logger.warning(f"⚠️ 保存用户历史失败: {e}")
         
-        # 🔥 添加付费墙（web端个性化生成需要付费¥4.9）
-        paywall_data = add_paywall_to_content(enhanced_content, query)
-        
         # 🔥 缓存完整内容（用于解锁API）
         content_cache[task_id] = {
-            'full_content': paywall_data['full_content'],
+            'full_content': enhanced_content,
             'recommendations': recommendations,
             'links': all_links
         }
-        
-        # 完成
+
+        # 完成 — 返回完整内容，前端负责30%预览截断和解锁逻辑
         active_tasks[task_id]['status'] = 'completed'
         active_tasks[task_id]['progress'] = 100
         active_tasks[task_id]['result'] = {
-            'content': paywall_data['preview'],  # 🔥 修改：返回预览内容
-            'locked': paywall_data['locked'],  # 🔥 新增：是否锁定
-            'price': paywall_data['price'],  # 🔥 新增：价格
-            'unlock_includes': paywall_data['unlock_includes'],  # 🔥 新增：解锁内容说明
+            'content': enhanced_content,  # 🔥 返回完整内容（前端处理预览）
+            'locked': True,  # 标记需要付费解锁
+            'price': 4.9,
+            'unlock_includes': [
+                '精选酒店/民宿名称 + 直订联系方式',
+                '餐厅名称、详细地址、推荐菜品',
+                '景点门票购买渠道和最新优惠',
+                '可直接使用的"时间表"（精确到小时）',
+                '雨天/意外情况备选方案'
+            ],
             'recommendations': recommendations,
             'links': all_links,  # 🔥 新增：所有可点击链接
             'stats': stats,
