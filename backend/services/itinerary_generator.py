@@ -95,19 +95,11 @@ class ItineraryGenerator:
         # 组合 preamble + timeline
         full_timeline = preamble + timeline_content
 
-        # 生成住宿推荐section（使用HotelExtractor）
-        hotel_extractor = HotelExtractor()
-        hotels = hotel_extractor.extract_hotels(content, query)
+        # 住宿推荐section（2026-03: 已禁用，只保留文字推荐，不生成预订卡片）
         hotel_quick_card = ''
-
-        if hotels:
-            hotels_html = '\n'.join([hotel_extractor.render_hotel_card(hotel) for hotel in hotels])
-            hotel_quick_card = hotel_extractor.render_hotel_card(hotels[0])
-
-            full_timeline += f'''
-<div class="section-title" style="margin-top: 32px;">🏨 住宿推荐</div>
-{hotels_html}
-'''
+        # hotel_extractor = HotelExtractor()
+        # hotels = hotel_extractor.extract_hotels(content, query)
+        # if hotels: full_timeline += '<div class="section-title">🏨 住宿推荐</div>...'
 
         # 🆕 生成 FAQ 模块（GEO优化）
         faq_html, faq_jsonld = self._generate_faq_section(query, content, city)

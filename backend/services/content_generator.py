@@ -67,26 +67,8 @@ def generate_xiaohongshu(
     
     lines.append("")
     
-    # ========== 住宿推荐 ==========
-    if hotels:
-        lines.append("🏨 **住宿推荐**")
-        lines.append("")
-        
-        for hotel in hotels[:2]:  # 最多2家
-            hotel_name = hotel.get('name', '酒店')
-            price = hotel.get('price', 0)
-            features = hotel.get('features', [])
-            reason = hotel.get('reason', '')
-            
-            lines.append(f"**{hotel_name}**")
-            if features:
-                for feature in features[:3]:
-                    lines.append(f"- {feature}")
-            if reason:
-                lines.append(f"- {reason}")
-            if price:
-                lines.append(f"- 💰比价: 携程¥{price}最低")
-            lines.append("")
+    # ========== 住宿推荐 ==========（2026-03: 已禁用，只保留文字推荐）
+    # if hotels: ...
     
     # ========== 行程亮点 ==========
     lines.append("📸 **行程亮点**")
