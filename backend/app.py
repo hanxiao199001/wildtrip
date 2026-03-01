@@ -139,8 +139,12 @@ def serve_public(filename):
 
 @app.route('/guides/<path:filename>')
 def serve_guides(filename):
-    """攻略静态页面"""
-    web_dir = Path(__file__).parent.parent / 'web' / 'guides'
+    """攻略静态页面 - 与seo_service保持同一目录"""
+    try:
+        from services.seo_service import get_seo_service
+        web_dir = get_seo_service().static_dir
+    except Exception:
+        web_dir = Path(__file__).parent.parent / 'web' / 'guides'
     return send_from_directory(str(web_dir), filename)
 
 

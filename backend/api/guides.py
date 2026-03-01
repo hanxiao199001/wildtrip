@@ -13,8 +13,25 @@ from pathlib import Path
 # 创建Blueprint
 guides_bp = Blueprint('guides', __name__)
 
-# 攻略存储路径
-GUIDES_DIR = Path(__file__).parent.parent.parent / 'web' / 'guides'
+# 攻略存储路径 - 延迟获取，与 seo_service 保持一致
+# seo_service 默认保存到 /root/clawd/wildtrip/web/guides（服务器）
+# 本地开发时回退到项目相对路径 ../../web/guides
+_guides_dir_cache = None
+
+def get_guides_dir():
+    """获取攻略存储目录，与seo_service保持一致"""
+    global _guides_dir_cache
+    if _guides_dir_cache is not None:
+        return _guides_dir_cache
+    try:
+        from services.seo_service import get_seo_service
+        seo = get_seo_service()
+        _guides_dir_cache = seo.static_dir
+        logger.info(f"📂 攻略目录(seo_service): {_guides_dir_cache}")
+    except Exception:
+        _guides_dir_cache = Path(__file__).parent.parent.parent / 'web' / 'guides'
+        logger.info(f"📂 攻略目录(fallback): {_guides_dir_cache}")
+    return _guides_dir_cache
 
 # 用户收藏存储（内存，实际应该用数据库）
 user_favorites = set()  # 存储 slug
@@ -117,7 +134,7 @@ def get_guide_detail(slug):
     """
     try:
         # 读取HTML文件
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -163,7 +180,7 @@ def favorite_guide(slug):
     """收藏攻略"""
     try:
         # 检查攻略是否存在
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -210,7 +227,7 @@ def unfavorite_guide(slug):
 def delete_guide(slug):
     """删除攻略"""
     try:
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -242,7 +259,7 @@ def share_guide(slug):
     """生成分享链接"""
     try:
         # 检查攻略是否存在
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -291,7 +308,7 @@ def _filter_valid_guides(guides):
         if '金额' in slug or '测试' in slug:
             continue
         # 3. 读取HTML头部检查是否含有[预算]或[金额]占位符
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if html_path.exists():
             try:
                 head_content = html_path.read_text(encoding='utf-8')[:500]
@@ -307,7 +324,7 @@ def _filter_valid_guides(guides):
 def _load_metadata_map():
     """加载 metadata.json，返回 slug→元数据 映射"""
     metadata_map = {}
-    metadata_path = GUIDES_DIR / 'metadata.json'
+    metadata_path = get_guides_dir() / 'metadata.json'
     if metadata_path.exists():
         try:
             meta_list = json.loads(metadata_path.read_text(encoding='utf-8'))
@@ -369,5 +386,5 @@ def _enrich_guide(guide, metadata_map):
         title = _extract_title_from_slug(slug)
         # 如果slug提取的标题是纯英文（非中文），从HTML提取更好的标题
         if not title or title.isascii():
-            title = _extract_title_from_html(GUIDES_DIR / f"{slug}.html")
+            title = _extract_title_from_html(get_guides_dir() / f"{slug}.html")
         guide['title'] = title
