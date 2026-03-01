@@ -295,19 +295,30 @@ _EXCLUDE_SLUGS = {
 
 
 def _filter_valid_guides(guides):
-    """过滤掉测试/demo/假攻略，只保留真实可看的攻略"""
+    """过滤掉测试/demo/批量生成的假攻略，只保留真实用户生成的攻略
+
+    规则：
+    - 排除所有 guide- 开头的文件（批量自动生成的SEO攻略）
+    - 排除 test-/demo 开头的文件
+    - 排除含"测试"、"[预算]"、"[金额]"的文件
+    - 只保留中文名的真实用户攻略
+    """
     filtered = []
     for g in guides:
         slug = g['slug']
         # 1. 排除明确的测试/demo页面
         if slug in _EXCLUDE_SLUGS:
             continue
-        if slug.startswith('guide-test') or slug.startswith('guide-ui-test'):
+        # 2. 排除所有 guide- 开头的文件（全部是批量自动生成的SEO攻略）
+        if slug.startswith('guide-'):
             continue
-        # 2. 排除文件名中含有未替换占位符的假攻略
+        # 3. 排除 test/demo 开头的文件
+        if slug.startswith('test-') or slug.startswith('demo'):
+            continue
+        # 4. 排除文件名中含有"测试"或未替换占位符的假攻略
         if '金额' in slug or '测试' in slug:
             continue
-        # 3. 读取HTML头部检查是否含有[预算]或[金额]占位符
+        # 5. 读取HTML头部检查是否含有[预算]或[金额]占位符
         html_path = get_guides_dir() / f"{slug}.html"
         if html_path.exists():
             try:
