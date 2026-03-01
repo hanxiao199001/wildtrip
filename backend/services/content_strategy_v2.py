@@ -9,8 +9,31 @@ from typing import List, Dict
 class ContentStrategyV2:
     """高质量内容策略"""
     
-    # 海南重点城市
-    HAINAN_CITIES = ["海口", "三亚", "万宁", "文昌", "陵水"]
+    # 海南全岛城市（覆盖不同地区，保证多样性）
+    HAINAN_CITIES = [
+        "海口", "三亚",           # 核心城市
+        "万宁", "文昌", "陵水",   # 东海岸
+        "儋州", "昌江", "东方",   # 西海岸
+        "保亭", "五指山", "琼海", # 中部/博鳌
+        "澄迈", "乐东",           # 特色目的地
+    ]
+    
+    # 每座城市的核心旅游卖点（用于生成差异化选题）
+    CITY_THEMES = {
+        "海口":  ["骑楼老街", "火山口", "本地美食", "南洋文化", "假日海滩"],
+        "三亚":  ["亚龙湾", "蜈支洲岛", "南山寺", "免税购物", "潜水"],
+        "万宁":  ["冲浪", "石梅湾", "日月湾", "神州半岛", "保时捷中心"],
+        "文昌":  ["航天城", "宋氏故里", "椰子树", "铜鼓岭", "清澜港"],
+        "陵水":  ["分界洲岛", "香水湾", "清水湾", "黎安港", "新村渔港"],
+        "儋州":  ["东坡书院", "中和古镇", "峨蔓盐田", "棋子湾", "蓝色海湾"],
+        "昌江":  ["棋子湾", "霸王岭热带雨林", "王下乡", "石碌铁矿", "黎族文化"],
+        "东方":  ["鱼鳞洲", "感城镇", "海南西部", "黎族风情", "海上丝路"],
+        "保亭":  ["槟榔谷", "呀诺达热带雨林", "七仙岭温泉", "黎苗文化", "雨林探秘"],
+        "五指山":  ["热带雨林徒步", "黎族原生态", "南圣河漂流", "云雾茶园", "雨林营地"],
+        "琼海":  ["博鳌亚洲论坛", "潭门渔港", "南海文化", "万泉河", "椰林风光"],
+        "澄迈":  ["古盐田", "有机田园", "美榔双塔", "盈滨半岛", "老城经济区"],
+        "乐东":  ["尖峰岭热带雨林", "龙沐湾", "赤田水库", "九所港", "黎族梯田"],
+    }
     
     def __init__(self):
         pass
@@ -181,7 +204,59 @@ class ContentStrategyV2:
                 "千年古盐田与盐业文化-儋州历史产业探访",
                 "东坡书院与儋州文化-历史名人足迹深度体验"
             ])
-        
+
+        if city == "保亭":
+            queries.extend([
+                "槟榔谷黎苗文化深度游-海南最后的原住民记忆",
+                "保亭黎族纺染文化-非遗技艺与热带雨林探访",
+            ])
+
+        if city == "五指山":
+            queries.extend([
+                "五指山黎族原生态村落-深入海南腹地人文探访",
+                "海南苗族文化与五指山-少数民族节日与生活方式",
+            ])
+
+        if city == "琼海":
+            queries.extend([
+                "博鳌古渔村与南海文化-万泉河入海口历史探访",
+                "潭门渔民与南海深潜文化-千年出海传统记录",
+            ])
+
+        if city == "万宁":
+            queries.extend([
+                "万宁兴隆华侨文化-归国侨民的热带家园故事",
+                "万宁日月湾冲浪文化史-中国冲浪运动发源地探访",
+            ])
+
+        if city == "昌江":
+            queries.extend([
+                "昌江王下乡黎族文化-海南最后的热带雨林秘境",
+                "霸王岭黎族先民遗址-探寻海南原住民历史痕迹",
+            ])
+
+        if city == "东方":
+            queries.extend([
+                "东方感城黎族风情-海南西部最古朴的人文村落",
+                "东方海上丝绸之路遗迹-西海岸千年贸易港口探访",
+            ])
+
+        if city == "澄迈":
+            queries.extend([
+                "澄迈美榔双塔与宋代文化-海南保存最完好的古塔探访",
+                "澄迈古盐田与盐业文明-千年海盐文化体验",
+            ])
+
+        if city == "乐东":
+            queries.extend([
+                "乐东黎族梯田文化-大山深处的农耕文明探访",
+            ])
+
+        if city == "陵水":
+            queries.extend([
+                "陵水疍家文化-南海渔民水上人家的千年生活方式",
+            ])
+
         return queries
     
     # ========== 本地生活类内容 ==========
@@ -217,34 +292,34 @@ class ContentStrategyV2:
             "low": []      # 本地生活 (1500-2500字)
         }
         
-        # 海口 + 三亚优先
-        for city in ["海口", "三亚"]:
-            # 深度场景
+        # 覆盖海南全岛所有城市
+        for city in self.HAINAN_CITIES:
+            # 深度场景（每城市取前8个，保证多样性）
             deep_queries = self.generate_deep_scenario_queries(city)
             tasks['high'].extend([
                 {'query': q, 'city': city, 'type': 'deep_scenario', 'target_words': 4000}
-                for q in deep_queries[:20]  # 每个城市20个
+                for q in deep_queries[:8]
             ])
             
-            # 人文历史深度游 (新增,高优先级)
+            # 人文历史深度游
             cultural_queries = self.generate_cultural_history_queries(city)
             tasks['high'].extend([
                 {'query': q, 'city': city, 'type': 'cultural_history', 'target_words': 4000}
-                for q in cultural_queries[:5]  # 每个城市5个
+                for q in cultural_queries[:3]
             ])
             
             # 对比决策
             comp_queries = self.generate_comparison_queries(city)
             tasks['medium'].extend([
                 {'query': q, 'city': city, 'type': 'comparison', 'target_words': 2500}
-                for q in comp_queries
+                for q in comp_queries[:3]
             ])
             
             # 本地生活
             local_queries = self.generate_local_lifestyle_queries(city)
             tasks['low'].extend([
                 {'query': q, 'city': city, 'type': 'local_lifestyle', 'target_words': 2000}
-                for q in local_queries[:10]
+                for q in local_queries[:5]
             ])
         
         return tasks

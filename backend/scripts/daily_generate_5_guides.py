@@ -56,51 +56,67 @@ def save_progress(progress):
 def get_today_tasks(strategy: ContentStrategyV2, progress: dict) -> list:
     """
     获取今天要生成的5个任务
-    
-    优先级分配:
-    - 2篇高优先级深度场景 (常规旅游攻略)
-    - 1篇人文历史深度游 (如"苏东坡被贬之路")
-    - 1篇中优先级 (对比决策)
-    - 1篇低优先级 (本地生活)
+
+    每日配比（固定）:
+    - 4篇：海南不同城市深度旅游攻略，每篇来自不同城市，轮转覆盖全岛
+    - 1篇：海南人文历史深度游（文化/历史/民族主题）
     """
     all_tasks = strategy.get_priority_tasks()
-    
+
+    # 分离常规深度场景 vs 人文历史
+    regular_tasks = [t for t in all_tasks['high'] if t.get('type') != 'cultural_history']
+    cultural_tasks = [t for t in all_tasks['high'] if t.get('type') == 'cultural_history']
+
     today_tasks = []
-    
-    # 从高优先级中分离出人文历史类
-    high_tasks_regular = [t for t in all_tasks['high'] if t.get('type') != 'cultural_history']
-    high_tasks_cultural = [t for t in all_tasks['high'] if t.get('type') == 'cultural_history']
-    
-    # 2篇常规深度场景
-    high_start = progress['high_index']
-    regular_tasks = high_tasks_regular[high_start:high_start+2]
-    today_tasks.extend(regular_tasks)
-    progress['high_index'] += len(regular_tasks)
-    
-    # 1篇人文历史深度游
+    used_cities = set()
+
+    # ---- 按城市分组，轮转选题 ----
+    from collections import defaultdict
+    city_tasks = defaultdict(list)
+    for t in regular_tasks:
+        city_tasks[t['city']].append(t)
+
+    # 所有城市列表（固定顺序保证轮转稳定）
+    all_cities = list(strategy.HAINAN_CITIES)
+    num_cities = len(all_cities)
+
+    # city_index：记录每个城市消费到第几个任务
+    city_index = progress.get('city_index', {c: 0 for c in all_cities})
+
+    # 今日从哪个城市开始轮转（全局偏移）
+    day_offset = progress.get('day_offset', 0)
+
+    for i in range(num_cities):
+        if len(today_tasks) >= 4:
+            break
+        city = all_cities[(day_offset + i) % num_cities]
+        tasks_for_city = city_tasks.get(city, [])
+        city_idx = city_index.get(city, 0)
+        if city_idx < len(tasks_for_city):
+            today_tasks.append(tasks_for_city[city_idx])
+            city_index[city] = city_idx + 1
+            used_cities.add(city)
+
+    # 更新进度：下次从下4个城市开始
+    progress['day_offset'] = (day_offset + 4) % num_cities
+    progress['city_index'] = city_index
+
+    # ---- 1篇：人文历史（避免与今天城市重复）----
     cultural_start = progress.get('cultural_index', 0)
-    if cultural_start < len(high_tasks_cultural):
-        today_tasks.append(high_tasks_cultural[cultural_start])
-        progress['cultural_index'] = cultural_start + 1
-    
-    # 1篇中优先级
-    medium_start = progress['medium_index']
-    if medium_start < len(all_tasks['medium']):
-        today_tasks.append(all_tasks['medium'][medium_start])
-        progress['medium_index'] += 1
-    
-    # 1篇低优先级
-    low_start = progress['low_index']
-    if low_start < len(all_tasks['low']):
-        today_tasks.append(all_tasks['low'][low_start])
-        progress['low_index'] += 1
-    
-    # 如果不够5篇,继续从高优先级补充
-    while len(today_tasks) < 5 and progress['high_index'] < len(high_tasks_regular):
-        today_tasks.append(high_tasks_regular[progress['high_index']])
-        progress['high_index'] += 1
-    
-    return today_tasks
+    c_idx = cultural_start
+    cultural_added = False
+    for _ in range(len(cultural_tasks)):
+        task = cultural_tasks[c_idx % len(cultural_tasks)]
+        c_idx += 1
+        if task.get('city', '') not in used_cities:
+            today_tasks.append(task)
+            cultural_added = True
+            break
+    if not cultural_added and cultural_tasks:
+        today_tasks.append(cultural_tasks[cultural_start % len(cultural_tasks)])
+    progress['cultural_index'] = c_idx % len(cultural_tasks) if cultural_tasks else 0
+
+    return today_tasks[:5]
 
 
 def generate_guides(tasks: list):
@@ -152,6 +168,16 @@ def generate_guides(tasks: list):
             }
             
             html = seo.generate_html(query, content, stats)
+            
+            # 🔧 后处理：确保小程序二维码路径正确 + 美团按钮含Logo
+            # 模板文件位于:
+            #   - QR码: wildtrip-existing/backend/services/markdown_renderer.py
+            #   - 美团按钮: wildtrip-existing/backend/services/affiliate_manager.py
+            MEITUAN_LOGO_IMG = '<img src="/images/meituan-logo.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px;border-radius:4px;">'
+            html = html.replace('src="/static/mp-qrcode.svg"', 'src="/images/miniprogram-qrcode.jpg"')
+            if MEITUAN_LOGO_IMG not in html:
+                html = html.replace('美团预订 ', MEITUAN_LOGO_IMG + '美团预订 ')
+                html = html.replace('美团预订\n', MEITUAN_LOGO_IMG + '美团预订\n')
             
             # 保存文件
             slug = seo.generate_slug(query)
