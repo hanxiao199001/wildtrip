@@ -395,7 +395,7 @@ def run_generation_task(task_id: str, query: str, mode: str, options: dict, user
         active_tasks[task_id]['result'] = {
             'content': enhanced_content,  # 🔥 返回完整内容（前端处理预览）
             'locked': True,  # 标记需要付费解锁
-            'price': 4.9,
+            'price': 4.8,  # 默认旅行攻略价格，人文历史为9.8
             'unlock_includes': [
                 '精选酒店/民宿名称 + 直订联系方式',
                 '餐厅名称、详细地址、推荐菜品',

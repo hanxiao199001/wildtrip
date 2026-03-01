@@ -47,8 +47,8 @@
       <view class="content-preview-fade"></view>
     </view>
 
-    <!-- 解锁提示卡片 -->
-    <view class="unlock-card card" wx:if="{{!isUnlocked && !checkingUnlock}}">
+    <!-- 解锁提示卡片 - 旅行攻略 -->
+    <view class="unlock-card card" wx:if="{{!isUnlocked && !checkingUnlock && guideType !== 'history'}}">
       <view class="unlock-card-header">
         <text class="unlock-icon-big">🔒</text>
         <text class="unlock-title">解锁完整攻略</text>
@@ -61,10 +61,33 @@
       </view>
       <view class="unlock-price-row">
         <text class="unlock-price-symbol">¥</text>
-        <text class="unlock-price-amount">4.9</text>
+        <text class="unlock-price-amount">4.8</text>
         <text class="unlock-price-desc">一次付费 · 永久查看</text>
       </view>
       <button class="unlock-pay-btn" bindtap="onUnlockGuide">💎 立即解锁</button>
+    </view>
+
+    <!-- 解锁提示卡片 - 人文历史路线 -->
+    <view class="unlock-card card" wx:if="{{!isUnlocked && !checkingUnlock && guideType === 'history'}}">
+      <view class="unlock-card-header">
+        <text class="unlock-icon-big">📜</text>
+        <text class="unlock-title">解锁人文历史路线</text>
+      </view>
+      <view class="unlock-desc">由AI深度研究当地历史脉络，串联古迹与故事，带你读懂一座城</view>
+      <view class="unlock-benefits">
+        <view class="unlock-benefit-item">✅ 历史背景深度解读（朝代更迭、名人轶事）</view>
+        <view class="unlock-benefit-item">✅ 文化路线串联（古迹间的逻辑与步行路线）</view>
+        <view class="unlock-benefit-item">✅ 本地人文故事（非遗、民俗、地道体验）</view>
+        <view class="unlock-benefit-item">✅ 博物馆/古建筑探访指南 + 讲解要点</view>
+        <view class="unlock-benefit-item">✅ 文化主题餐饮推荐（老字号、传统小吃）</view>
+      </view>
+      <view class="unlock-price-row">
+        <text class="unlock-price-symbol">¥</text>
+        <text class="unlock-price-amount">9.8</text>
+        <text class="unlock-price-desc">一次付费 · 永久查看</text>
+      </view>
+      <view class="unlock-value-note">相当于一杯咖啡的钱，省下请导游的几百块</view>
+      <button class="unlock-pay-btn" bindtap="onUnlockGuide">📜 立即解锁</button>
     </view>
 
     <!-- 正在检查解锁状态 -->

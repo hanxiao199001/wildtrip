@@ -15,19 +15,15 @@ vip_bp = Blueprint('vip', __name__)
 GUIDE_PRODUCTS = {
     'guide_travel': {
         'name': '旅行攻略解锁',
-        'amount': 1,  # 0.01元 (测试价格，正式环境改为 480)
+        'amount': 480,  # ¥4.80
         'type': 'travel'
     },
     'guide_history': {
         'name': '人文历史路线解锁',
-        'amount': 1,  # 0.01元 (测试价格，正式环境改为 980)
+        'amount': 980,  # ¥9.80
         'type': 'history'
     }
 }
-
-# 正式价格配置（上线前恢复）:
-# 'guide_travel': amount=480  # ¥4.80
-# 'guide_history': amount=980  # ¥9.80
 
 
 @vip_bp.route('/products', methods=['GET'])

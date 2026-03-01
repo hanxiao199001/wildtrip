@@ -145,16 +145,20 @@ async function startUnlockPayment({ guideId, guideTitle, guideType, onSuccess, o
       return
     }
 
-    // 2. 确定商品类型
+    // 2. 确定商品类型和价格
     const productId = guideType === 'history' ? 'guide_history' : 'guide_travel'
     const productName = guideType === 'history' ? '人文历史路线' : '旅行攻略'
-    const price = '0.01'  // 测试价格（正式环境改为 guideType === 'history' ? '9.80' : '4.80'）
+    const price = guideType === 'history' ? '9.80' : '4.80'
 
     // 3. 显示支付确认对话框
+    const confirmContent = guideType === 'history'
+      ? `${productName}解锁\n${guideTitle}\n\n包含：历史背景深度解读、文化路线串联、古迹探访指南、本地人文故事\n\n价格: ¥${price}`
+      : `${productName}解锁\n${guideTitle}\n\n包含：完整行程表、餐厅酒店推荐、门票优惠渠道、备选方案\n\n价格: ¥${price}`
+
     const confirmed = await new Promise((resolve) => {
       wx.showModal({
         title: '解锁完整攻略',
-        content: `${productName}解锁\n${guideTitle}\n\n价格: ¥${price}`,
+        content: confirmContent,
         confirmText: '立即支付',
         cancelText: '取消',
         success: (res) => resolve(res.confirm)

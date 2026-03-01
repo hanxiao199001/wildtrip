@@ -232,6 +232,20 @@
   margin-left: 12rpx;
 }
 
+.unlock-desc {
+  font-size: 24rpx;
+  color: #6B7280;
+  margin-bottom: 24rpx;
+  line-height: 1.6;
+}
+
+.unlock-value-note {
+  font-size: 22rpx;
+  color: #10B981;
+  margin-bottom: 20rpx;
+  font-weight: 500;
+}
+
 .unlock-pay-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white !important;
