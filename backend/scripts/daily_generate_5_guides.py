@@ -168,7 +168,6 @@ def generate_guides(tasks: list):
     seo = get_seo_service()
     
     success_count = 0
-    xhs_posts = []  # 收集今日小红书文案
     
     for i, task in enumerate(tasks, 1):
         query = task['query']
@@ -229,18 +228,6 @@ def generate_guides(tasks: list):
             logger.info(f"   已部署: {web_file}")
             
             success_count += 1
-
-            # 🌸 生成小红书文案
-            logger.info(f"   生成小红书文案...")
-            xhs = generate_xiaohongshu_post(ai, query, content)
-            if xhs:
-                guide_url = f"https://wildtrip.com.cn/guides/{slug}.html"
-                xhs_posts.append({
-                    'title': query,
-                    'url': guide_url,
-                    'post': xhs
-                })
-                logger.info(f"   ✅ 小红书文案已生成")
             
             # 避免请求太快
             import time
@@ -251,7 +238,7 @@ def generate_guides(tasks: list):
             import traceback
             traceback.print_exc()
     
-    return success_count, xhs_posts
+    return success_count
 
 
 def main():
@@ -286,21 +273,8 @@ def main():
     logger.info("")
     
     # 生成
-    success_count, xhs_posts = generate_guides(tasks)
+    success_count = generate_guides(tasks)
 
-    # 保存小红书文案到文件
-    xhs_dir = Path("/root/clawd/backend/data/xiaohongshu")
-    xhs_dir.mkdir(parents=True, exist_ok=True)
-    xhs_file = xhs_dir / f"{today}.md"
-    with open(xhs_file, 'w', encoding='utf-8') as f:
-        f.write(f"# 野游记小红书文案 {today}\n\n")
-        for idx, item in enumerate(xhs_posts, 1):
-            f.write(f"---\n\n## 第{idx}篇：{item['title']}\n\n")
-            f.write(f"🔗 攻略链接：{item['url']}\n\n")
-            f.write(item['post'])
-            f.write("\n\n")
-    logger.info(f"✅ 小红书文案已保存: {xhs_file}")
-    
     # 更新进度
     progress['last_date'] = today
     progress['total_generated'] += success_count
@@ -338,16 +312,6 @@ def main():
 """
         for i, task in enumerate(tasks[:success_count], 1):
             message += f"{i}. {task['query']}\n"
-
-        # 附上小红书文案
-        if xhs_posts:
-            message += f"\n🌸 今日小红书文案（共{len(xhs_posts)}篇，可直接复制发布）:\n"
-            message += "=" * 30 + "\n"
-            for idx, item in enumerate(xhs_posts, 1):
-                message += f"\n【第{idx}篇】{item['title']}\n"
-                message += item['post'][:600]  # 每篇截取前600字，避免消息太长
-                message += "\n🔗 " + item['url'] + "\n"
-                message += "-" * 20 + "\n"
 
         message += f"""
 📖 全部攻略: https://wildtrip.com.cn/guides/
