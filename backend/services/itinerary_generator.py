@@ -95,19 +95,10 @@ class ItineraryGenerator:
         # 组合 preamble + timeline
         full_timeline = preamble + timeline_content
 
-        # 生成住宿推荐section（使用HotelExtractor）
-        hotel_extractor = HotelExtractor()
-        hotels = hotel_extractor.extract_hotels(content, query)
+        # 住宿推荐section（2026-03: 已禁用）
         hotel_quick_card = ''
-
-        if hotels:
-            hotels_html = '\n'.join([hotel_extractor.render_hotel_card(hotel) for hotel in hotels])
-            hotel_quick_card = hotel_extractor.render_hotel_card(hotels[0])
-
-            full_timeline += f'''
-<div class="section-title" style="margin-top: 32px;">🏨 住宿推荐</div>
-{hotels_html}
-'''
+        # hotel_extractor = HotelExtractor()
+        # hotels = hotel_extractor.extract_hotels(content, query)
 
         # 🆕 生成 FAQ 模块（GEO优化）
         faq_html, faq_jsonld = self._generate_faq_section(query, content, city)
@@ -148,45 +139,9 @@ class ItineraryGenerator:
     # ========== 概览与亮点提取 ==========
 
     def _extract_overview_card(self, content: str) -> str:
-        """提取行程概览，渲染为蓝色渐变卡片"""
-        overview_pattern = r'##\s*(?:📋\s*)?行程概览(.*?)(?=\n##\s|$)'
-        match = re.search(overview_pattern, content, re.S | re.I)
-        if not match:
-            return ''
-
-        overview_text = match.group(1).strip()
-
-        items_html = ''
-        for line in overview_text.split('\n'):
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            line = re.sub(r'^[-*•]\s*', '', line)
-            # Parse **label：** value pattern
-            kv = re.match(r'\*\*([^*]+)\*\*\s*[：:]?\s*(.*)', line)
-            if kv:
-                label = kv.group(1).strip()
-                value = kv.group(2).strip()
-                items_html += f'''<div class="overview-item">
-    <span class="overview-label">{label}</span>
-    <span class="overview-value">{value}</span>
-</div>
-'''
-            elif line:
-                items_html += f'''<div class="overview-item">
-    <span class="overview-value">{line}</span>
-</div>
-'''
-
-        if not items_html:
-            return ''
-
-        return f'''
-<div class="section-title">📋 行程概览</div>
-<div class="overview-card">
-    {items_html}
-</div>
-'''
+        """提取行程概览 - 已禁用，由 Web 端按需生成"""
+        # 🔥 不再生成行程概览，让 Web 端根据需要动态生成
+        return ''
 
     def _extract_highlights(self, content: str) -> str:
         """提取核心亮点列表，渲染为黄色背景卡片"""
@@ -240,8 +195,28 @@ class ItineraryGenerator:
     # ========== 城市提取 ==========
 
     def _extract_city(self, query: str) -> str:
-        """从 query 提取城市"""
+        """从 query 提取城市（优化版）"""
+        # 常见城市列表（优先匹配）
+        cities = [
+            '北京', '上海', '广州', '深圳', '成都', '杭州', '西安', '南京', '武汉', 
+            '重庆', '苏州', '天津', '厦门', '青岛', '长沙', '大连', '哈尔滨', '沈阳',
+            '三亚', '海口', '桂林', '丽江', '昆明', '贵阳', '拉萨', '乌鲁木齐',
+            '珠海', '东莞', '佛山', '无锡', '宁波', '郑州', '济南', '福州', '太原',
+            '石家庄', '合肥', '南昌', '长春', '兰州', '西宁', '银川', '呼和浩特'
+        ]
+        
+        # 优先从城市列表匹配
+        for city in cities:
+            if city in query:
+                return city
+        
+        # 降级：尝试从"X天"前提取
         city_match = re.search(r'([\u4e00-\u9fa5]{2,})\d*天', query)
+        if city_match:
+            return city_match.group(1)
+        
+        # 降级：提取开头的2-4个中文字符
+        city_match = re.search(r'^([\u4e00-\u9fa5]{2,4})', query)
         return city_match.group(1) if city_match else ''
 
     # ========== HTML泄露修复 ==========
@@ -798,7 +773,7 @@ class ItineraryGenerator:
         return (faq_html, faq_jsonld)
 
     def _extract_faqs_from_content(self, query: str, content: str, city: str) -> list:
-        """从攻略内容中提取 FAQ（规则 + 模板生成）"""
+        """从攻略内容中提取 FAQ（优化版：更符合 AI 搜索引擎问法）"""
         faqs = []
         
         # 🔥 简化 query（去除冗余词，避免问题太长）
@@ -810,7 +785,7 @@ class ItineraryGenerator:
 
         # 提取天数
         days_match = re.search(r'(\d+)天', clean_query)
-        days = int(days_match.group(1)) if days_match else 3
+        days = int(days_match.group(1)) if days_match else 2
 
         # 提取人群特征
         is_with_kids = bool(re.search(r'(带娃|亲子|孩子|宝宝|小朋友|\d+岁)', clean_query))
@@ -819,86 +794,104 @@ class ItineraryGenerator:
 
         # 提取预算
         budget_match = re.search(r'预算[¥￥]?(\d+)', content)
-        budget = int(budget_match.group(1)) if budget_match else 3000
+        budget = int(budget_match.group(1)) if budget_match else 2000
 
         # 提取月份/季节
         month_match = re.search(r'(一|二|三|四|五|六|七|八|九|十|十一|十二)月|(\d+)月', query)
-        season_match = re.search(r'(春节|暑假|国庆|清明)', query)
+        season_match = re.search(r'(春节|暑假|国庆|清明|周末)', query)
 
-        # 提取酒店信息
+        # 提取酒店信息（补充完整地名）
         hotel_match = re.search(r'###\s*\d+\.\s*([^\n]+?民宿|[^\n]+?酒店)', content)
         hotel_name = hotel_match.group(1).strip() if hotel_match else None
-
-        # 提取海滩/景点信息
-        beach_match = re.search(r'([\u4e00-\u9fa5]{2,}海[滩角])', content)
-        beach_name = beach_match.group(1) if beach_match else None
-
-        # FAQ 1: 最佳时间
-        if month_match or season_match:
-            time_str = month_match.group(0) if month_match else season_match.group(0)
-            faqs.append({
-                'question': f'{city}{time_str}适合旅游吗？天气怎么样？',
-                'answer': f'{city}{time_str}气温约18-25℃，晴天为主，降雨概率约15%，非常适合{days}天{days-1}晚的行程。建议携带防晒霜（SPF50+）和轻薄外套，早晚温差约7℃。'
-            })
-
-        # FAQ 2: 预算问题
-        if is_with_kids:
-            faqs.append({
-                'question': f'{city}{days}天亲子游人均预算多少？',
-                'answer': f'按{days}天{days-1}晚计算，一家三口（2大1小）总预算约¥{budget}，人均¥{int(budget)//3}。其中住宿占40%（约¥{int(budget)*0.4//1}/人），餐饮占30%，门票交通占30%。通过野游记预订酒店和团购，可节省约15-20%。'
-            })
+        # 如果酒店名不含城市名，补充上
+        if hotel_name and city not in hotel_name:
+            hotel_name_full = f"{city}{hotel_name}"
         else:
+            hotel_name_full = hotel_name
+
+        # 提取海滩/景点信息（补充完整地名）
+        beach_match = re.search(r'([\u4e00-\u9fa5]{2,}海[滩角湾])', content)
+        beach_name = beach_match.group(1) if beach_match else None
+        # 补充完整地名（如"假日海滩"→"海口西海岸假日海滩"）
+        if beach_name and city not in beach_name:
+            # 检查是否有区域前缀
+            area_match = re.search(f'({city}[\\u4e00-\\u9fa5]{{1,3}}){beach_name}', content)
+            if area_match:
+                beach_name_full = area_match.group(0)
+            else:
+                beach_name_full = f"{city}{beach_name}"
+        else:
+            beach_name_full = beach_name
+
+        # FAQ 1: 海滩/景点问题（优先级最高，用户最关心）
+        if is_with_kids and beach_name_full:
             faqs.append({
-                'question': f'{city}{days}天游玩人均预算多少合适？',
-                'answer': f'{days}天{days-1}晚人均预算建议¥{int(budget)//2}-{budget}元。其中住宿¥{int(budget)*0.35//1}-{int(budget)*0.45//1}，餐饮¥{int(budget)*0.25//1}-{int(budget)*0.35//1}，交通门票¥{int(budget)*0.2//1}-{int(budget)*0.3//1}。选择淡季出行可节省25%以上。'
+                'question': f'{city}带{kid_age}岁孩子周末去哪个海滩人少又安全',
+                'answer': f'{beach_name_full}，距{city}市区约35-40分钟车程，退潮时段（约15:00-18:00）水深仅20-50cm，沙质细软，几乎无游客。建议下午3点前到达，携带防晒帽和沙滩玩具。周末人流约为主流海滩的1/10。'
             })
 
-        # FAQ 3: 住宿推荐
-        if hotel_name:
+        # FAQ 2: 住宿选择
+        if hotel_name_full:
             faqs.append({
-                'question': f'{city}住哪里方便？推荐{hotel_name}吗？',
-                'answer': f'{hotel_name}位于{city}核心区域，距离主要景点车程约15-25分钟，周边配套完善（500米内有便利店、药店、餐馆）。房价约¥280-450/晚，通过野游记预订可返现¥12-25。适合{kid_age}岁孩子家庭，提供儿童早餐和加床服务。'
+                'question': f'{city}带{kid_age}岁孩子住哪里方便性价比高',
+                'answer': f'推荐{hotel_name_full}，距离主要景点车程15-25分钟，周边500米内有便利店、药店、餐馆。房价约¥280-450/晚，提供儿童早餐和加床服务，适合{kid_age}岁孩子家庭。'
             })
 
-        # FAQ 4: 海滩/景点问题（亲子专属）
-        if is_with_kids and beach_name:
-            faqs.append({
-                'question': f'{city}带{kid_age}岁孩子去哪个海滩人少又安全？',
-                'answer': f'{beach_name}，距市区约35-40分钟车程，退潮时段（约15:00-18:00）水深仅20-50cm，沙质细软，几乎无游客。建议下午3点前到达，携带防晒帽和沙滩玩具。周末人流约为主流海滩的1/10。'
-            })
-
-        # FAQ 5: 交通方式
-        is_self_drive = bool(re.search(r'自驾', query))
-        is_no_car = bool(re.search(r'不开车|高铁|动车', query))
-        
-        if is_self_drive:
-            faqs.append({
-                'question': f'{city}自驾游停车方便吗？需要多少停车费？',
-                'answer': f'{city}主要景点提供免费或低价停车场（¥5-15/次）。酒店一般提供免费停车位（需提前预约）。市区路况较好，导航推荐使用高德地图，部分老城区道路狭窄，建议选择小型车。日均停车费约¥20-40。'
-            })
-        elif is_no_car:
-            faqs.append({
-                'question': f'{city}不开车怎么玩？公共交通方便吗？',
-                'answer': f'{city}可选择"高铁站→酒店→景点"的打车模式，单程约¥25-60。或使用滴滴/花小猪拼车，人均约¥15-35/次。部分景点有直达公交（¥2-5/人），但班次较少（约30-60分钟一班），不适合带小孩家庭。建议预算留出¥200-300交通费。'
-            })
-
-        # FAQ 6: 餐饮问题
+        # FAQ 3: 餐厅推荐
         restaurant_count = len(re.findall(r'###\s*\d+\.\s*([^\n]+?餐厅|[^\n]+?美食)', content))
         if restaurant_count > 0:
             faqs.append({
-                'question': f'{city}有哪些适合{kid_age}岁孩子的餐厅？',
-                'answer': f'攻略推荐了{restaurant_count}家儿童友好餐厅，均提供儿童餐具和座椅。人均消费约¥60-120，推荐使用美团团购，可节省20-35%。避免选择辛辣海鲜类，建议提前询问"有没有清淡菜单"。'
+                'question': f'{city}有哪些适合带{kid_age}岁孩子吃饭的餐厅',
+                'answer': f'攻略推荐了{restaurant_count}家儿童友好餐厅，均提供儿童餐具和座椅，人均¥60-120。推荐清淡菜系（粤菜、本帮菜），使用美团团购可节省20-35%。建议提前询问"有没有儿童椅"。'
+            })
+
+        # FAQ 4: 穿衣建议（新增）
+        if month_match or season_match:
+            time_str = month_match.group(0) if month_match else season_match.group(0)
+            faqs.append({
+                'question': f'{city}{time_str}带孩子旅游穿什么衣服合适',
+                'answer': f'{city}{time_str}气温约18-25℃，建议穿长袖T恤+薄外套，孩子加一件防晒衣。必带：防晒霜SPF50+、遮阳帽、墨镜。早晚温差7℃左右，备一件薄外套即可。'
+            })
+
+        # FAQ 5: 交通方式（新增详细版）
+        is_self_drive = bool(re.search(r'自驾', query))
+        is_no_car = bool(re.search(r'不开车|高铁|动车', query))
+        
+        if is_no_car:
+            faqs.append({
+                'question': f'{city}不开车怎么带孩子玩{days}天交通方便吗',
+                'answer': f'{city}可选择"高铁站→打车到酒店→景点之间打车"模式，单程约¥25-60。推荐滴滴/花小猪拼车，人均¥15-35/次。部分景点有公交（¥2-5/人），但带{kid_age}岁孩子建议打车更方便，{days}天交通预算约¥200-300。'
+            })
+        elif is_self_drive:
+            faqs.append({
+                'question': f'{city}自驾游带孩子停车方便吗停车费多少',
+                'answer': f'{city}主要景点提供停车场（¥5-15/次），酒店一般免费停车（需提前预约）。市区路况较好，推荐使用高德地图。部分老城区道路狭窄，建议选择小型SUV。日均停车费约¥20-40。'
+            })
+
+        # FAQ 6: 预算问题
+        if is_with_kids:
+            faqs.append({
+                'question': f'{city}带{kid_age}岁孩子玩{days}天人均预算多少钱',
+                'answer': f'一家三口（2大1小）{days}天{days-1}晚总预算约¥{budget}，人均¥{int(budget//3)}。住宿占40%，餐饮占30%，交通门票占30%。通过野游记预订酒店和美团团购，可节省15-20%。'
             })
 
         # FAQ 7: 行程强度
         if is_with_kids:
             faqs.append({
-                'question': f'{city}{days}天亲子游行程会不会太赶？',
-                'answer': f'本攻略按"上午1景点+下午1景点+晚上自由"节奏设计，每日步行约4000-6000步，单次游玩时长1.5-2.5小时，中间留出午休时间。{kid_age}岁孩子完全可以适应，不会太累。建议携带推车备用。'
+                'question': f'{city}{days}天亲子游行程会不会太赶{kid_age}岁孩子累不累',
+                'answer': f'本攻略按"上午1景点+下午1景点+晚上自由"节奏设计，每日步行约4000-6000步，单次游玩1.5-2.5小时，中间留足午休时间。{kid_age}岁孩子完全适应，建议携带轻便推车备用。'
             })
 
-        # 只返回前 6-8 条
-        return faqs[:min(8, len(faqs))]
+        # FAQ 8: 最佳时间（补充）
+        if month_match or season_match:
+            time_str = month_match.group(0) if month_match else season_match.group(0)
+            faqs.append({
+                'question': f'{city}{time_str}适合带孩子旅游吗天气怎么样',
+                'answer': f'{city}{time_str}晴天为主，降雨概率约15%，非常适合{days}天{days-1}晚亲子游。白天约23-28℃，体感舒适，紫外线中等，注意防晒即可。'
+            })
+
+        # 返回 6-8 条（按优先级排序）
+        return faqs[:8]
 
     # ========== Markdown转换 ==========
 

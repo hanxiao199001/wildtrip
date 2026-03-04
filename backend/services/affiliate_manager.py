@@ -302,6 +302,8 @@ class AffiliateManager:
     
     def _render_restaurant_card(self, link_info: dict, name: str, price: Optional[int] = None, cashback: Optional[int] = None, rating: Optional[str] = None, features: Optional[list] = None, reason: Optional[str] = None) -> str:
         """渲染餐厅完整卡片组件（含店名、评分、特色菜、推荐理由、价格区、CTA、信任背书）+ Schema.org 结构化标记"""
+        # 2026-03: 已禁用美团团购按钮
+        return ''
         url = link_info['url']
 
         # 计算团购价（原价85折）
@@ -392,17 +394,21 @@ class AffiliateManager:
 
     def _render_hotel_button(self, link_info: dict, name: str, cashback: Optional[int] = None) -> str:
         """渲染酒店预订按钮"""
+        # 2026-03: 已禁用
+        return ''
         url = link_info['url']
         cashback_amount = cashback or 50
 
         return f'''<div class="booking-card">
-    <a href="{url}" class="booking-btn has-commission" target="_blank" rel="noopener">
-        美团预订 💰返¥{cashback_amount}
+    <a href="{url}" class="booking-btn has-commission" style="display:inline-flex;align-items:center;" target="_blank" rel="noopener">
+        <img src="/images/meituan-logo.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px;border-radius:4px;">美团预订 💰返¥{cashback_amount}
     </a>
 </div>'''
 
     def _render_ticket_button(self, link_info: dict, name: str) -> str:
         """渲染门票按钮"""
+        # 2026-03: 已禁用
+        return ''
         url = link_info['url']
 
         return f'''<div class="booking-card">
