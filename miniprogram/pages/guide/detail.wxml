@@ -1,0 +1,29 @@
+<!--pages/guide/detail.wxml-->
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 攻略内容 -->
+  <view wx:else class="guide-content">
+    
+    <!-- 攻略标题 -->
+    <view class="guide-header">
+      <text class="guide-title">{{guideData.title}}</text>
+      <view class="guide-meta">
+        <text class="guide-type">{{guideType === 'history' ? '人文历史' : '旅行攻略'}}</text>
+        <text class="guide-date">{{guideData.createdAt}}</text>
+      </view>
+    </view>
+
+    <!-- 攻略完整内容（免费开放） -->
+    <view class="guide-body">
+      <view class="full-content">
+        <rich-text nodes="{{guideData.content}}"></rich-text>
+      </view>
+    </view>
+
+  </view>
+</view>

@@ -1,0 +1,60 @@
+<!--pages/user/unlocked.wxml-->
+<view class="container">
+  
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value">{{totalCount}}</text>
+      <text class="stat-label">已解锁攻略</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">¥{{totalAmount}}</text>
+      <text class="stat-label">累计消费</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 攻略列表 -->
+  <view wx:elif="{{guides.length > 0}}" class="guide-list">
+    <view 
+      wx:for="{{guides}}" 
+      wx:key="order_no"
+      class="guide-item"
+      data-id="{{item.guide_id}}"
+      data-type="{{item.product_type === 'guide_history' ? 'history' : 'travel'}}"
+      bindtap="onGuideTap"
+    >
+      <view class="guide-info">
+        <view class="guide-title-row">
+          <text class="guide-title">{{item.product_name}}</text>
+        </view>
+        
+        <view class="guide-meta">
+          <view class="guide-type {{item.product_type === 'guide_history' ? 'history' : 'travel'}}">
+            {{item.product_type === 'guide_history' ? '人文历史' : '旅行攻略'}}
+          </view>
+          <text class="guide-date">{{item.paid_at}}</text>
+        </view>
+      </view>
+
+      <view class="guide-action">
+        <text class="guide-price">¥{{item.amount / 100}}</text>
+        <view class="arrow-icon">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <image class="empty-icon" src="/images/empty.png" mode="aspectFit"></image>
+    <text class="empty-text">还没有解锁任何攻略</text>
+    <button class="go-explore-btn" bindtap="onExplore">去探索</button>
+  </view>
+
+</view>

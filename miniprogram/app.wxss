@@ -1,181 +1,62 @@
-/* 野游记全局样式 - Perplexity薄荷绿风格 */
-
-/* 全局变量 */
+/**app.wxss**/
 page {
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* 🔥 全局CSS变量（品牌色系） */
   --primary-color: #20B2AA;
   --primary-light: #5FCCC4;
-  --primary-dark: #1A8F89;
-  --text-primary: #333333;
+
+  /* 文字颜色 */
+  --text-primary: #1A1A1A;
   --text-secondary: #666666;
   --text-hint: #999999;
-  --bg-page: #F5F5F5;
+
+  /* 背景 & 边框 */
   --bg-card: #FFFFFF;
-  --border-color: #E5E5E5;
-  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 2px 12px rgba(32, 178, 170, 0.15);
-  --radius-small: 8rpx;
-  --radius-normal: 16rpx;
+  --border-color: #E8E8E8;
+
+  /* 圆角 */
   --radius-large: 24rpx;
+  --radius-normal: 16rpx;
+  --radius-small: 8rpx;
+
+  /* 阴影 */
+  --shadow-card: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  --shadow-light: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
-/* 基础样式 */
-page {
-  background-color: var(--bg-page);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  color: var(--text-primary);
-  font-size: 28rpx;
-  line-height: 1.6;
-}
-
-/* 通用容器 */
 .container {
-  padding: 32rpx;
+  min-height: 100vh;
 }
 
+/* 🔥 通用页面容器 */
 .page-container {
   min-height: 100vh;
-  padding-bottom: 120rpx;
+  box-sizing: border-box;
 }
 
-/* 卡片样式 */
+/* 🔥 通用卡片样式 */
 .card {
   background: var(--bg-card);
   border-radius: var(--radius-normal);
-  padding: 32rpx;
-  margin-bottom: 24rpx;
   box-shadow: var(--shadow-light);
+  padding: 24rpx;
+  margin-bottom: 24rpx;
 }
 
-.card-hover {
-  box-shadow: var(--shadow-card);
-  transform: translateY(-4rpx);
-  transition: all 0.3s ease;
+/* 通用按钮样式 */
+button {
+  font-size: 28rpx;
 }
 
-/* 按钮样式 */
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  color: white;
-  border-radius: var(--radius-normal);
-  padding: 28rpx 48rpx;
-  font-size: 32rpx;
-  font-weight: 500;
+button::after {
   border: none;
-  box-shadow: 0 4px 12px rgba(32, 178, 170, 0.3);
 }
 
-.btn-primary:active {
-  opacity: 0.9;
-  transform: scale(0.98);
+/* 通用加载动画 */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
-
-/* 标题样式 */
-.title {
-  font-size: 48rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16rpx;
-}
-
-.subtitle {
-  font-size: 28rpx;
-  color: var(--text-secondary);
-  line-height: 1.8;
-}
-
-/* 标签样式 */
-.tag {
-  display: inline-block;
-  padding: 8rpx 16rpx;
-  border-radius: var(--radius-small);
-  font-size: 24rpx;
-  margin-right: 12rpx;
-  margin-bottom: 12rpx;
-}
-
-.tag-primary {
-  background: rgba(32, 178, 170, 0.1);
-  color: var(--primary-color);
-}
-
-.tag-success {
-  background: rgba(52, 199, 89, 0.1);
-  color: #34C759;
-}
-
-.tag-warning {
-  background: rgba(255, 204, 0, 0.1);
-  color: #FFCC00;
-}
-
-/* 加载动画 */
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60rpx 0;
-}
-
-.loading-text {
-  margin-left: 20rpx;
-  color: var(--text-secondary);
-}
-
-/* 空状态 */
-.empty {
-  text-align: center;
-  padding: 120rpx 32rpx;
-}
-
-.empty-text {
-  color: var(--text-hint);
-  font-size: 28rpx;
-  margin-top: 24rpx;
-}
-
-/* Flex布局 */
-.flex {
-  display: flex;
-}
-
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-/* 间距 */
-.mt-small { margin-top: 16rpx; }
-.mt-normal { margin-top: 24rpx; }
-.mt-large { margin-top: 48rpx; }
-
-.mb-small { margin-bottom: 16rpx; }
-.mb-normal { margin-bottom: 24rpx; }
-.mb-large { margin-bottom: 48rpx; }
-
-/* 文字颜色 */
-.text-primary { color: var(--primary-color); }
-.text-secondary { color: var(--text-secondary); }
-.text-hint { color: var(--text-hint); }
-.text-white { color: white; }
-
-/* 文字大小 */
-.text-small { font-size: 24rpx; }
-.text-normal { font-size: 28rpx; }
-.text-large { font-size: 32rpx; }
-.text-xlarge { font-size: 40rpx; }
-
-/* 文字粗细 */
-.text-bold { font-weight: 600; }
-.text-normal-weight { font-weight: 400; }

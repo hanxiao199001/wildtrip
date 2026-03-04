@@ -239,6 +239,7 @@ Page({
     this.setData({ slug, coverGradient })
 
     if (slug) {
+      // 精选攻略免费查看，直接加载
       this.loadGuideDetail()
     } else {
       this.setData({ loading: false, error: '攻略ID不存在' })
@@ -251,7 +252,7 @@ Page({
     try {
       const guide = await api.getGuideDetail(slug)
       if (!guide || guide.error) {
-        this.setData({ loading: false, error: guide?.error || '攻略不存在' })
+        this.setData({ loading: false, error: (guide && guide.error) || '攻略不存在' })
         return
       }
 
@@ -286,7 +287,7 @@ Page({
       if (markdownContent && towxml) {
         try {
           // 🔥 towxml 链接点击处理（通过 option.events 传入，toJson 内部会注册到 global._events）
-          article = towxml.toJson(markdownContent, 'markdown', {
+          article = towxml(markdownContent, 'markdown', {
             events: {
               tap: (e) => {
                 const nodeData = e.currentTarget.dataset.data
@@ -386,6 +387,7 @@ Page({
       })
 
       console.log('📖 攻略详情加载成功:', slug, article ? '(含内容渲染)' : '(仅预览)')
+
     } catch (error) {
       console.error('加载攻略详情失败:', error)
       this.setData({ loading: false, error: error.message || '加载失败' })
@@ -448,7 +450,7 @@ Page({
   // 复制攻略文本
   onCopy() {
     const { guide } = this.data
-    const content = guide?.markdown_content || guide?.title || ''
+    const content = (guide && guide.markdown_content) || (guide && guide.title) || ''
     if (!content) {
       wx.showToast({ title: '暂无内容', icon: 'none' })
       return

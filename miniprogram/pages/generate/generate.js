@@ -20,6 +20,24 @@ var TIPS = [
   '已为 10000+ 旅客生成个性化攻略'
 ]
 
+// 🔥 前端模拟进度时间轴（秒 → 进度%）
+// 总预估 90 秒，4 个阶段均匀分配
+var PROGRESS_TIMELINE = [
+  { time: 0,  progress: 2 },
+  { time: 3,  progress: 15 },    // 分析需求完成
+  { time: 5,  progress: 22 },    // 进入规划行程
+  { time: 15, progress: 35 },
+  { time: 25, progress: 48 },
+  { time: 30, progress: 55 },    // 进入比价推荐
+  { time: 40, progress: 62 },
+  { time: 50, progress: 70 },
+  { time: 60, progress: 78 },
+  { time: 65, progress: 82 },    // 进入生成攻略
+  { time: 75, progress: 88 },
+  { time: 85, progress: 92 },
+  { time: 95, progress: 95 },    // 最多停在95%，等后端完成
+]
+
 Page({
   data: {
     query: '',
@@ -27,15 +45,18 @@ Page({
     taskId: '',
     progress: 0,
     stages: STAGES,
-    currentStage: 0,           // 当前阶段 0-3
-    currentTip: TIPS[0],       // 当前显示的贴士
+    currentStage: 0,
+    currentTip: TIPS[0],
     isCompleted: false,
     isFailed: false
   },
 
-  timer: null,        // 轮询定时器
-  tipTimer: null,     // 贴士轮播定时器
+  timer: null,
+  tipTimer: null,
+  progressTimer: null,
+  timeoutTimer: null,  // 🔥 超时定时器
   tipIndex: 0,
+  startTime: 0,
 
   onLoad(options) {
     var query = decodeURIComponent(options.query || '')
@@ -50,8 +71,7 @@ Page({
   },
 
   onUnload() {
-    if (this.timer) clearInterval(this.timer)
-    if (this.tipTimer) clearInterval(this.tipTimer)
+    this.clearAllTimers()
   },
 
   // 启动贴士轮播
@@ -62,17 +82,78 @@ Page({
     }, 3000)
   },
 
+  // 🔥 前端模拟进度（平滑推进）
+  startSimulatedProgress() {
+    this.startTime = Date.now()
+    var self = this
+
+    this.progressTimer = setInterval(function () {
+      if (self.data.isCompleted || self.data.isFailed) {
+        clearInterval(self.progressTimer)
+        return
+      }
+
+      var elapsed = (Date.now() - self.startTime) / 1000
+      var simProgress = 0
+
+      // 根据时间轴插值计算进度
+      for (var i = 0; i < PROGRESS_TIMELINE.length - 1; i++) {
+        var cur = PROGRESS_TIMELINE[i]
+        var next = PROGRESS_TIMELINE[i + 1]
+        if (elapsed >= cur.time && elapsed < next.time) {
+          var ratio = (elapsed - cur.time) / (next.time - cur.time)
+          simProgress = cur.progress + ratio * (next.progress - cur.progress)
+          break
+        }
+      }
+
+      // 超过最后一个节点，停在95%
+      if (elapsed >= PROGRESS_TIMELINE[PROGRESS_TIMELINE.length - 1].time) {
+        simProgress = 95
+      }
+
+      simProgress = Math.round(simProgress)
+
+      // 只向前推进，不回退
+      if (simProgress > self.data.progress) {
+        var stage = self.getStageFromProgress(simProgress)
+        self.setData({
+          progress: simProgress,
+          currentStage: stage
+        })
+      }
+    }, 500)
+  },
+
   // 根据进度计算当前阶段 (0-3)
   getStageFromProgress(progress) {
-    if (progress < 20) return 0       // Profile Agent
-    if (progress < 55) return 1       // Wild-Routing Agent
-    if (progress < 80) return 2       // Pricing Agent
-    return 3                          // Content Agent
+    if (progress < 20) return 0       // 分析需求
+    if (progress < 55) return 1       // 规划行程
+    if (progress < 80) return 2       // 比价推荐
+    return 3                          // 生成攻略
   },
 
   // 开始生成
   async startGenerate() {
+    // 🔥 先设置初始进度，让用户立刻看到进度条在动
+    this.setData({ progress: 3, currentStage: 0 })
+
     this.startTipRotation()
+    this.startSimulatedProgress()
+
+    // 🔥 设置总超时：180秒后自动失败
+    this.timeoutTimer = setTimeout(() => {
+      if (!this.data.isCompleted && !this.data.isFailed) {
+        console.error('生成超时')
+        this.clearAllTimers()
+        this.setData({ isFailed: true })
+        wx.showModal({
+          title: '生成超时',
+          content: '攻略生成时间过长，请稍后重试',
+          showCancel: false
+        })
+      }
+    }, 180000)
 
     try {
       var res = await this.callAPI('/generate', {
@@ -88,7 +169,7 @@ Page({
       }
     } catch (error) {
       console.error('生成失败:', error)
-      if (this.tipTimer) clearInterval(this.tipTimer)
+      this.clearAllTimers()
       this.setData({ isFailed: true })
       wx.showModal({
         title: '生成失败',
@@ -102,31 +183,58 @@ Page({
   pollTaskStatus() {
     var self = this
     var taskId = this.data.taskId
+    var pollCount = 0
+    var maxPolls = 90  // 🔥 最多轮询90次（180秒）
 
     this.timer = setInterval(async function () {
+      pollCount++
+
+      // 🔥 超过最大轮询次数，视为超时
+      if (pollCount > maxPolls) {
+        self.clearAllTimers()
+        self.setData({ isFailed: true })
+        wx.showModal({
+          title: '生成超时',
+          content: '服务器响应时间过长，请稍后重试',
+          showCancel: false
+        })
+        return
+      }
+
       try {
         var status = await self.callAPI('/task/' + taskId, {}, 'GET')
-        var currentProgress = status.progress || 0
-        var stage = self.getStageFromProgress(currentProgress)
 
-        self.setData({
-          progress: currentProgress,
-          currentStage: stage
-        })
+        // 🔥 如果后端进度比前端模拟的大，用后端的
+        var backendProgress = status.progress || 0
+        if (backendProgress > self.data.progress) {
+          var stage = self.getStageFromProgress(backendProgress)
+          self.setData({
+            progress: backendProgress,
+            currentStage: stage
+          })
+        }
 
         if (status.status === 'completed') {
-          clearInterval(self.timer)
-          clearInterval(self.tipTimer)
+          self.clearAllTimers()
           self.onGenerateComplete(status.result)
         } else if (status.status === 'failed') {
-          clearInterval(self.timer)
-          clearInterval(self.tipTimer)
+          self.clearAllTimers()
           self.setData({ isFailed: true })
+          wx.showModal({
+            title: '生成失败',
+            content: status.error || '攻略生成失败，请重试',
+            showCancel: false
+          })
         }
       } catch (error) {
         console.error('查询状态失败:', error)
+        // 🔥 连续失败时不立刻放弃，但超过5次连续失败则停止
+        if (pollCount > 5 && pollCount % 5 === 0) {
+          // 每5次失败提醒一次，但继续轮询
+          console.warn('连续轮询失败，继续重试...')
+        }
       }
-    }, 1500)
+    }, 2000)
   },
 
   // 生成完成
@@ -144,13 +252,21 @@ Page({
     }, 1200)
   },
 
+  // 清除所有定时器
+  clearAllTimers() {
+    if (this.timer) clearInterval(this.timer)
+    if (this.tipTimer) clearInterval(this.tipTimer)
+    if (this.progressTimer) clearInterval(this.progressTimer)
+    if (this.timeoutTimer) clearTimeout(this.timeoutTimer)
+  },
+
   // 调用API
   callAPI(url, data, method) {
     data = data || {}
     method = method || 'POST'
     return new Promise(function (resolve, reject) {
       wx.request({
-        url: app.globalData.apiBaseUrl + url,
+        url: app.globalData.apiBase + '/api' + url,
         method: method,
         data: data,
         header: { 'Content-Type': 'application/json' },

@@ -188,6 +188,11 @@ function displayResult(data) {
     const result = data.result || {};
     const content = result.content || '暂无内容';
     const stats = result.stats || {};
+    const locked = result.locked || false;  // 🔥 新增：是否锁定
+    const price = result.price || 4.9;  // 🔥 新增：价格
+    
+    // 🔥 保存task_id用于解锁
+    window.currentTaskId = data.task_id;
     
     // 🔥 调试：检查是否有图片
     const imageMatches = content.match(/!\[[^\]]*\]\([^)]+\)/g);
@@ -197,11 +202,13 @@ function displayResult(data) {
     }
     
     // Update stats
+    const lockStatus = locked ? ' <span style="color: #e8553a;">🔒 需解锁</span>' : '';
     const statsHtml = `
         <span>📝 ${stats.word_count || 0} 字</span>
         ${stats.hotels_count > 0 ? `<span>• 🏨 ${stats.hotels_count} 家酒店</span>` : ''}
         ${stats.restaurants_count > 0 ? `<span>• 🍜 ${stats.restaurants_count} 家餐厅</span>` : ''}
         ${stats.tickets_count > 0 ? `<span>• 🎫 ${stats.tickets_count} 个景点</span>` : ''}
+        ${lockStatus}
     `;
     document.getElementById('resultStats').innerHTML = statsHtml;
     
@@ -941,3 +948,65 @@ function bookFirstItem() {
     }
     closeBookingModal();
 }
+
+
+// 🔥 新增：解锁完整攻略
+async function handleUnlock() {
+    const taskId = window.currentTaskId;
+    
+    if (!taskId) {
+        alert('❌ 任务ID丢失，请重新生成攻略');
+        return;
+    }
+    
+    // 确认付费
+    const confirmed = confirm('💰 解锁完整攻略\n\n价格：¥4.9\n包含：所有酒店、餐厅名称、联系方式、时间表等详细信息\n\n点击确定后将跳转到支付页面');
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        // TODO: 实际生产环境应该跳转到支付页面，支付成功后再调用解锁API
+        // 目前测试模式：直接解锁
+        
+        const response = await fetch(`${API_BASE}/unlock`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                task_id: taskId,
+                payment_proof: 'test_payment_' + Date.now()  // 测试支付凭证
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('解锁请求失败');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ 解锁成功！');
+            
+            // 更新显示内容为完整版
+            const fullContent = data.full_content;
+            const htmlContent = markdownToHtml(fullContent);
+            document.getElementById('resultContent').innerHTML = htmlContent;
+            
+            // 移除锁定标记
+            const statsElement = document.getElementById('resultStats');
+            statsElement.innerHTML = statsElement.innerHTML.replace(' <span style="color: #e8553a;">🔒 需解锁</span>', ' <span style="color: #10b981;">✅ 已解锁</span>');
+        } else {
+            alert('❌ 解锁失败：' + (data.message || '未知错误'));
+        }
+        
+    } catch (error) {
+        console.error('❌ 解锁失败:', error);
+        alert('❌ 解锁失败，请稍后重试');
+    }
+}
+
+// 暴露到全局作用域，供HTML中的onclick调用
+window.handleUnlock = handleUnlock;

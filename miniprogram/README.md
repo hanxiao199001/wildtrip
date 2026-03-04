@@ -1,105 +1,250 @@
-# 野游记小程序
+# 野游记小程序 - 攻略解锁支付
 
-> 懒人旅游AI，预订返现50%
+## 📦 已创建的文件
 
-## 📁 项目结构
-
+### 1. 攻略详情页 (支付解锁)
 ```
-miniprogram/
-├── pages/              # 页面
-│   ├── index/         # 首页
-│   ├── generate/      # 生成页
-│   ├── result/        # 结果页
-│   └── cashback/      # 返现说明页
-├── utils/             # 工具函数
-│   └── api.js        # API封装
-├── app.js             # 小程序入口
-├── app.json           # 全局配置
-└── app.wxss           # 全局样式
+pages/guide/detail.js      - 页面逻辑
+pages/guide/detail.wxml    - 页面结构
+pages/guide/detail.wxss    - 页面样式
+pages/guide/detail.json    - 页面配置
 ```
 
-## 🎨 页面说明
+### 2. 我的已解锁页面
+```
+pages/user/unlocked.js     - 页面逻辑
+pages/user/unlocked.wxml   - 页面结构
+pages/user/unlocked.wxss   - 页面样式
+pages/user/unlocked.json   - 页面配置
+```
 
-### 1. 首页 (pages/index)
-- 输入框
-- 热门案例
-- 返现横幅
-- 核心卖点展示
+## 🚀 使用方法
 
-### 2. 生成页 (pages/generate)
-- 实时进度条
-- 进度消息
-- 速度对比（vs马蜂窝）
-- 返现提示
+### 第一步: 配置app.js
 
-### 3. 结果页 (pages/result)
-- 返现横幅（显示预估金额）
-- 统计信息
-- 攻略内容
-- 复制/分享按钮
+在小程序根目录的 `app.js` 中添加:
 
-### 4. 返现说明页 (pages/cashback)
-- vs马蜂窝对比
-- 返现案例
-- 返现规则
-- FAQ
-
-## 🚀 快速开始
-
-### 1. 配置后端地址
-
-编辑 `app.js` 中的 `apiBaseUrl`：
 ```javascript
-globalData: {
-  apiBaseUrl: 'http://47.82.159.93:5000/api'
+App({
+  globalData: {
+    openid: '',  // 用户openid
+    userInfo: null
+  },
+
+  onLaunch() {
+    // 自动登录
+    this.autoLogin();
+  },
+
+  async autoLogin() {
+    try {
+      const res = await wx.login();
+      
+      const loginRes = await wx.request({
+        url: 'https://api.wildtrip.com.cn/api/user/login',
+        method: 'POST',
+        data: { code: res.code }
+      });
+
+      if (loginRes.data.success) {
+        this.globalData.openid = loginRes.data.openid;
+        console.log('登录成功:', loginRes.data.openid);
+      }
+    } catch (err) {
+      console.error('自动登录失败:', err);
+    }
+  }
+});
+```
+
+### 第二步: 配置app.json
+
+添加页面路径:
+
+```json
+{
+  "pages": [
+    "pages/index/index",
+    "pages/guide/detail",
+    "pages/user/unlocked"
+  ],
+  "window": {
+    "navigationBarTitleText": "野游记",
+    "navigationBarBackgroundColor": "#667eea",
+    "navigationBarTextStyle": "white"
+  }
 }
 ```
 
-### 2. 微信开发者工具
+### 第三步: 跳转到攻略详情
 
-1. 打开微信开发者工具
-2. 导入项目，选择 `miniprogram` 目录
-3. 填写AppID（或使用测试号）
-4. 编译运行
+从任何页面跳转到攻略详情:
 
-### 3. 测试流程
+```javascript
+// 旅行攻略
+wx.navigateTo({
+  url: '/pages/guide/detail?id=guide_beijing_3days&type=travel'
+});
 
-1. 首页输入需求："海口3天亲子游"
-2. 点击"30秒生成攻略"
-3. 查看生成进度
-4. 查看结果和返现金额
+// 人文历史
+wx.navigateTo({
+  url: '/pages/guide/detail?id=guide_xian_history&type=history'
+});
+```
 
-## 🎨 设计规范
+### 第四步: 跳转到已解锁列表
 
-### 颜色
-- 主色：`#20B2AA` (薄荷绿)
-- 辅色：`#5FCCC4` (浅薄荷绿)
-- 文字：`#333333` (主文字)
-- 提示：`#999999` (辅助文字)
+```javascript
+wx.navigateTo({
+  url: '/pages/user/unlocked'
+});
+```
 
-### 字号
-- 标题：48rpx
-- 正文：28rpx
-- 小字：24rpx
+## 🎨 界面功能
 
-### 圆角
-- 小：8rpx
-- 中：16rpx
-- 大：24rpx
+### 攻略详情页
+- ✅ 自动检测解锁状态
+- ✅ 未解锁: 显示预览 + 支付按钮
+- ✅ 已解锁: 显示完整内容
+- ✅ 支付流程: 创建订单 → 调起微信支付 → 轮询状态
+- ✅ 价格显示: 旅行攻略 ¥4.80, 人文历史 ¥9.80
 
-## 📝 待优化
+### 已解锁列表页
+- ✅ 统计卡片: 显示已解锁数量和累计消费
+- ✅ 攻略列表: 展示所有已解锁攻略
+- ✅ 点击跳转: 直接查看攻略详情
+- ✅ 空状态: 没有解锁时显示引导
 
-- [ ] Markdown渲染（当前为纯文本）
-- [ ] WebSocket实时进度（当前为轮询）
-- [ ] 图片资源（icon占位）
-- [ ] 骨架屏loading
-- [ ] 分享海报生成
+## 📝 页面配置文件
 
-## 🔗 后端API
+### pages/guide/detail.json
+```json
+{
+  "navigationBarTitleText": "攻略详情",
+  "enablePullDownRefresh": false
+}
+```
 
-详见 `/root/clawd/wildtrip/backend/README.md`
+### pages/user/unlocked.json
+```json
+{
+  "navigationBarTitleText": "我的已解锁",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#f5f5f5"
+}
+```
 
----
+## 🖼️ 所需图片资源
 
-**开发时间：** 2026-02-04  
-**版本：** v1.0 MVP
+需要准备以下图片,放在 `images/` 目录:
+
+```
+images/
+  ├── lock.png      - 锁图标 (解锁按钮)
+  ├── check.png     - 对勾图标 (已解锁标记)
+  └── empty.png     - 空状态图标
+```
+
+建议尺寸:
+- lock.png: 200x200 px
+- check.png: 60x60 px
+- empty.png: 400x400 px
+
+## 🔌 API集成
+
+小程序会调用以下后端API:
+
+```
+# 用户登录
+POST /api/user/login
+{ "code": "wx.login获取的code" }
+
+# 检查解锁状态
+GET /api/vip/check_unlock?openid=xxx&guide_id=xxx
+
+# 创建订单
+POST /api/vip/create_order
+{ "openid": "xxx", "product_id": "guide_travel", "guide_id": "xxx" }
+
+# 查询订单状态
+GET /api/payment/query_order?order_id=xxx
+
+# 已解锁列表
+GET /api/vip/my_unlocked?openid=xxx
+```
+
+## 🧪 测试步骤
+
+### 1. 未解锁状态测试
+1. 打开攻略详情页
+2. 应显示预览内容 + 解锁卡片
+3. 点击"立即解锁"
+4. 调起微信支付
+
+### 2. 支付流程测试
+1. 完成支付
+2. 自动轮询订单状态
+3. 支付成功后显示"解锁成功"
+4. 刷新页面显示完整内容
+
+### 3. 已解锁状态测试
+1. 再次打开同一攻略
+2. 应直接显示完整内容
+3. 不显示支付按钮
+
+### 4. 已解锁列表测试
+1. 打开"我的已解锁"
+2. 应显示所有已支付的攻略
+3. 统计数据正确
+4. 点击可跳转详情
+
+## ⚠️ 注意事项
+
+### 1. 微信支付域名配置
+
+在小程序后台配置:
+```
+开发 → 开发设置 → 服务器域名
+request合法域名: https://api.wildtrip.com.cn
+```
+
+### 2. 支付权限
+
+确保小程序已开通微信支付功能:
+```
+小程序后台 → 功能 → 微信支付
+```
+
+### 3. 商户号关联
+
+确保商户号已关联小程序AppID:
+```
+商户平台 → 产品中心 → AppID账号管理
+```
+
+### 4. 真机调试
+
+支付功能必须在真机上测试,模拟器不支持微信支付。
+
+## 🎯 完整流程
+
+```
+用户生成攻略
+    ↓
+进入攻略详情页
+    ↓
+自动检查解锁状态
+    ↓ (未解锁)
+显示预览 + 支付按钮
+    ↓
+点击"立即解锁"
+    ↓
+调用后端创建订单
+    ↓
+调起微信支付
+    ↓
+用户完成支付
+    ↓
+轮询查询订单状态
+    ↓
+状态变为

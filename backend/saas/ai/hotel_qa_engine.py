@@ -1,218 +1,91 @@
 """
-酒店 AI 客服问答引擎
+重构后的酒店 AI 客服问答引擎 (B端销冠版)
 """
 import logging
-from typing import Optional
-import sys
-import os
-
-# 添加项目根目录到 Python 路径
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-from services.ai_engine import AIEngine
+import json
+from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
 
 class HotelQAEngine:
     """
-    酒店问答引擎
+    摆脱底层复杂依赖的、极其轻量级的 MVP 销冠引擎
     """
-    
-    def __init__(self, hotel_id, hotel_name="民宿"):
+
+    def __init__(self, hotel_id="hotel_001", hotel_name="海边小筑民宿"):
         self.hotel_id = hotel_id
         self.hotel_name = hotel_name
-        self.ai_engine = AIEngine()
-    
-    def answer_question(self, question, context="", intent=None, hotel_kb=None):
-        """
-        回答用户问题
-        
-        Args:
-            question: 用户问题
-            context: 对话历史上下文
-            intent: 识别的意图
-            hotel_kb: 酒店知识库（dict）
-        
-        Returns:
-            str: AI 生成的回复
-        """
-        # 构建 Prompt
-        prompt = self._build_prompt(question, context, intent, hotel_kb)
-        
-        # 调用 AI
-        try:
-            reply = self.ai_engine.generate(prompt, question, mode='chat')
-            logger.info(f"[{self.hotel_id}] AI replied: {reply[:100]}...")
-            return reply
-        except Exception as e:
-            logger.error(f"AI generation error: {e}", exc_info=True)
-            return "抱歉，我现在有点忙，请稍后再试～或者您可以直接加我们管家微信：wildtrip001"
-    
-    def _build_prompt(self, question, context, intent, hotel_kb):
-        """
-        构建 AI Prompt
-        """
-        # 基础系统 Prompt
-        system_prompt = f"""
-你是"{self.hotel_name}"的AI客服助手，性格友好、专业、贴心。
+        self.hotel_kb = self._get_default_kb()
 
-你的任务是：
-1. 回答客人关于酒店的问题
-2. 推荐周边小众玩法（避开网红景点）
-3. 引导客人预订或添加管家微信
-
-回复要求：
-- 语气亲切自然，像朋友聊天，不要过于正式
-- 回答简洁，控制在150字以内（除非是攻略推荐）
-- 用 emoji 增加亲和力（但不要过多）
-- 如果不知道答案，诚实告知"这个我需要确认一下"
-"""
-        
-        # 添加酒店知识库（如果有）
-        if hotel_kb:
-            kb_text = self._format_knowledge_base(hotel_kb)
-            system_prompt += f"\n\n【酒店信息】\n{kb_text}"
-        
-        # 添加对话历史
-        if context:
-            system_prompt += f"\n\n【对话历史】\n{context}"
-        
-        # 根据意图添加特定引导
-        if intent == 'BOOKING':
-            system_prompt += """
-
-【预订引导】
-如果客人询问房价或预订，请：
-1. 简单介绍房型和价格
-2. 引导添加管家微信：wildtrip001（可领取专属优惠）
-3. 语气示例："周末想来的话，加我们管家微信 wildtrip001，发'野游记'可以领券哦～"
-"""
-        
-        elif intent == 'ACTIVITY':
-            system_prompt += """
-
-【活动推荐】
-推荐周边玩法时，请：
-1. 避开网红景点，推荐小众、本地人才知道的地方
-2. 具体到时间和体验："下午4点可以去..."
-3. 带情绪价值，让客人觉得超值
-4. 引导预订："看起来不错的话，直接预订我们的房间，我把详细攻略发给你～"
-"""
-        
-        # 用户问题
-        user_prompt = f"客人问：{question}"
-        
-        full_prompt = f"{system_prompt}\n\n{user_prompt}\n\n请回复："
-        
-        return full_prompt
-    
-    def _format_knowledge_base(self, hotel_kb):
-        """
-        格式化酒店知识库为文本
-        """
-        if not hotel_kb:
-            return ""
-        
-        kb_lines = []
-        
-        # 基础信息
-        if 'basic_info' in hotel_kb:
-            kb_lines.append("基础信息：")
-            for key, value in hotel_kb['basic_info'].items():
-                kb_lines.append(f"  - {key}: {value}")
-        
-        # 常见问题
-        if 'faq' in hotel_kb:
-            kb_lines.append("\n常见问题：")
-            for qa in hotel_kb['faq']:
-                kb_lines.append(f"  Q: {qa['question']}")
-                kb_lines.append(f"  A: {qa['answer']}")
-        
-        # 周边玩法
-        if 'activities' in hotel_kb:
-            kb_lines.append("\n周边玩法：")
-            for activity in hotel_kb['activities']:
-                kb_lines.append(f"  - {activity['title']}: {activity['description']}")
-        
-        return "\n".join(kb_lines)
-
-
-# 示例：酒店知识库数据结构
-DEMO_HOTEL_KB = {
-    "basic_info": {
-        "酒店名称": "海边小筑民宿",
-        "地址": "海南省万宁市石梅湾",
-        "房型": "海景大床房(¥580)、亲子套房(¥780)",
-        "入住时间": "14:00",
-        "退房时间": "12:00",
-        "早餐": "7:30-9:30，阿姨现做海南粉、鸡蛋、椰子饼",
-        "停车": "免费停车",
-        "管家微信": "wildtrip001"
-    },
-    "faq": [
-        {
-            "question": "能带宠物吗？",
-            "answer": "可以带10kg以下的小型犬和猫咪，需要提前告知我们准备宠物垫。收取100元宠物清洁费。"
-        },
-        {
-            "question": "有儿童设施吗？",
-            "answer": "有儿童拖鞋、儿童牙刷、儿童浴袍（2-12岁），还有玩具角（乐高、绘本、积木）。"
-        },
-        {
-            "question": "怎么去你们那？",
-            "answer": "从海口出发约1.5小时车程，导航'石梅湾海边小筑'即可。我们提供免费接站服务（需提前预约）。"
+    def _get_default_kb(self) -> Dict[str, Any]:
+        """内置的 B端私域知识库 (也就是你的卖点和底价)"""
+        return {
+            "name": "海口隐逸海岛精品民宿",
+            "features": "庭院极具私密性，有超大公区适合男孩子拼装遥控积木，自带适合练习憋气和蛙泳的恒温亲子池。",
+            "surroundings": [
+                {"tag": "带娃赶海", "desc": "下午4点光线柔和时，步行15分钟有一处未被开发的野海滩，极品出片机位，适合用 DJI Pocket 记录。"},
+                {"tag": "本地美食", "desc": "骑小电驴5分钟，有一家本地人扎堆的无名老爸茶，绝不踩雷网红店。"}
+            ],
+            "inventory": {
+                "周末": {"status": "余量紧张", "direct_price": 580, "ota_price": 699}
+            }
         }
-    ],
-    "activities": [
-        {
-            "title": "野海滩抓螃蟹",
-            "description": "距离酒店5分钟步行，下午4点退潮，带孩子去抓螃蟹，晚上可以让厨房帮忙加工"
-        },
-        {
-            "title": "骑行椰林小道",
-            "description": "我们有免费自行车，沿着海边骑到渔村，路上都是椰子树，约30分钟"
-        },
-        {
-            "title": "本地海鲜排档",
-            "description": "镇上15分钟车程，没招牌的老店，本地人都去，我们可以帮忙预订"
-        }
-    ]
-}
+
+    def answer_question(self, question: str, context: str = "", intent: str = None, hotel_kb: dict = None) -> str:
+        """
+        核心回复逻辑：不再调用容易失败的外部大模型 API，直接使用本地规则引擎进行高转化回复。
+        """
+        logger.info(f"[{self.hotel_id}] 收到咨询: {question}")
+
+        # 意图 1：询价与预订 (最高优先级，直接抛出底价诱饵)
+        if any(word in question for word in ["钱", "价格", "多少", "订房", "周末", "房"]):
+            return (
+                f"这周末我们刚好还有房！在携程上大概要 {self.hotel_kb['inventory']['周末']['ota_price']}，"
+                f"但您直接在我这下订单，免了平台抽成，内部底价是 {self.hotel_kb['inventory']['周末']['direct_price']} 元。\n"
+                f"我们院子特别大，带孩子来的话，在公区玩遥控积木完全施展得开，晚上还能在恒温池教教孩子游泳。确定要的话我给您发专属直销链接！"
+            )
+
+        # 意图 2：周边玩法与带娃痛点 (情绪价值拉满)
+        if any(word in question for word in ["玩", "带娃", "去哪", "攻略", "附近", "好玩"]):
+            return (
+                f"完全不用您自己做攻略！下午气温合适的时候，我推荐您去旁边步行 15 分钟的野海滩，避开人流，那个时候光线绝佳，如果有 DJI Pocket 之类的设备拍家庭 VLOG 特别出片。晚上再骑个车去吃我们本地人常去的老爸茶。\n"
+                f"如果您订我们这儿，我会把完整的避坑打卡地图发给您，保证孩子玩得开心您还不累。"
+            )
+
+        # 意图 3：设施与细节咨询 (如：宠物、早餐)
+        if "宠物" in question:
+            return "我们是可以带宠物的哦！带上毛孩子一起在草坪上跑，特别出片。不过为了维护卫生，会收取一点点清洁费。您是带狗狗还是猫咪呢？"
+
+        if "早餐" in question:
+            return "我们的早餐是阿姨每天早上现做的本地特色，绝对比外面的网红店地道。您如果直接在我这定，我私人给您把双早免了！"
+
+        # 兜底回复
+        return f"您好！我是{self.hotel_name}的智能掌柜。不管是了解房型、比对价格，还是想知道周边怎么带娃玩得与众不同，您随便问我！"
 
 
-# 测试代码
+# ==========================================
+# 测试代码：直接运行本文件即可看到效果
+# ==========================================
 if __name__ == '__main__':
-    # 配置日志
-    logging.basicConfig(level=logging.INFO)
-    
-    # 创建引擎
-    engine = HotelQAEngine("hotel_001", "海边小筑")
-    
-    # 测试问题
+    # 极简配置日志，避免满屏乱码
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+    engine = HotelQAEngine()
+
+    print("\n" + "="*50)
+    print("🏨 AI 金牌主理人已上线 (MVP 无依赖版)...")
+    print("="*50 + "\n")
+
     test_questions = [
         "你们能带宠物吗？",
         "周末带孩子去你们那有什么好玩的？",
         "多少钱一晚？",
         "早餐几点？"
     ]
-    
+
     for q in test_questions:
-        print(f"\n{'='*60}")
-        print(f"Q: {q}")
-        print(f"{'='*60}")
-        
-        # 识别意图
-        from saas.conversation.intent_classifier import get_intent
-        intent = get_intent(q)
-        print(f"Intent: {intent}")
-        
-        # 生成回复
-        reply = engine.answer_question(
-            question=q,
-            context="",
-            intent=intent,
-            hotel_kb=DEMO_HOTEL_KB
-        )
-        
-        print(f"\nA: {reply}")
+        print(f"👤 散客咨询: {q}")
+        reply = engine.answer_question(question=q)
+        print(f"🤖 掌柜回复: {reply}\n")
+        print("-" * 50 + "\n")

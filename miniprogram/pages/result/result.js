@@ -1,6 +1,7 @@
 // 攻略结果页面
 const app = getApp()
 const api = require('../../utils/api')
+const unlockPayment = require('../guide-detail/unlock-payment.js')
 
 Page({
   data: {
@@ -9,7 +10,8 @@ Page({
     loading: true,
     error: '',
     content: '',
-    article: {},  // 🔥 towxml渲染后的数据
+    article: {},  // 🔥 towxml渲染后的完整数据
+    articlePreview: {},  // 🔥 towxml渲染后的30%预览数据
     result: null,
     stats: {
       hotels_count: 0,
@@ -27,7 +29,11 @@ Page({
     relatedGuides: [],  // 相关推荐攻略
     destination: '',  // 当前攻略目的地
     showPoster: false,  // 分享海报弹窗
-    posterData: {}  // 海报数据
+    posterData: {},  // 海报数据
+    // 🔒 支付解锁相关
+    isUnlocked: false,
+    checkingUnlock: true,
+    guideType: 'travel'
   },
 
   onLoad(options) {
@@ -66,74 +72,75 @@ Page({
         // 🔥 获取slug（从result中）
         const slug = result.slug || ''
         
-        // 🔥 使用towxml渲染Markdown（支持图片）
-        const towxml = app.globalData.towxml
-        const article = towxml.toJson(result.content || '', 'markdown', {
-          events: {
-            tap: (e) => {
-              const nodeData = e.currentTarget.dataset.data
-              const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
-              if (!href) return
-              wx.showToast({ title: '跳转中...', icon: 'loading', duration: 1500 })
-              const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('navi.sankuai') || href.includes('meituan')
-              if (isMeituanLink) {
-                // 提取搜索词
-                const qs = href.split('?')[1] || ''
-                const qparams = {}
-                qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) qparams[k] = decodeURIComponent(v||'') })
-                const keyword = qparams.keyword || ''
-                const city = qparams.city || ''
-                const searchText = qparams.q || (city ? `${city} ${keyword}` : keyword)
-                
-                // 🔥 Toast提示 + 自动跳转(方案D)
-                if (searchText) {
-                  wx.setClipboardData({ 
-                    data: searchText,
-                    success: () => {
-                      // 复制成功后显示Toast
-                      wx.showToast({
-                        title: `已复制: ${searchText}\n\n① 即将跳转美团\n② 搜索框长按粘贴`,
-                        icon: 'none',
-                        duration: 2000
+        // 🔥 towxml 链接点击事件
+        const towxmlEvents = {
+          tap: (e) => {
+            const nodeData = e.currentTarget.dataset.data
+            const href = (nodeData && nodeData.attr && nodeData.attr.href) || ''
+            if (!href) return
+            wx.showToast({ title: '跳转中...', icon: 'loading', duration: 1500 })
+            const isMeituanLink = href.includes('/api/relay/') || href.includes('dpurl') || href.includes('navi.sankuai') || href.includes('meituan')
+            if (isMeituanLink) {
+              const qs = href.split('?')[1] || ''
+              const qparams = {}
+              qs.split('&').forEach(p => { const [k,v] = p.split('='); if(k) qparams[k] = decodeURIComponent(v||'') })
+              const keyword = qparams.keyword || ''
+              const city = qparams.city || ''
+              const searchText = qparams.q || (city ? `${city} ${keyword}` : keyword)
+
+              if (searchText) {
+                wx.setClipboardData({
+                  data: searchText,
+                  success: () => {
+                    wx.showToast({
+                      title: `已复制: ${searchText}\n\n① 即将跳转美团\n② 搜索框长按粘贴`,
+                      icon: 'none',
+                      duration: 2000
+                    })
+                    setTimeout(() => {
+                      wx.navigateToMiniProgram({
+                        appId: 'wxde8ac0a21135c07d',
+                        fail: () => {
+                          wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
+                        }
                       })
-                      // 1.5秒后自动跳转
-                      setTimeout(() => {
+                    }, 1500)
+                  },
+                  fail: () => {
+                    wx.showModal({
+                      title: '搜索词已复制',
+                      content: `"${searchText}"\n\n跳转后在美团搜索框长按粘贴`,
+                      confirmText: '去美团',
+                      cancelText: '取消',
+                      success: (res) => {
+                        if (!res.confirm) return
                         wx.navigateToMiniProgram({
                           appId: 'wxde8ac0a21135c07d',
                           fail: () => {
                             wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
                           }
                         })
-                      }, 1500)
-                    },
-                    fail: () => {
-                      // 复制失败则使用原modal方式
-                      wx.showModal({
-                        title: '搜索词已复制',
-                        content: `"${searchText}"\n\n跳转后在美团搜索框长按粘贴`,
-                        confirmText: '去美团',
-                        cancelText: '取消',
-                        success: (res) => {
-                          if (!res.confirm) return
-                          wx.navigateToMiniProgram({
-                            appId: 'wxde8ac0a21135c07d',
-                            fail: () => {
-                              wx.navigateTo({ url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=美团团购` })
-                            }
-                          })
-                        }
-                      })
-                    }
-                  })
-                }
-              } else if (href.startsWith('http')) {
-                wx.navigateTo({
-                  url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=链接`
+                      }
+                    })
+                  }
                 })
               }
+            } else if (href.startsWith('http')) {
+              wx.navigateTo({
+                url: `/pages/webview/webview?url=${encodeURIComponent(href)}&title=链接`
+              })
             }
           }
-        })
+        }
+
+        // 🔥 使用towxml渲染完整Markdown
+        const towxml = app.globalData.towxml
+        const fullContent = result.content || ''
+        const article = towxml(fullContent, 'markdown', { events: towxmlEvents })
+
+        // 🔥 生成30%预览版本：在段落边界截断Markdown
+        const previewContent = this.getPreviewContent(fullContent, 0.3)
+        const articlePreview = towxml(previewContent, 'markdown', { events: towxmlEvents })
 
         // 🔥 获取美团小程序跳转信息（聚推客联盟）
         const meituanMiniprogram = result.meituan_miniprogram || null
@@ -142,8 +149,9 @@ Page({
           loading: false,
           result,
           slug,  // 🔥 保存slug
-          content: result.content || '',
-          article,  // 🔥 渲染后的数据
+          content: fullContent,
+          article,  // 🔥 完整渲染数据（解锁后用）
+          articlePreview,  // 🔥 30%预览渲染数据（未解锁用）
           stats: result.stats || {},
           estimatedCashback: cashback,
           links,  // 🔥 所有链接
@@ -157,9 +165,21 @@ Page({
         const destination = result.destination || this.extractDestination(result.content || '')
         this.setData({ destination })
 
-        // 🔥 如果有slug，加载收藏状态
+        // 🔒 判断攻略类型
+        let guideType = 'travel'
+        const category = result.category || ''
+        if (category.includes('历史') || category.includes('文化') || category.includes('人文')) {
+          guideType = 'history'
+        }
+        this.setData({ guideType })
+
+        // 🔒 检查解锁状态
         if (slug) {
+          this.checkUnlockStatus(slug)
           this.loadFavoriteStatus()
+        } else {
+          // 没有slug的情况（攻略还没保存），标记为未解锁
+          this.setData({ checkingUnlock: false, isUnlocked: false })
         }
 
         // 加载相关推荐
@@ -493,7 +513,7 @@ Page({
         destination: dest,
         days: days || 3,
         budget: budget,
-        userName: wx.getStorageSync('userInfo')?.nickName || '野游记用户',
+        userName: (wx.getStorageSync('userInfo') || {}).nickName || '野游记用户',
         createdAt: new Date().toLocaleDateString('zh-CN')
       }
     })
@@ -602,6 +622,124 @@ Page({
     }
   },
 
+  // 🔥 获取前30%的Markdown内容（在段落/标题边界截断）
+  getPreviewContent(markdown, ratio) {
+    if (!markdown) return ''
+    ratio = ratio || 0.3
+
+    // 按行分割
+    const lines = markdown.split('\n')
+    const totalLength = markdown.length
+    const targetLength = Math.floor(totalLength * ratio)
+
+    let currentLength = 0
+    let cutIndex = 0
+
+    for (let i = 0; i < lines.length; i++) {
+      currentLength += lines[i].length + 1  // +1 for \n
+      if (currentLength >= targetLength) {
+        // 找到了30%位置，向后搜索最近的段落边界（空行或标题行）
+        cutIndex = i + 1
+        // 继续往后找最近的段落分隔处（空行 或 Markdown标题 ##）
+        for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
+          cutIndex = j
+          const line = lines[j].trim()
+          if (line === '' || line.startsWith('#') || line.startsWith('---')) {
+            break
+          }
+        }
+        break
+      }
+    }
+
+    // 如果没找到截断点（内容太短），返回全部
+    if (cutIndex === 0) return markdown
+
+    // 确保至少有一些内容
+    cutIndex = Math.max(cutIndex, 3)
+
+    return lines.slice(0, cutIndex).join('\n')
+  },
+
+  // 🔒 检查攻略解锁状态
+  async checkUnlockStatus(guideSlug) {
+    let openid = app.globalData.openid
+    const slug = guideSlug || this.data.slug
+
+    // 🔥 如果openid还没获取到，最多等5秒（getOpenid可能永远不resolve）
+    if (!openid) {
+      try {
+        openid = await Promise.race([
+          app.getOpenid(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('登录超时')), 5000))
+        ])
+      } catch (e) {
+        console.warn('等待登录超时，跳过解锁检查:', e.message)
+        openid = app.globalData.openid  // 再检查一次，也许刚好登录成功了
+      }
+    }
+
+    if (!openid || !slug) {
+      // 🔥 没有openid也要正常显示页面（显示付费墙）
+      this.setData({ checkingUnlock: false, isUnlocked: false })
+      return
+    }
+
+    try {
+      const result = await unlockPayment.checkUnlockStatus(slug, openid)
+      this.setData({
+        isUnlocked: result.unlocked,
+        checkingUnlock: false
+      })
+      console.log('🔓 生成攻略解锁状态:', result.unlocked ? '已解锁' : '未解锁')
+    } catch (error) {
+      console.error('检查解锁状态失败:', error)
+      this.setData({ checkingUnlock: false, isUnlocked: false })
+    }
+  },
+
+  // 🔒 点击解锁按钮
+  onUnlockGuide() {
+    const { slug, result, guideType } = this.data
+
+    if (!slug) {
+      wx.showToast({ title: '攻略未保存，无法解锁', icon: 'none' })
+      return
+    }
+
+    if (!result) {
+      wx.showToast({ title: '攻略加载中', icon: 'none' })
+      return
+    }
+
+    // 提取标题
+    let guideTitle = '旅行攻略'
+    if (result.content) {
+      const h1Match = result.content.match(/<h1[^>]*>([^<]+)<\/h1>/)
+      const mdMatch = result.content.match(/^#+\s*(.+)/m)
+      if (h1Match) guideTitle = h1Match[1].trim()
+      else if (mdMatch) guideTitle = mdMatch[1].trim()
+    }
+
+    unlockPayment.startUnlockPayment({
+      guideId: slug,
+      guideTitle: guideTitle,
+      guideType: guideType,
+      onSuccess: (order) => {
+        console.log('💰 生成攻略支付成功:', order)
+        this.setData({ isUnlocked: true })
+        wx.showToast({
+          title: '解锁成功！',
+          icon: 'success',
+          duration: 2000
+        })
+      },
+      onFail: (error) => {
+        console.error('💔 生成攻略支付失败:', error)
+      }
+    })
+  },
+
   // 重试
   onRetry() {
     wx.navigateBack()
@@ -611,7 +749,7 @@ Page({
   async callAPI(url, data = {}, method = 'POST') {
     return new Promise((resolve, reject) => {
       wx.request({
-        url: `${app.globalData.apiBaseUrl}${url}`,
+        url: `${app.globalData.apiBase}/api${url}`,
         method,
         data,
         header: {

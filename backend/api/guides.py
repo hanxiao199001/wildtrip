@@ -6,13 +6,32 @@
 from flask import Blueprint, jsonify, request
 from loguru import logger
 import os
+import re
+import json
 from pathlib import Path
 
 # 创建Blueprint
 guides_bp = Blueprint('guides', __name__)
 
-# 攻略存储路径
-GUIDES_DIR = Path(__file__).parent.parent.parent / 'web' / 'guides'
+# 攻略存储路径 - 延迟获取，与 seo_service 保持一致
+# seo_service 默认保存到 /root/clawd/wildtrip/web/guides（服务器）
+# 本地开发时回退到项目相对路径 ../../web/guides
+_guides_dir_cache = None
+
+def get_guides_dir():
+    """获取攻略存储目录，与seo_service保持一致"""
+    global _guides_dir_cache
+    if _guides_dir_cache is not None:
+        return _guides_dir_cache
+    try:
+        from services.seo_service import get_seo_service
+        seo = get_seo_service()
+        _guides_dir_cache = seo.static_dir
+        logger.info(f"📂 攻略目录(seo_service): {_guides_dir_cache}")
+    except Exception:
+        _guides_dir_cache = Path(__file__).parent.parent.parent / 'web' / 'guides'
+        logger.info(f"📂 攻略目录(fallback): {_guides_dir_cache}")
+    return _guides_dir_cache
 
 # 用户收藏存储（内存，实际应该用数据库）
 user_favorites = set()  # 存储 slug
@@ -36,21 +55,23 @@ def list_guides():
     """
     try:
         from services.seo_service import get_seo_service
-        
+
         seo = get_seo_service()
         guides = seo.get_all_guides()
-        
-        # 提取标题（从slug中提取）
+
+        # 过滤掉测试/demo/假攻略
+        guides = _filter_valid_guides(guides)
+
+        # 加载 metadata.json
+        metadata_map = _load_metadata_map()
+
         for guide in guides:
-            # slug格式：城市-天数-类型-时间戳-hash
-            # 示例：上海3天美食游测试-202602041633-51b4d9df
-            slug_parts = guide['slug'].rsplit('-', 2)  # 分割最后两部分（时间和hash）
-            guide['title'] = slug_parts[0] if slug_parts else guide['slug']
-        
+            _enrich_guide(guide, metadata_map)
+
         logger.info(f"📋 返回攻略列表: {len(guides)}篇")
-        
+
         return jsonify(guides), 200
-        
+
     except Exception as e:
         logger.error(f"获取攻略列表失败: {e}")
         return jsonify({
@@ -76,12 +97,17 @@ def get_featured_guides():
         if not all_guides:
             return jsonify([]), 200
 
+        # 加载 metadata.json 建立 slug→元数据 映射
+        metadata_map = _load_metadata_map()
+
+        # 过滤掉测试/demo/假攻略
+        all_guides = _filter_valid_guides(all_guides)
+
         # 按时间倒序，取前N篇
         featured = sorted(all_guides, key=lambda g: g.get('created_at', ''), reverse=True)[:limit]
 
         for guide in featured:
-            slug_parts = guide['slug'].rsplit('-', 2)
-            guide['title'] = slug_parts[0] if slug_parts else guide['slug']
+            _enrich_guide(guide, metadata_map)
 
         logger.info(f"⭐ 返回精选攻略: {len(featured)}篇")
         return jsonify(featured), 200
@@ -108,7 +134,7 @@ def get_guide_detail(slug):
     """
     try:
         # 读取HTML文件
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -116,10 +142,15 @@ def get_guide_detail(slug):
             }), 404
         
         content = html_path.read_text(encoding='utf-8')
-        
-        # 提取标题
-        slug_parts = slug.rsplit('-', 2)
-        title = slug_parts[0] if slug_parts else slug
+
+        # 提取标题：优先metadata，其次slug，最后HTML
+        metadata_map = _load_metadata_map()
+        if slug in metadata_map:
+            title = _clean_title(metadata_map[slug].get('title', ''))
+        else:
+            title = _extract_title_from_slug(slug)
+            if not title or title.lower() == 'guide' or (len(title) < 4 and title.isascii()):
+                title = _extract_title_from_html(html_path)
         
         # 统计字数（简单统计，实际应该去除HTML标签）
         word_count = len(content)
@@ -149,7 +180,7 @@ def favorite_guide(slug):
     """收藏攻略"""
     try:
         # 检查攻略是否存在
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -196,7 +227,7 @@ def unfavorite_guide(slug):
 def delete_guide(slug):
     """删除攻略"""
     try:
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -228,7 +259,7 @@ def share_guide(slug):
     """生成分享链接"""
     try:
         # 检查攻略是否存在
-        html_path = GUIDES_DIR / f"{slug}.html"
+        html_path = get_guides_dir() / f"{slug}.html"
         if not html_path.exists():
             return jsonify({
                 'error': '攻略不存在',
@@ -251,3 +282,126 @@ def share_guide(slug):
             'error': str(e),
             'code': 'INTERNAL_ERROR'
         }), 500
+
+
+# ===== 辅助函数 =====
+
+# 明确排除的slug列表（测试、demo、重复页面）
+_EXCLUDE_SLUGS = {
+    'index', 'demo', 'demo-haikou-weekend-7yo-boy-paywall',
+    'haikou-weekend-ultimate',
+    '上海1天美食游测试-202602042201-ee8f22ca'
+}
+
+
+def _filter_valid_guides(guides):
+    """只保留真实攻略：guide-YYYYMMDDHHMMSS-hash 格式的文件
+
+    规则：
+    - 只保留 guide- 开头的文件（每日脚本生成的真实攻略）
+    - 排除 test-/demo 开头的文件
+    - 排除 ui-test / guide-test 等测试文件
+    - 排除含"测试"、"[金额]"占位符的文件
+    """
+    filtered = []
+    for g in guides:
+        slug = g['slug']
+        # 1. 排除明确的测试/demo页面
+        if slug in _EXCLUDE_SLUGS:
+            continue
+        # 2. 排除 test/demo 开头
+        if slug.startswith('test-') or slug.startswith('demo'):
+            continue
+        # 3. 只保留 guide- 开头的真实攻略（排除旧版中文命名的假攻略）
+        if not slug.startswith('guide-'):
+            continue
+        # 4. 排除 guide-test / guide-ui-test 等测试文件
+        if 'test' in slug.lower():
+            continue
+        # 5. 排除文件名中含有"测试"或未替换占位符的假攻略
+        if '金额' in slug or '测试' in slug:
+            continue
+        filtered.append(g)
+    logger.info(f"🔍 攻略过滤: {len(guides)}→{len(filtered)}篇 (排除{len(guides)-len(filtered)}篇假攻略)")
+    return filtered
+
+
+def _load_metadata_map():
+    """加载 metadata.json，返回 slug→元数据 映射"""
+    metadata_map = {}
+    metadata_path = get_guides_dir() / 'metadata.json'
+    if metadata_path.exists():
+        try:
+            meta_list = json.loads(metadata_path.read_text(encoding='utf-8'))
+            for m in meta_list:
+                metadata_map[m.get('slug', '')] = m
+        except Exception as e:
+            logger.warning(f"加载metadata.json失败: {e}")
+    return metadata_map
+
+
+def _clean_title(raw_title):
+    """清理标题：去掉后缀和开头emoji"""
+    if not raw_title:
+        return '旅行攻略'
+    clean = re.split(r'\s*[-|]\s*(?:野游记|我的行程|省[¥￥])', raw_title)[0].strip()
+    # 去掉开头emoji
+    clean = re.sub(r'^[\U0001f300-\U0001f9ff\u2600-\u26ff\u2700-\u27bf]+\s*', '', clean)
+    return clean or raw_title
+
+
+def _extract_title_from_slug(slug):
+    """从slug提取标题（去掉时间戳和hash后缀）"""
+    slug_parts = slug.rsplit('-', 2)
+    return slug_parts[0] if slug_parts else slug
+
+
+def _extract_title_from_html(html_path):
+    """从HTML文件的og:title或<title>标签提取标题"""
+    try:
+        if not html_path.exists():
+            return '旅行攻略'
+        head = html_path.read_text(encoding='utf-8')[:3000]
+        # 优先 og:title
+        og_match = re.search(r'<meta\s+property="og:title"\s+content="([^"]+)"', head)
+        if og_match:
+            return _clean_title(og_match.group(1))
+        # 回退 <title>
+        title_match = re.search(r'<title>([^<]+)</title>', head)
+        if title_match:
+            return _clean_title(title_match.group(1))
+        return '旅行攻略'
+    except Exception:
+        return '旅行攻略'
+
+
+def _make_cover_image(slug: str) -> str:
+    """根据 slug hash 生成固定 picsum 封面图（无需 API key，seed 固定让同一攻略图片一致）"""
+    seed = abs(hash(slug)) % 1000
+    return f'https://picsum.photos/seed/{seed}/800/600'
+
+
+def _enrich_guide(guide, metadata_map):
+    """用metadata或HTML丰富攻略数据"""
+    slug = guide['slug']
+    if slug in metadata_map:
+        meta = metadata_map[slug]
+        guide['title'] = _clean_title(meta.get('title', ''))
+        guide['destination'] = meta.get('destination', '')
+        guide['days'] = meta.get('days', 0)
+        guide['budget'] = meta.get('budget', '')
+        guide['views'] = meta.get('views', 0)
+        guide['likes'] = meta.get('likes', 0)
+        cover = meta.get('cover_image', '')
+        # 兜底：空或失效的 source.unsplash.com 链接，自动换 picsum
+        if not cover or 'source.unsplash.com' in cover:
+            cover = _make_cover_image(slug)
+        guide['cover_image'] = cover
+    else:
+        title = _extract_title_from_slug(slug)
+        # 如果slug提取的标题是纯英文（非中文），从HTML提取更好的标题
+        if not title or title.isascii():
+            title = _extract_title_from_html(get_guides_dir() / f"{slug}.html")
+        guide['title'] = title
+        # 新攻略也保证有封面图
+        guide.setdefault('cover_image', _make_cover_image(slug))
