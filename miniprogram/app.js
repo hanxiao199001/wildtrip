@@ -1,11 +1,12 @@
 // app.js
 const towxml = require('/towxml/index')
+const { API_BASE } = require('./utils/config.js')
 
 App({
   globalData: {
     openid: '',
     userInfo: null,
-    apiBase: 'https://api.wildtrip.com.cn',
+    apiBase: API_BASE,
     towxml: towxml
   },
 

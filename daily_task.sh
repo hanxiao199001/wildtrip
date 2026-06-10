@@ -1,7 +1,8 @@
 #!/bin/bash
 # 每日生产任务 - 15 篇高质量攻略
 
-cd /root/clawd/wildtrip-existing/backend
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
 
 echo "🌴 野游记每日生产任务"
 echo "目标：15 篇海南本地高质量攻略"

@@ -145,12 +145,12 @@ systemctl status wildtrip-backend
 ### .env 必需配置
 ```bash
 # 微信小程序
-WECHAT_APPID=wxb5430a06dd7fa579
-WECHAT_SECRET=***REMOVED***
+WECHAT_APPID=<YOUR_APPID>
+WECHAT_SECRET=<YOUR_WECHAT_SECRET>
 
 # 微信商户号
 WECHAT_MCHID=1106656739
-WECHAT_API_KEY=***REMOVED***
+WECHAT_API_KEY=<YOUR_WECHAT_PAY_API_KEY>
 
 # 回调地址
 PAYMENT_NOTIFY_URL=https://api.wildtrip.com.cn/api/payment/notify

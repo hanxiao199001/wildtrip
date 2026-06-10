@@ -20,10 +20,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # 创建Flask应用
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'wildtrip-2026-no-ordinary-path'
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-only-secret-change-in-production')
 
 # 数据库配置
-DB_DIR = os.getenv('DB_DIR', '/root/clawd/wildtrip/data')
+DB_DIR = os.getenv('DB_DIR', str(Path(__file__).parent / 'data'))
 Path(DB_DIR).mkdir(parents=True, exist_ok=True)
 DB_PATH = Path(DB_DIR) / 'orders.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
@@ -67,10 +67,8 @@ from api.user import user_bp
 from api.relay import relay_bp
 from api.clarify import clarify_bp
 from api.qrcode import qrcode_bp
-from api.subscription import subscription_bp  # 🔥 新增:订阅消息
-from api.payment import payment_bp  # 🔥 新增:支付功能
-from api.vip import vip_bp  # 🔥 新增:VIP会员
-from routes.track import track_bp  # 🔥 新增:点击追踪
+from api.subscription import subscription_bp  # 订阅消息
+from api.track import track_bp  # 点击追踪
 
 app.register_blueprint(generate_bp, url_prefix='/api')
 app.register_blueprint(guides_bp, url_prefix='/api')
@@ -78,13 +76,11 @@ app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(relay_bp, url_prefix='/api')
 app.register_blueprint(clarify_bp, url_prefix='/api')
 app.register_blueprint(qrcode_bp, url_prefix='/api')
-app.register_blueprint(subscription_bp, url_prefix='/api')  # 🔥 新增
-app.register_blueprint(payment_bp, url_prefix='/api/payment')  # 🔥 新增:支付
-app.register_blueprint(vip_bp, url_prefix='/api/vip')  # 🔥 新增:VIP
-app.register_blueprint(track_bp)  # 🔥 新增:点击追踪
+app.register_blueprint(subscription_bp, url_prefix='/api')
+app.register_blueprint(track_bp, url_prefix='/api')
 register_socketio_events(socketio)
 
-logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统 + 需求澄清 + 小程序码 + 中转页 + 订阅消息 + 支付 + VIP会员 + 点击追踪）")
+logger.info("野游记 WildTrip API已注册（生成 + 攻略列表 + 用户系统 + 需求澄清 + 小程序码 + 中转页 + 订阅消息 + 点击追踪）")
 
 # 🔥 启动周末推送服务
 try:

@@ -33,7 +33,8 @@ function request(url, data = {}, method = 'POST') {
  * 生成攻略
  */
 function generateItinerary(query, mode = 'full') {
-  return request('/generate', { query, mode })
+  const user_id = getApp().globalData.openid || ''
+  return request('/generate', { query, mode, user_id })
 }
 
 /**

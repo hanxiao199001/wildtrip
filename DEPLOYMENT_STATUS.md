@@ -199,7 +199,7 @@ sqlite3 /root/clawd/wildtrip/data/orders.db "
 ### 账号信息
 
 ```
-小程序AppID: wxb5430a06dd7fa579
+小程序AppID: <YOUR_APPID>
 商户号: 1106656739
 API域名: https://api.wildtrip.com.cn
 ```

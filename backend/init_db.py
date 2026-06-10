@@ -4,7 +4,7 @@
 创建所有表结构
 """
 from flask import Flask
-from models import db, Order, User
+from models import db, User
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # 数据库配置
-DB_DIR = os.getenv('DB_DIR', '/root/clawd/wildtrip/data')
+DB_DIR = os.getenv('DB_DIR', str(Path(__file__).parent / 'data'))
 Path(DB_DIR).mkdir(parents=True, exist_ok=True)
 
 DB_PATH = Path(DB_DIR) / 'orders.db'
@@ -33,7 +33,6 @@ if __name__ == '__main__':
         print(f"✅ 数据库初始化成功!")
         print(f"📁 数据库路径: {DB_PATH}")
         print(f"📋 已创建表:")
-        print(f"   - orders (订单表)")
         print(f"   - users (用户表)")
         
         # 显示表结构

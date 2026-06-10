@@ -154,3 +154,8 @@ canvas/
 # web/images 中的运营图片需要入库（覆盖上面的图片排除规则）
 !web/images/
 !web/images/**
+
+# 演示/临时文件
+*.pptx
+昨日攻略预览.md
+test_*output*.html

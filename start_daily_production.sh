@@ -1,7 +1,8 @@
 #!/bin/bash
 # 启动每日生产任务
 
-cd /root/clawd/wildtrip-existing
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT"
 
 echo "🌴 野游记每日生产任务"
 echo "================================"
@@ -45,4 +46,4 @@ echo "📄 查看报告："
 echo "cat backend/data/daily_reports/report_$(date +%Y-%m-%d).json"
 echo ""
 echo "📁 查看生成的页面："
-echo "ls -lh /root/clawd/wildtrip/web/guides/ | tail -20"
+echo "ls -lh "$PROJECT_ROOT"/web/guides/ | tail -20"

@@ -158,7 +158,8 @@ Page({
     try {
       var res = await this.callAPI('/generate', {
         query: this.data.query,
-        mode: this.data.mode
+        mode: this.data.mode,
+        user_id: getApp().globalData.openid || ''  // 用于保存到"我的攻略"
       })
 
       if (res.task_id) {

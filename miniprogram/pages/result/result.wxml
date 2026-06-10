@@ -1,5 +1,5 @@
 <!--攻略结果页面-->
-<view class="page-container result-page {{isUnlocked ? 'has-bottom-bar' : ''}}">
+<view class="page-container result-page has-bottom-bar">
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <view class="loading-spinner"></view>
@@ -36,68 +36,13 @@
       </view>
     </view>
 
-    <!-- 已解锁：完整攻略内容（🔥 支持Markdown图片） -->
-    <view class="content-card card" wx:if="{{isUnlocked}}">
+    <!-- 完整攻略内容（🔥 支持Markdown图片） -->
+    <view class="content-card card">
       <towxml nodes="{{article}}" />
     </view>
 
-    <!-- 🔥 未解锁：显示前30%内容 + 底部渐变遮罩 -->
-    <view class="content-card card content-preview-wrap" wx:if="{{!isUnlocked && !checkingUnlock}}">
-      <towxml nodes="{{articlePreview}}" />
-      <view class="content-preview-fade"></view>
-    </view>
-
-    <!-- 解锁提示卡片 - 旅行攻略 -->
-    <view class="unlock-card card" wx:if="{{!isUnlocked && !checkingUnlock && guideType !== 'history'}}">
-      <view class="unlock-card-header">
-        <text class="unlock-icon-big">🔒</text>
-        <text class="unlock-title">解锁完整攻略</text>
-      </view>
-      <view class="unlock-benefits">
-        <view class="unlock-benefit-item">✅ 完整行程时间表（精确到每小时）</view>
-        <view class="unlock-benefit-item">✅ 餐厅名称 + 地址 + 推荐菜品</view>
-        <view class="unlock-benefit-item">✅ 景点门票优惠渠道</view>
-        <view class="unlock-benefit-item">✅ 雨天备选方案</view>
-      </view>
-      <view class="unlock-price-row">
-        <text class="unlock-price-symbol">¥</text>
-        <text class="unlock-price-amount">4.8</text>
-        <text class="unlock-price-desc">一次付费 · 永久查看</text>
-      </view>
-      <button class="unlock-pay-btn" bindtap="onUnlockGuide">💎 立即解锁</button>
-    </view>
-
-    <!-- 解锁提示卡片 - 人文历史路线 -->
-    <view class="unlock-card card" wx:if="{{!isUnlocked && !checkingUnlock && guideType === 'history'}}">
-      <view class="unlock-card-header">
-        <text class="unlock-icon-big">📜</text>
-        <text class="unlock-title">解锁人文历史路线</text>
-      </view>
-      <view class="unlock-desc">由AI深度研究当地历史脉络，串联古迹与故事，带你读懂一座城</view>
-      <view class="unlock-benefits">
-        <view class="unlock-benefit-item">✅ 历史背景深度解读（朝代更迭、名人轶事）</view>
-        <view class="unlock-benefit-item">✅ 文化路线串联（古迹间的逻辑与步行路线）</view>
-        <view class="unlock-benefit-item">✅ 本地人文故事（非遗、民俗、地道体验）</view>
-        <view class="unlock-benefit-item">✅ 博物馆/古建筑探访指南 + 讲解要点</view>
-        <view class="unlock-benefit-item">✅ 文化主题餐饮推荐（老字号、传统小吃）</view>
-      </view>
-      <view class="unlock-price-row">
-        <text class="unlock-price-symbol">¥</text>
-        <text class="unlock-price-amount">9.8</text>
-        <text class="unlock-price-desc">一次付费 · 永久查看</text>
-      </view>
-      <view class="unlock-value-note">相当于一杯咖啡的钱，省下请导游的几百块</view>
-      <button class="unlock-pay-btn" bindtap="onUnlockGuide">📜 立即解锁</button>
-    </view>
-
-    <!-- 正在检查解锁状态 -->
-    <view class="content-card card" wx:if="{{checkingUnlock}}" style="text-align:center;padding:60rpx 0;">
-      <view class="loading-spinner" style="margin:0 auto 20rpx;width:48rpx;height:48rpx;border-width:4rpx;"></view>
-      <text style="color:#9CA3AF;font-size:26rpx;">正在检查解锁状态...</text>
-    </view>
-
-    <!-- 🔥 快速预订区域（聚推客联盟 - 跳转美团小程序）解锁后才显示 -->
-    <view class="quick-booking card" wx:if="{{isUnlocked && links && links.length > 0}}">
+    <!-- 🔥 快速预订区域（聚推客联盟 - 跳转美团小程序） -->
+    <view class="quick-booking card" wx:if="{{links && links.length > 0}}">
       <view class="section-title">🔥 快速预订（立省50%）</view>
 
       <!-- 美团小程序跳转状态提示 -->
@@ -200,7 +145,7 @@
     </view>
 
     <!-- 操作按钮（仅解锁后显示，避免与解锁卡片重叠） -->
-    <view class="actions" wx:if="{{isUnlocked}}">
+    <view class="actions">
       <!-- 第一行：主要操作 -->
       <view class="action-row">
         <button class="btn-secondary" bindtap="onCopy">📋 复制</button>

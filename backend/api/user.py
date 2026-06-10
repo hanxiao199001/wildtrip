@@ -117,8 +117,8 @@ def login():
 def get_user_guides(user_id):
     try:
         limit = int(request.args.get('limit', 50))
-        from services.user_service import get_user_service
-        service = get_user_service()
+        from services.guide_history_service import get_guide_history_service
+        service = get_guide_history_service()
         guides = service.get_user_guides(user_id, limit)
         for guide in guides:
             if 'content' in guide:
@@ -134,8 +134,8 @@ def get_user_guides(user_id):
 @user_bp.route('/user/<user_id>/guides/<guide_id>', methods=['GET'])
 def get_guide(user_id, guide_id):
     try:
-        from services.user_service import get_user_service
-        service = get_user_service()
+        from services.guide_history_service import get_guide_history_service
+        service = get_guide_history_service()
         guide = service.get_guide_by_id(user_id, guide_id)
         if not guide:
             return jsonify({'error': '攻略不存在', 'code': 'GUIDE_NOT_FOUND'}), 404
@@ -148,8 +148,8 @@ def get_guide(user_id, guide_id):
 @user_bp.route('/user/<user_id>/guides/<guide_id>', methods=['DELETE'])
 def delete_guide(user_id, guide_id):
     try:
-        from services.user_service import get_user_service
-        service = get_user_service()
+        from services.guide_history_service import get_guide_history_service
+        service = get_guide_history_service()
         success = service.delete_guide(user_id, guide_id)
         if not success:
             return jsonify({'error': '攻略不存在', 'code': 'GUIDE_NOT_FOUND'}), 404
@@ -163,8 +163,8 @@ def delete_guide(user_id, guide_id):
 @user_bp.route('/user/<user_id>/guides/<guide_id>/favorite', methods=['POST'])
 def toggle_favorite(user_id, guide_id):
     try:
-        from services.user_service import get_user_service
-        service = get_user_service()
+        from services.guide_history_service import get_guide_history_service
+        service = get_guide_history_service()
         favorite = service.toggle_favorite(user_id, guide_id)
         return jsonify({'favorite': favorite}), 200
     except Exception as e:
@@ -175,8 +175,8 @@ def toggle_favorite(user_id, guide_id):
 @user_bp.route('/user/stats', methods=['GET'])
 def get_stats():
     try:
-        from services.user_service import get_user_service
-        service = get_user_service()
+        from services.guide_history_service import get_guide_history_service
+        service = get_guide_history_service()
         stats = service.get_stats()
         return jsonify(stats), 200
     except Exception as e:

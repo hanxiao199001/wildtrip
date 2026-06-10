@@ -2,7 +2,7 @@
 用户模型
 """
 from datetime import datetime
-from models.order import db
+from models.base import db
 
 
 class User(db.Model):

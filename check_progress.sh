@@ -13,7 +13,7 @@ if pgrep -f "daily_production.py" > /dev/null; then
   # 显示最近的日志
   echo "📋 最近日志（最后 20 行）："
   echo "---"
-  tail -20 /root/clawd/wildtrip-existing/backend/logs/wildtrip.log 2>/dev/null || echo "（日志文件未找到）"
+  tail -20 "$PROJECT_ROOT"/backend/logs/wildtrip.log 2>/dev/null || echo "（日志文件未找到）"
   echo ""
 else
   echo "❌ 没有正在运行的任务"
@@ -22,7 +22,7 @@ fi
 
 # 显示今日报告（如果存在）
 TODAY=$(date +%Y-%m-%d)
-REPORT_FILE="/root/clawd/wildtrip-existing/backend/data/daily_reports/report_${TODAY}.json"
+REPORT_FILE=""$PROJECT_ROOT"/backend/data/daily_reports/report_${TODAY}.json"
 
 if [ -f "$REPORT_FILE" ]; then
   echo "📄 今日报告："
@@ -47,4 +47,4 @@ echo ""
 echo "💡 提示："
 echo "  - 实时日志: tail -f backend/logs/wildtrip.log"
 echo "  - 查看选题: cat backend/data/daily_topics/topics_${TODAY}.json"
-echo "  - 查看生成页面: ls -lh /root/clawd/wildtrip/web/guides/ | tail -20"
+echo "  - 查看生成页面: ls -lh "$PROJECT_ROOT"/web/guides/ | tail -20"
