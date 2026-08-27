@@ -10,6 +10,8 @@ from pathlib import Path
 from flask import Blueprint, request, jsonify
 from loguru import logger
 
+from services.json_storage import append_jsonl, iter_jsonl
+
 # 创建 Blueprint
 track_bp = Blueprint('track', __name__)
 
@@ -58,8 +60,7 @@ def track_click():
         today = datetime.now().strftime('%Y-%m-%d')
         log_file = TRACK_DATA_DIR / f'{today}.jsonl'
         
-        with open(log_file, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(data, ensure_ascii=False) + '\n')
+        append_jsonl(log_file, data)
         
         logger.info(f"🔗 点击追踪 | {data.get('poi_type')} | {data.get('poi_name')} | {data.get('page')}")
         
@@ -99,13 +100,10 @@ def track_stats():
         
         # 读取数据
         clicks = []
-        with open(log_file, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.strip():
-                    click = json.loads(line)
-                    if page_filter and click.get('page') != page_filter:
-                        continue
-                    clicks.append(click)
+        for click in iter_jsonl(log_file):
+            if page_filter and click.get('page') != page_filter:
+                continue
+            clicks.append(click)
         
         # 统计
         stats = {

@@ -12,6 +12,8 @@ from threading import Lock
 
 from loguru import logger
 
+from services.json_storage import read_json, write_json
+
 _DATA_DIR = Path(os.getenv('DB_DIR', str(Path(__file__).parent.parent / 'data'))) / 'user_guides'
 _lock = Lock()
 
@@ -29,19 +31,10 @@ class GuideHistoryService:
         return self.data_dir / f'{safe_id}.json'
 
     def _load(self, user_id: str) -> list:
-        f = self._user_file(user_id)
-        if not f.exists():
-            return []
-        try:
-            return json.loads(f.read_text(encoding='utf-8'))
-        except Exception as e:
-            logger.warning(f"读取用户攻略历史失败 {user_id}: {e}")
-            return []
+        return read_json(self._user_file(user_id), default=[])
 
     def _save(self, user_id: str, guides: list):
-        self._user_file(user_id).write_text(
-            json.dumps(guides, ensure_ascii=False, indent=2), encoding='utf-8'
-        )
+        write_json(self._user_file(user_id), guides)
 
     def save_user_guide(self, user_id: str, guide: dict) -> str:
         """保存一篇攻略到用户历史，返回 guide_id"""
@@ -94,7 +87,7 @@ class GuideHistoryService:
         total_guides = 0
         for f in files:
             try:
-                total_guides += len(json.loads(f.read_text(encoding='utf-8')))
+                total_guides += len(read_json(f, default=[]))
             except Exception:
                 pass
         return {'total_users': len(files), 'total_guides': total_guides}
