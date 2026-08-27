@@ -16,14 +16,18 @@ class TaobaoAffiliate:
     
     def __init__(self):
         """初始化聚推客配置"""
-        self.pub_id = os.getenv('JUTULKE_PUB_ID', '451888')
-        self.api_key = os.getenv('JUTULKE_API_KEY', 'oVlOMmKY3vXKDRoYMjm8jmmy97AUFHId')
+        self.pub_id = os.getenv('JUTUIKE_PUB_ID', os.getenv('JUTULKE_PUB_ID', ''))
+        # 兼容历史拼写 JUTULKE_API_KEY，统一推荐 JUTUIKE_API_KEY（见 .env.example）
+        self.api_key = os.getenv('JUTUIKE_API_KEY', os.getenv('JUTULKE_API_KEY', ''))
+        if not self.api_key:
+            logger.warning("⚠️ 未配置 JUTUIKE_API_KEY，聚推客转链不可用")
         self.api_base = os.getenv('JUTULKE_API_BASE', 'https://api.jutulke.com')
         
         # 聚推客短链接域名
         self.short_domain = 'https://kzurl18.cn'
         
-        logger.info(f"✅ 聚推客淘宝联盟已配置 | PUB_ID: {self.pub_id}")
+        if self.pub_id:
+            logger.info(f"✅ 聚推客淘宝联盟已配置 | PUB_ID: {self.pub_id}")
     
     def search_goods(self, keyword: str, category: str = 'hotel', limit: int = 10) -> list:
         """

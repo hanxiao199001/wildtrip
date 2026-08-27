@@ -3,12 +3,14 @@
 测试聚推客联盟API
 """
 
+import os
+
 import requests
 import json
 
 # 聚推客配置
-PUB_ID = "451888"
-API_KEY = "oVlOMmKY3vXKDRoYMjm8jmmy97AUFHId"
+PUB_ID = os.getenv("JUTUIKE_PUB_ID", "")
+API_KEY = os.getenv("JUTUIKE_API_KEY", "")  # 从 .env 读取，不要硬编码
 API_BASE = "https://api.jutulke.com"  # 假设的API地址
 
 print("=" * 70)

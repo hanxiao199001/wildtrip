@@ -80,7 +80,7 @@ apiBaseUrl: 'https://api.wildtrip.com.cn/api'  // ✅ 切换到生产环境
 **3. 检查生产环境配置**
 ```bash
 # backend/.env (生产服务器)
-AI_API_KEY=sk-b8cbb6885bd34199ab26ab3c33f2ad6d  ✅
+AI_API_KEY=sk-****（已脱敏，真实值仅存于服务器 .env）  ✅
 AI_MODEL=qwen3-max  ✅
 ```
 
