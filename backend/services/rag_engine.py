@@ -39,14 +39,11 @@ class RAGEngine:
         logger.info(f"📊 当前攻略数量: {self.travel_guides.count()}")
     
     def _get_or_create_collection(self, name: str):
-        """获取或创建collection"""
-        try:
-            return self.client.get_collection(name)
-        except:
-            return self.client.create_collection(
-                name=name,
-                metadata={"description": "旅游攻略向量数据库"}
-            )
+        """获取或创建collection（chromadb 1.x 原生支持 get_or_create）"""
+        return self.client.get_or_create_collection(
+            name=name,
+            metadata={"description": "旅游攻略向量数据库"}
+        )
     
     def add_guide(self, 
                   guide_id: str,
