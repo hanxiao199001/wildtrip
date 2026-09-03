@@ -159,3 +159,20 @@ canvas/
 *.pptx
 昨日攻略预览.md
 test_*output*.html
+
+# ========================================
+# 运行时数据（2026-08-28 治理新增，不应入库）
+# ========================================
+backend/data/chroma_db/
+data/chroma_db/
+data/clicks/
+data/user_guides/
+data/users/
+backend/data/daily_reports/
+backend/data/daily_topics/
+backend/data/topics/
+web/guides/guide-*.html
+.venv/
+
+# image-fetcher 运行时配置（含 API key，不入库）
+skills/image-fetcher/image-config.json

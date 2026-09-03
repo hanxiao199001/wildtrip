@@ -330,13 +330,10 @@ def _load_metadata_map():
     """加载 metadata.json，返回 slug→元数据 映射"""
     metadata_map = {}
     metadata_path = get_guides_dir() / 'metadata.json'
-    if metadata_path.exists():
-        try:
-            meta_list = json.loads(metadata_path.read_text(encoding='utf-8'))
-            for m in meta_list:
-                metadata_map[m.get('slug', '')] = m
-        except Exception as e:
-            logger.warning(f"加载metadata.json失败: {e}")
+    from services.json_storage import read_json
+    meta_list = read_json(metadata_path, default=[])
+    for m in meta_list:
+        metadata_map[m.get('slug', '')] = m
     return metadata_map
 
 

@@ -109,8 +109,8 @@ class AnalyticsDashboard:
             return {}
         
         try:
-            with open(self.metadata_file, 'r', encoding='utf-8') as f:
-                metadata = json.load(f)
+            from services.json_storage import read_json
+            metadata = read_json(self.metadata_file, default={})
             
             guides = metadata.get('guides', [])
             

@@ -22,7 +22,8 @@ def verify_wechat_signature(params):
     echostr = params.get('echostr', '')
     
     # TODO: 从数据库读取酒店的 token
-    token = "wildtrip_saas_token"  # 临时写死，后续从配置读取
+    import os
+    token = os.getenv('WECHAT_SAAS_TOKEN', '')  # 从 .env 读取，不再硬编码
     
     # 字典序排序
     tmp_list = [token, timestamp, nonce]

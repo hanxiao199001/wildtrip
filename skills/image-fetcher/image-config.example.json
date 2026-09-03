@@ -1,0 +1,7 @@
+{
+  "pexels": {
+    "apiKey": "<你的 Pexels API key>"
+  },
+  "output": "./images/",
+  "orientation": "landscape"
+}
