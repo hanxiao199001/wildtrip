@@ -173,3 +173,6 @@ backend/data/daily_topics/
 backend/data/topics/
 web/guides/guide-*.html
 .venv/
+
+# image-fetcher 运行时配置（含 API key，不入库）
+skills/image-fetcher/image-config.json

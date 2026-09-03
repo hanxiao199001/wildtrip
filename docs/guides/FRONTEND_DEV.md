@@ -234,7 +234,7 @@ AI_BASE_URL=https://api.deepseek.com
 AI_MODEL=deepseek-chat
 
 # 美团联盟配置
-MEITUAN_APP_KEY=88bf3cea877d86afcb9dae583120432d
+MEITUAN_APP_KEY=<你的美团联盟签名密钥，见 .env，不入库>
 MEITUAN_SID=001
 
 # 服务器配置
